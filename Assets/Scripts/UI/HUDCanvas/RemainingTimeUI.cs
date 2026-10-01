@@ -1,14 +1,18 @@
 using UnityEngine;
 using TapTapGameJam.Core;
 
-public class RemainingTimeUI : MonoBehaviour
+namespace TapTapGameJam.UI
 {
-    [field: SerializeField] public TMPro.TextMeshProUGUI RemainingTimeText { get; private set; }
-    [field: SerializeField] private GamePhaseManager _gamePhaseManager;
-
-    private void Update()
+    public class RemainingTimeUI : MonoBehaviour
     {
-        int seconds = Mathf.CeilToInt(_gamePhaseManager.RemainingTime);
-        RemainingTimeText.text = $"{seconds / 60:00}:{seconds % 60:00}";
+        [field: SerializeField] public TMPro.TextMeshProUGUI RemainingTimeText { get; private set; }
+        [field: SerializeField] private GamePhaseManager _gamePhaseManager;
+
+        private void Update()
+        {
+            int seconds = Mathf.CeilToInt(_gamePhaseManager.RemainingTime);
+            RemainingTimeText.text = $"{seconds / 60:00}:{seconds % 60:00}";
+        }
     }
+
 }

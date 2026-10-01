@@ -17,10 +17,7 @@ namespace TapTapGameJam.Events
     /// <summary>
     /// 定义此事件的原因是，在打开背包时要处理的事项有点多，音效、游戏暂停、切换UI等，接收方多所以用事件总线来广播
     /// </summary>
-    public class InventoryControlEvent : IEvent
-    {
-        public InventoryControlEvent() { }
-    }
+
 
     public readonly struct GamePhaseChangedEvent : IEvent
     {
@@ -33,4 +30,23 @@ namespace TapTapGameJam.Events
             DayIndex = dayIndex;
         }
     }
+    public readonly struct BackpackEvent : IEvent
+    {
+        public bool IsOpen { get; }
+        public BackpackEvent(bool isOpen)
+        {
+            IsOpen = isOpen;
+        }
+    }
+    public readonly struct ESCMenuEvent : IEvent
+    {
+        // 负责通知打开游戏内ESC的菜单，此时应该停止游戏进行，直到菜单关闭
+        // 这里传达Bool值是为了区分打开还是关闭，这个必须在玩家侧确定，因为玩家输入侧还需要修改ActionMap的状态
+        public bool IsOpen { get; }
+        public ESCMenuEvent(bool isOpen)
+        {
+            IsOpen = isOpen;
+        }
+    }
+
 }

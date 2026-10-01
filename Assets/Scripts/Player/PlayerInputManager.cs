@@ -12,7 +12,8 @@ namespace TapTapGameJam.Player
         [SerializeField] private PlayerInput _playerInput;
 
         private PlayerBasic _player;
-
+        private bool _isESCMenuOpen = false; // 当前是否打开了ESC菜单
+        private bool _isBackpackOpen = false; // 当前是否打开了背包
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
@@ -70,22 +71,30 @@ namespace TapTapGameJam.Player
         }
         #endregion
         #region 控制背包
-        public void OnOpenBackpack(InputAction.CallbackContext context)
+        public void SwitchBackpackPanel(InputAction.CallbackContext context)
         {
             if (!context.performed)
             {
                 return;
             }
-            SwitchActionMap("UI");
-            EventPipeline.Publish(new InventoryControlEvent());
+            if (_isBackpackOpen)
+            {
+                // 如果ESC菜单打开着，就切换回玩家操作模式
+                SwitchActionMap("Player");
+                EventPipeline.Publish(new BackpackEvent(_isBackpackOpen));
+                _isBackpackOpen = !_isBackpackOpen;
+            }
+            else
+            {
+                SwitchActionMap("Backpack");
+                EventPipeline.Publish(new BackpackEvent(_isBackpackOpen));
+                _isBackpackOpen = !_isBackpackOpen;
+            }
         }
-        /// <summary>
-        /// 背包右上角的Exit按钮点击时调用此方法
-        /// </summary>
-        public void OnExitButtonClick()
+        public void SwitchBackpackPanel()
         {
             SwitchActionMap("Player");
-            EventPipeline.Publish(new InventoryControlEvent());
+            EventPipeline.Publish(new BackpackEvent());
         }
         public void OnCloseBackpack(InputAction.CallbackContext context)
         {
@@ -94,7 +103,36 @@ namespace TapTapGameJam.Player
                 return;
             }
             SwitchActionMap("Player");
-            EventPipeline.Publish(new InventoryControlEvent());
+            EventPipeline.Publish(new BackpackEvent());
+        }
+        #endregion
+        #region 打开ESC菜单
+        public void SwitchESCMenu(InputAction.CallbackContext context)
+        {
+            if (!context.performed)
+            {
+                return;
+            }
+            if(_isESCMenuOpen)
+            {
+                // 如果ESC菜单打开着，就切换回玩家操作模式
+                SwitchActionMap("Player");
+                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
+                _isESCMenuOpen = !_isESCMenuOpen;
+            }
+            else
+            {
+                SwitchActionMap("ESCMenu");
+                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
+                _isESCMenuOpen = !_isESCMenuOpen;
+            }
+        }
+        public void SwitchESCMenu()
+        {
+            // 这是打开时的UI按钮调用的函数，直接切换回玩家操作模式
+            SwitchActionMap("Player");
+            EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
+            _isESCMenuOpen = !_isESCMenuOpen;
         }
         #endregion
         #region 切换ActionMap
@@ -107,9 +145,14 @@ namespace TapTapGameJam.Player
                         _playerInput.SwitchCurrentActionMap("Player");
                         break;
                     }
-                case "UI":
+                case "ESCMenu":
                     {
-                        _playerInput.SwitchCurrentActionMap("UI");
+                        _playerInput.SwitchCurrentActionMap("ESCMenu");
+                        break;
+                    }
+                case "Backpack":
+                    {
+                        _playerInput.SwitchCurrentActionMap("Backpack");
                         break;
                     }
                 default:

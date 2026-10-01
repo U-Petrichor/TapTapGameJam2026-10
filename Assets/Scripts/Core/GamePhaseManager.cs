@@ -10,7 +10,7 @@ namespace TapTapGameJam.Core
     {
 
         private const float DAY_DURATION = 60f; // 白天持续时间，单位秒
-        private const float NIGHT_DURATION = 60f; // 夜晚持续时间，单位秒
+        private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
 
 
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
