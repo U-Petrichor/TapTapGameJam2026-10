@@ -1,0 +1,36 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Bb]uild/
+/[Bb]uilds/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# IDE generated files
+/.vs/
+/.idea/
+/.vscode/
+/*.csproj
+/*.sln
+/*.slnx
+/*.suo
+/*.user
+/*.userprefs
+/*.pidb
+/*.booproj
+/*.opendb
+/*.VC.db
+
+# Unity crash reports and exported packages
+/sysinfo.txt
+*.unitypackage
+
+# Local secrets and OS files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
