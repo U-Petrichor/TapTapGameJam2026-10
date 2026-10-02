@@ -18,8 +18,8 @@ namespace TapTapGameJam.Player
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
 
-        public event Action OnInteractPress;
-        public event Action<int> OnInteractionScroll; // 传入滚轮方向，1为向上，-1为向下
+        public event Action EventOnInteractPress;
+        public event Action<int> EventOnInteractionScroll; // 传入滚轮方向，1为向上，-1为向下
 
 
         private void Start()
@@ -48,7 +48,7 @@ namespace TapTapGameJam.Player
             {
                 return;
             }
-            OnInteractPress?.Invoke();
+            EventOnInteractPress?.Invoke();
         }
         public void OnMouseScroll(InputAction.CallbackContext context)
         {
@@ -62,11 +62,11 @@ namespace TapTapGameJam.Player
             float scrollValue = context.ReadValue<float>();
             if (scrollValue < 0f)
             {
-                OnInteractionScroll?.Invoke(1);
+                EventOnInteractionScroll?.Invoke(1);
             }
             else if (scrollValue > 0f)
             {
-                OnInteractionScroll?.Invoke(-1);
+                EventOnInteractionScroll?.Invoke(-1);
             }
         }
         #endregion
@@ -80,7 +80,7 @@ namespace TapTapGameJam.Player
             if (_isBackpackOpen)
             {
                 // 如果ESC菜单打开着，就切换回玩家操作模式
-                SwitchActionMap("Player");
+                SwitchActionMap("DayPlayer");
                 EventPipeline.Publish(new BackpackEvent(_isBackpackOpen));
                 _isBackpackOpen = !_isBackpackOpen;
             }
@@ -93,7 +93,7 @@ namespace TapTapGameJam.Player
         }
         public void SwitchBackpackPanel()
         {
-            SwitchActionMap("Player");
+            SwitchActionMap("DayPlayer");
             EventPipeline.Publish(new BackpackEvent());
         }
         public void OnCloseBackpack(InputAction.CallbackContext context)
@@ -102,7 +102,7 @@ namespace TapTapGameJam.Player
             {
                 return;
             }
-            SwitchActionMap("Player");
+            SwitchActionMap("DayPlayer");
             EventPipeline.Publish(new BackpackEvent());
         }
         #endregion
@@ -113,24 +113,27 @@ namespace TapTapGameJam.Player
             {
                 return;
             }
-            if(_isESCMenuOpen)
+            if (_isESCMenuOpen)
             {
                 // 如果ESC菜单打开着，就切换回玩家操作模式
-                SwitchActionMap("Player");
-                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
+                SwitchActionMap("DayPlayer");
                 _isESCMenuOpen = !_isESCMenuOpen;
+                // 发送事件，告诉其他系统现在ESC是关闭状态
+                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
+
             }
             else
             {
                 SwitchActionMap("ESCMenu");
-                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
                 _isESCMenuOpen = !_isESCMenuOpen;
+                // 发送事件，告诉其他系统现在ESC是打开状态，
+                EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
             }
         }
         public void SwitchESCMenu()
         {
             // 这是打开时的UI按钮调用的函数，直接切换回玩家操作模式
-            SwitchActionMap("Player");
+            SwitchActionMap("DayPlayer");
             EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
             _isESCMenuOpen = !_isESCMenuOpen;
         }
@@ -140,9 +143,14 @@ namespace TapTapGameJam.Player
         {
             switch (actionMapName)
             {
-                case "Player":
+                case "DayPlayer":
                     {
-                        _playerInput.SwitchCurrentActionMap("Player");
+                        _playerInput.SwitchCurrentActionMap("DayPlayer");
+                        break;
+                    }
+                case "NightPlayer":
+                    {
+                        _playerInput.SwitchCurrentActionMap("NightPlayer");
                         break;
                     }
                 case "ESCMenu":

@@ -23,13 +23,12 @@ namespace TapTapGameJam.Player
         private void OnEnable()
         {
             // 订阅交互按键
-            _inputManager.OnInteractPress += HandleInteract;
+            _inputManager.EventOnInteractPress += HandleInteract;
             // 订阅鼠标滚轮滑动
-            _inputManager.OnInteractionScroll += HandleMouseScroll;
+            _inputManager.EventOnInteractionScroll += HandleMouseScroll;
         }
         public void Register(IInteractable interactable)
         {
-            Debug.Log($"在注册了");
             // 1. 加入队列
             _candidates.Add(interactable);
             EventObjectAdded?.Invoke(interactable);

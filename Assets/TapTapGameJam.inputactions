@@ -3,7 +3,7 @@
     "name": "TapTapGameJam",
     "maps": [
         {
-            "name": "Player",
+            "name": "DayPlayer",
             "id": "999b5372-1580-4c72-b79e-da25b9cc35d3",
             "actions": [
                 {
@@ -310,6 +310,35 @@
                     "processors": "",
                     "groups": "",
                     "action": "B",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "NightPlayer",
+            "id": "49106a55-e879-46ea-8e98-1082f020c314",
+            "actions": [
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "87985f02-1ada-45d9-95c4-bdfd6219feaf",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "dd2a065d-d137-4151-8872-d241ef03843a",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

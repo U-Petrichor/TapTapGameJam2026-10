@@ -9,23 +9,22 @@ namespace TapTapGameJam.Core
     public class GamePhaseManager : MonoBehaviour
     {
 
-        private const float DAY_DURATION = 60f; // 白天持续时间，单位秒
+        private const float DAY_DURATION = 10f; // 白天持续时间，单位秒
         private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
-
+        public bool CouldWork = false;
 
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
         public float RemainingTime = 0f; // 当前阶段剩余时间
         public int DayIndex = 1; // 当前是第几天，从1开始计数
         
 
-        private void Start()
-        {
-            // TODO 暂时在这里初始化阶段为白天，后续要统一管理游戏进程
-            EnterPhase(GamePhase.Day);
-        }
         private void Update()
         {
-            if(CurrentPhase == GamePhase.Shopping)
+            if(CouldWork == false)
+            {
+                return;
+            }
+            if (CurrentPhase == GamePhase.Shopping)
             {
                 // 如果是购物阶段，就没有倒计时
                 return;
@@ -43,12 +42,11 @@ namespace TapTapGameJam.Core
             // 阶段结束，进入下一个阶段
             if (CurrentPhase == GamePhase.Day)
             {
-                EnterPhase(GamePhase.Shopping);
+                EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Shopping));
             }
             else if (CurrentPhase == GamePhase.Night)
             {
-                DayIndex++;
-                EnterPhase(GamePhase.Day);
+                EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
             }
         }
 
@@ -64,20 +62,10 @@ namespace TapTapGameJam.Core
                 GamePhase.Night => NIGHT_DURATION,
                 _ => 0f
             };
-            // -------------------------------------------- ↓当前阶段  ↓传入的新阶段 ↓自动更新的日期
-            EventPipeline.Publish(new GamePhaseChangedEvent(phase, DayIndex));
+            CurrentPhase = phase;
         }
         /// <summary>
         /// 购物时点击按钮主动结束，触发阶段切换事件
         /// </summary>
-        public void FinishShopping()
-        {
-            if(CurrentPhase != GamePhase.Shopping)
-            {
-                Debug.LogError($"[GamePhaseManager] 当前阶段不是购物阶段，无法结束购物");
-                return;
-            }
-            EnterPhase(GamePhase.Night);
-        }
     }
 }

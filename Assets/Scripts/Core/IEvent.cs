@@ -22,12 +22,10 @@ namespace TapTapGameJam.Events
     public readonly struct GamePhaseChangedEvent : IEvent
     {
         public GamePhase NewPhase { get; }
-        public int DayIndex { get; }
 
-        public GamePhaseChangedEvent(GamePhase newPhase, int dayIndex)
+        public GamePhaseChangedEvent(GamePhase newPhase)
         {
             NewPhase = newPhase;
-            DayIndex = dayIndex;
         }
     }
     public readonly struct BackpackEvent : IEvent
@@ -41,7 +39,9 @@ namespace TapTapGameJam.Events
     public readonly struct ESCMenuEvent : IEvent
     {
         // 负责通知打开游戏内ESC的菜单，此时应该停止游戏进行，直到菜单关闭
-        // 这里传达Bool值是为了区分打开还是关闭，这个必须在玩家侧确定，因为玩家输入侧还需要修改ActionMap的状态
+        // 这里的bool值代表当前这个事件要求ESCMenu是开启还是关闭
+        // 如果传进来是true，说明是打开ESCMenu
+        // 如果传进来是false，说明是关闭ESCMenu
         public bool IsOpen { get; }
         public ESCMenuEvent(bool isOpen)
         {
@@ -49,4 +49,53 @@ namespace TapTapGameJam.Events
         }
     }
 
+    /// <summary>
+    /// 用来传递变化后的金币数和变化值
+    /// </summary>
+    public readonly struct EventCoinsChange : IEvent
+    {
+        public int RemainingCoins { get; }
+        // TODO 这个变化值后续可以做动画
+        public int ChangeValue { get; }
+        public EventCoinsChange(int remainingCoins,int changeValue)
+        {
+            RemainingCoins = remainingCoins;
+            ChangeValue = changeValue;
+        }
+    }
+    /// <summary>
+    /// 用来传递变化后的营养值和变化值
+    /// </summary>
+    public readonly struct EventNutritionChange : IEvent
+    {
+        public int RemainingNutrition { get; }
+        // TODO 这个变化值后续可以做动画
+        public int ChangeValue { get; }
+        public EventNutritionChange(int remainingNutrition, int changeValue)
+        {
+            RemainingNutrition = remainingNutrition;
+            ChangeValue = changeValue;
+        }
+    }
+    public readonly struct EventCockroachCountChange : IEvent
+    {
+        public int RemainingCockroach { get; }
+        // TODO 这个变化值后续可以做动画
+        public int ChangeValue { get; }
+        public EventCockroachCountChange(int remainingCockroach, int changeValue)
+        {
+            RemainingCockroach = remainingCockroach;
+            ChangeValue = changeValue;
+        }
+    }
+    public readonly struct EventGameOver : IEvent
+    {
+        public bool IsWin { get; }
+        public string Reason { get; }
+        public EventGameOver(bool isWin,string reason)
+        {
+            IsWin = isWin;
+            Reason = reason;
+        }
+    }
 }

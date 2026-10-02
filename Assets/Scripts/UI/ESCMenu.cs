@@ -1,53 +1,101 @@
 using UnityEngine;
 using TapTapGameJam.Events;
+using UnityEngine.UI;
 
-public class ESCMenu : MonoBehaviour
+namespace TapTapGameJam.UI
 {
-    public static ESCMenu Instance { get; private set; }
-    private bool _isMenuOpen = false;
-    private void Awake()
+    public class ESCMenu : MonoBehaviour
     {
-        if (Instance != null && Instance != this)
+        public static ESCMenu Instance { get; private set; }
+        [SerializeField] private Button ContinueGameBtn;
+        [SerializeField] private Button RestartTheGameBtn;
+        [SerializeField] private Button SettingsBtn;
+        [SerializeField] private Button ReturnToMainMenuBtn;
+        [SerializeField] private Button ExitGameBtn;
+        private bool _isMenuOpen = false;
+        private void Awake()
         {
-            return;
-        }
-        Instance = this;
-        CloseESCMenu();
-    }
-    private void OnEnable()
-    {
-        EventPipeline.Subscribe<ESCMenuEvent>(HandleESCMenuEvent);
-    }
-    private void OnDisable()
-    {
-        EventPipeline.UnSubscribe<ESCMenuEvent>(HandleESCMenuEvent);
-    }
-    private void HandleESCMenuEvent(ESCMenuEvent evt)
-    {
-        if(_isMenuOpen)
-        {
+            if (Instance != null && Instance != this)
+            {
+                return;
+            }
+            Instance = this;
+            BindEvents();
             CloseESCMenu();
-            _isMenuOpen = false;
         }
-        else
+        private void BindEvents()
         {
-            OpenESCMenu();
-            _isMenuOpen = true;
+            // 在Insepctor中这个按钮还绑定了另一个事件
+            if (ContinueGameBtn != null) ContinueGameBtn.onClick.AddListener(() => EventPipeline.Publish<ESCMenuEvent>(new ESCMenuEvent(false)));
+            // if (RestartTheGameBtn != null) RestartTheGameBtn.onClick.AddListener(() => UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name));
+            // if(SettingsBtn!=null) SettingsBtn.onClick.AddListener(() => EventPipeline.Publish(new SettingsMenuEvent(true)));
+            if (ReturnToMainMenuBtn != null) ReturnToMainMenuBtn.onClick.AddListener(ReturnToMainMenu);
+            if (ExitGameBtn != null) ExitGameBtn.onClick.AddListener(ExitGame);
+        }
+        private void OnEnable()
+        {
+            EventPipeline.Subscribe<ESCMenuEvent>(HandleESCMenuEvent);
+        }
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<ESCMenuEvent>(HandleESCMenuEvent);
+        }
+        private void OnDestroy()
+        {
+            if (ContinueGameBtn != null) ContinueGameBtn.onClick.RemoveAllListeners();
+            if (RestartTheGameBtn != null) RestartTheGameBtn.onClick.RemoveAllListeners();
+            if (SettingsBtn != null) SettingsBtn.onClick.RemoveAllListeners();
+            if (ReturnToMainMenuBtn != null) ReturnToMainMenuBtn.onClick.RemoveAllListeners();
+            if (ExitGameBtn != null) ExitGameBtn.onClick.RemoveAllListeners();
+        }
+        private void HandleESCMenuEvent(ESCMenuEvent evt)
+        {
+            if (evt.IsOpen)
+            {
+                OpenESCMenu();
+                _isMenuOpen = true;
+            }
+            else
+            {
+                CloseESCMenu();
+                _isMenuOpen = false;
+            }
+        }
+        public void OpenESCMenu()
+        {
+            foreach (Transform child in transform)
+            {
+                // 选择激活每一个子物体，否则关闭Canvas_Settings_Menu之后无法再次打开
+                child.gameObject.SetActive(true);
+            }
+        }
+        public void CloseESCMenu()
+        {
+            foreach (Transform child in transform)
+            {
+                child.gameObject.SetActive(false);
+            }
+        }
+        private void RestartTheGame()
+        {
+            // 还没设计怎么重开游戏
+            // UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        }
+        private void OpenSettingsMenu()
+        {
+            // 这里添加打开设置菜单的逻辑
+        }
+        private void ReturnToMainMenu()
+        {
+            // 这里可以添加返回主菜单的逻辑，比如加载主菜单场景
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        }
+        private void ExitGame()
+        {
+            // 这里应该还有个弹窗询问玩家是否直接退出游戏，否则玩家误触损失很大
+            // 但是还没搞
+            Application.Quit();
         }
     }
-    public void OpenESCMenu()
-    {
-        foreach (Transform child in transform)
-        {
-            // 选择激活每一个子物体，否则关闭Canvas_Settings_Menu之后无法再次打开
-            child.gameObject.SetActive(true);
-        }
-    }
-    public void CloseESCMenu()
-    {
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(false);
-        }
-    }
+
 }
