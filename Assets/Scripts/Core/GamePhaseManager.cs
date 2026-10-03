@@ -9,7 +9,7 @@ namespace TapTapGameJam.Core
     public class GamePhaseManager : MonoBehaviour
     {
 
-        private const float DAY_DURATION = 10f; // 白天持续时间，单位秒
+        private const float DAY_DURATION = 90f; // 白天持续时间，单位秒
         private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
         public bool CouldWork = false;
 

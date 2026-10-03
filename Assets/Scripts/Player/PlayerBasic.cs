@@ -13,6 +13,7 @@ namespace TapTapGameJam.Player
 
 
         public IdleState Idle { get; private set; }
+        public HappyIdleState HappyIdle { get; private set; }
         public MoveState Move { get; private set; }
         public DeathState Death { get; private set; }
         private void Awake()
@@ -20,6 +21,7 @@ namespace TapTapGameJam.Player
             // 初始化玩家拥有的状态机与状态实例
             StateMachine = new PlayerStateMachine();
             Idle = new IdleState(this);
+            HappyIdle = new HappyIdleState(this);
             Move = new MoveState(this);
             Death = new DeathState(this);
         }

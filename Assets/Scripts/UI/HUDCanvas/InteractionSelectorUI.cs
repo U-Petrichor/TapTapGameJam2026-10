@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using TapTapGameJam.Events;
 using TapTapGameJam.Interactable;
 using TapTapGameJam.Player;
+using TapTapGameJam.Types;
 using UnityEngine;
 
 namespace TapTapGameJam.UI
@@ -12,7 +14,16 @@ namespace TapTapGameJam.UI
         [SerializeField] private InteractionObjectUI interactionObjectPrefab;
         private Dictionary<IInteractable, InteractionObjectUI> _uiDictionary = new();
         private InteractionObjectUI prevSelectedUI = null;
+        private CanvasGroup _canvasGroup;
 
+        private void Awake()
+        {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+            {
+                Debug.LogError($"[InteractionSelectorUI]:没有配置CanvasGroup");
+            }
+        }
         private void Start()
         {
             if (interactionManager == null)
@@ -36,6 +47,8 @@ namespace TapTapGameJam.UI
                 interactionManager.EventObjectDeleted += OnObjectDeleted;
                 interactionManager.EventTargetChanged += OnTargetChanged;
             }
+            EventPipeline.Subscribe<EventPlayMiniGame>(OnPlayMiniGame);
+            EventPipeline.Subscribe<GamePhaseChangedEvent>(OnGamePhaseChange);
         }
 
         private void OnDisable()
@@ -43,6 +56,8 @@ namespace TapTapGameJam.UI
             interactionManager.EventObjectAdded -= OnObjectAdded;
             interactionManager.EventObjectDeleted -= OnObjectDeleted;
             interactionManager.EventTargetChanged -= OnTargetChanged;
+            EventPipeline.UnSubscribe<EventPlayMiniGame>(OnPlayMiniGame);
+            EventPipeline.UnSubscribe<GamePhaseChangedEvent>(OnGamePhaseChange);
         }
         private void OnObjectAdded(IInteractable interactable)
         {
@@ -73,6 +88,27 @@ namespace TapTapGameJam.UI
             _uiDictionary.TryGetValue(interactable, out InteractionObjectUI ui);
             ui.OnSelected();
             prevSelectedUI = ui;
+        }
+        private void OnPlayMiniGame(EventPlayMiniGame evt)
+        {
+            if (evt.IsStart == true)
+            {
+                // 小游戏刚开始，这个UI要隐藏
+                _canvasGroup.alpha = 0;
+            }
+            else
+            {
+                // 小游戏结束的时候，这个UI要呈现出来
+                _canvasGroup.alpha = 1;
+            }
+        }
+        private void OnGamePhaseChange(GamePhaseChangedEvent evt)
+        {
+            if (evt.NewPhase == GamePhase.Shopping)
+            {
+                // 进入商店时这个UI要隐藏
+                _canvasGroup.alpha = 0;
+            }
         }
     }
 }

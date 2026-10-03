@@ -5,8 +5,7 @@ namespace TapTapGameJam.Player
     public class IdleState : PlayerStateBase
     {
         private float _idleTimer;
-        private const float CHANGE_IDLE = 15f;
-        public override bool CanStartAttack => true;
+        private const float CHANGE_IDLE = 10f;
         public IdleState(PlayerBasic owner) : base(owner) { }
 
         public override void Enter()
@@ -28,6 +27,7 @@ namespace TapTapGameJam.Player
             if(_idleTimer> CHANGE_IDLE)
             {
                 // 这里应播放另一种Idle动画，同时将时间清0
+                StateMachine.ChangeState(Owner.HappyIdle);
                 _idleTimer = 0f;
             }
 

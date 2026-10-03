@@ -11,6 +11,15 @@ namespace TapTapGameJam.Player
         [Tooltip("营养值")]
         [field: SerializeField] public int Nutrition { get; private set; } = 0;
 
+        [field: SerializeField] public int CoffeeCount { get; private set; } = 0;
+
+        // 一次完整制作结束时获得一份咖啡，取消或超时不调用。
+        public void AddCoffee()
+        {
+            CoffeeCount++;
+            EventPipeline.Publish(new EventCoffeeCountChange(CoffeeCount));
+        }
+
         public void AddCoins(int amount)
         {
             Coins += amount;

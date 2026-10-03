@@ -25,7 +25,7 @@ namespace TapTapGameJam.UI
         }
         private void BindEvents()
         {
-            // 在Insepctor中这个按钮还绑定了另一个事件
+            // 在Insepctor中这个按钮还绑定了另一个方法，那个方法负责让玩家切回
             if (ContinueGameBtn != null) ContinueGameBtn.onClick.AddListener(() => EventPipeline.Publish<ESCMenuEvent>(new ESCMenuEvent(false)));
             // if (RestartTheGameBtn != null) RestartTheGameBtn.onClick.AddListener(() => UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name));
             // if(SettingsBtn!=null) SettingsBtn.onClick.AddListener(() => EventPipeline.Publish(new SettingsMenuEvent(true)));
@@ -65,7 +65,6 @@ namespace TapTapGameJam.UI
         {
             foreach (Transform child in transform)
             {
-                // 选择激活每一个子物体，否则关闭Canvas_Settings_Menu之后无法再次打开
                 child.gameObject.SetActive(true);
             }
         }

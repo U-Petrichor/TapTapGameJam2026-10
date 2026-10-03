@@ -43,11 +43,6 @@ namespace TapTapGameJam.Core
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
         private void HandleGamePhaseChanged(GamePhaseChangedEvent evt)
         {
             switch (evt.NewPhase)

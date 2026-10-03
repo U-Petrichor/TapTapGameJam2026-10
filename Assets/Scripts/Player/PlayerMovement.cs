@@ -9,6 +9,7 @@ namespace TapTapGameJam.Player
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] private Rigidbody _rigidbody;
+        [Tooltip("拖入实际输出画面的 Main Camera（带 Camera 和 CinemachineBrain 的物体）。移动方向按它的世界朝向计算，不要拖入 CamerachineManager 父物体。")]
         [SerializeField] private Transform _camTransform;
         [SerializeField] private PlayerBasic _player;
         [SerializeField] private float _rotationSpeed = 360f;
@@ -59,7 +60,7 @@ namespace TapTapGameJam.Player
                 _rigidbody.linearVelocity.y,
                 MoveDirection.y * _moveSpeed
             );
-            // UpdateMoveAnimation();
+            UpdateMoveAnimation();
         }
 
 

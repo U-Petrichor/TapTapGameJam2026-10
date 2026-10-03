@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using TapTapGameJam.Player;
 using UnityEngine;
+using TapTapGameJam.Coffee;
 
 namespace TapTapGameJam.Interactable
 {
     public class TaskMakeCoffee : MonoBehaviour, IInteractable
     {
+        [SerializeField] private CoffeeMinigameManager _coffeeMinigame;
         public string InteractionPrompt => $"按 E 制作咖啡";
         private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
 
@@ -18,7 +20,9 @@ namespace TapTapGameJam.Interactable
         public bool CanInteract(PlayerBasic player)
         {
             // TODO 这里可以添加一些条件，例如后续玩家如果没有收到这个任务就不能制作咖啡
-            return true;
+            return _coffeeMinigame != null && _coffeeMinigame.isActiveAndEnabled &&
+                !_coffeeMinigame.IsRunning && player != null &&
+                player.InputManager != null ;
         }
 
         public void Interact(PlayerBasic player)
@@ -26,7 +30,8 @@ namespace TapTapGameJam.Interactable
             if (!CanInteract(player))
                 return;
 
-            // TODO 下面要添加制作咖啡时，打开小游戏界面的窗口
+            // 交互入口只通知小游戏开始，镜头和步骤由控制器负责。
+            _coffeeMinigame.Begin(player);
         }
 
         public void OnTriggerEnter(Collider other)

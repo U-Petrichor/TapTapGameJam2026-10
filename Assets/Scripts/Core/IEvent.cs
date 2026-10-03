@@ -15,9 +15,17 @@ namespace TapTapGameJam.Events
     }
 
     /// <summary>
-    /// 定义此事件的原因是，在打开背包时要处理的事项有点多，音效、游戏暂停、切换UI等，接收方多所以用事件总线来广播
+    /// 这个事件目前主要是让部分UI在小游戏阶段隐藏，目前只在白天使用
+    /// true=小游戏开始，false=小游戏结束
     /// </summary>
-
+    public readonly struct EventPlayMiniGame : IEvent
+    {
+        public bool IsStart { get; }
+        public EventPlayMiniGame(bool isStart)
+        {
+            IsStart = isStart;
+        }
+    }
 
     public readonly struct GamePhaseChangedEvent : IEvent
     {
@@ -88,6 +96,12 @@ namespace TapTapGameJam.Events
             ChangeValue = changeValue;
         }
     }
+    public readonly struct EventCoffeeCountChange : IEvent
+    {
+        public int CoffeeCount { get; }
+        public EventCoffeeCountChange(int coffeeCount) => CoffeeCount = coffeeCount;
+    }
+
     public readonly struct EventGameOver : IEvent
     {
         public bool IsWin { get; }

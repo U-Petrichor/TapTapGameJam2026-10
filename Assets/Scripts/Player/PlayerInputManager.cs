@@ -14,12 +14,14 @@ namespace TapTapGameJam.Player
         private PlayerBasic _player;
         private bool _isESCMenuOpen = false; // 当前是否打开了ESC菜单
         private bool _isBackpackOpen = false; // 当前是否打开了背包
+        private bool _isCtrlPressed = false; // 当前是否按下了Ctrl键
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
 
         public event Action EventOnInteractPress;
         public event Action<int> EventOnInteractionScroll; // 传入滚轮方向，1为向上，-1为向下
+        public event Action<int> EventOnCameraScroll; // 传入滚轮方向，1为靠近，-1为远离
 
 
         private void Start()
@@ -60,13 +62,35 @@ namespace TapTapGameJam.Player
                 return;
             }
             float scrollValue = context.ReadValue<float>();
+
             if (scrollValue < 0f)
             {
-                EventOnInteractionScroll?.Invoke(1);
+                if (_isCtrlPressed == true)
+                {
+                    EventOnInteractionScroll?.Invoke(1);
+                }
+                else
+                {
+                    EventOnCameraScroll?.Invoke(1);
+                }
             }
             else if (scrollValue > 0f)
             {
-                EventOnInteractionScroll?.Invoke(-1);
+                if(_isCtrlPressed == true)
+                {
+                    EventOnInteractionScroll?.Invoke(-1);
+                }
+                else
+                {
+                    EventOnCameraScroll?.Invoke(-1);
+                }
+            }
+        }
+        public void OnCtrlPressed(InputAction.CallbackContext context)
+        {
+            if (context.performed || context.canceled)
+            {
+                _isCtrlPressed = context.ReadValueAsButton();
             }
         }
         #endregion

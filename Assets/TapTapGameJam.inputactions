@@ -55,6 +55,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Ctrl",
+                    "type": "Button",
+                    "id": "33ad2ab1-f610-46fb-98bb-c7843a418b69",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -233,6 +243,17 @@
                     "action": "ESC",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d14e49aa-6b4b-4e6e-877a-7ecf9e9e60d2",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Ctrl",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -310,35 +331,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "B",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                }
-            ]
-        },
-        {
-            "name": "NightPlayer",
-            "id": "49106a55-e879-46ea-8e98-1082f020c314",
-            "actions": [
-                {
-                    "name": "New action",
-                    "type": "Button",
-                    "id": "87985f02-1ada-45d9-95c4-bdfd6219feaf",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false,
-                    "priority": 0
-                }
-            ],
-            "bindings": [
-                {
-                    "name": "",
-                    "id": "dd2a065d-d137-4151-8872-d241ef03843a",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
