@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TapTapGameJam.Cockroach;
 using TapTapGameJam.Items;
 using UnityEngine;
 
@@ -38,8 +39,8 @@ namespace TapTapGameJam.Core
         public int bagHeight = 4;
 
         // 场上所有还活着的物品（含已进背包的）
-        public List<PickableItem> PickableItems { get; private set; }  = new List<PickableItem>();
-
+        public List<PickableItem> PickableItemList { get; private set; }  = new List<PickableItem>();
+        
 
         private void Awake()
         {
@@ -58,12 +59,12 @@ namespace TapTapGameJam.Core
 
         public void Register(PickableItem item)
         {
-            if (item == null || PickableItems.Contains(item))
+            if (item == null || PickableItemList.Contains(item))
             {
                 return;
             }
 
-            PickableItems.Add(item);
+            PickableItemList.Add(item);
             Debug.Log("Registered PickableItem: " + item.name);
             // TODO: 后续背包 UI / 蟑螂 AI 需要知道物品列表变了，可以在这里发事件广播
         }
@@ -75,13 +76,13 @@ namespace TapTapGameJam.Core
                 return;
             }
 
-            PickableItems.Remove(item);
+            PickableItemList.Remove(item);
         }
 
         #endregion
 
         #region 拾取
-        // TODO: 拾取整块都交给背包而不是ItemManager
+        // TODO: 拾取整块都交给背包来做，而不是ItemManager
 
         /// <summary>
         /// 尝试把地图上的物品收进背包。
@@ -126,7 +127,7 @@ namespace TapTapGameJam.Core
         {
             List<PickableItem> result = new List<PickableItem>();
 
-            foreach (PickableItem item in PickableItems)
+            foreach (PickableItem item in PickableItemList)
             {
                 if (item != null && item.IsOnMap)
                 {
@@ -143,7 +144,7 @@ namespace TapTapGameJam.Core
         public IReadOnlyList<FoodItem> GetFoodOnMap()
         {
             List<FoodItem> result = new List<FoodItem>();
-            foreach (PickableItem item in PickableItems)
+            foreach (PickableItem item in PickableItemList)
             {
                 if (item != null && item is FoodItem food && item.IsOnMap)
                 {

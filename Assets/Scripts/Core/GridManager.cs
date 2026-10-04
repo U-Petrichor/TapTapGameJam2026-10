@@ -1,4 +1,4 @@
-using System;
+using TapTapGameJam.Cockroach;
 using UnityEngine;
 
 
@@ -9,6 +9,22 @@ namespace TapTapGameJam.Core
     {
         TileEmpty,
         TileWall
+    }
+
+    /// <summary>
+    /// 信息素通道。PFood / PHome / PPlayer / PDanger 四个场各对应一路。
+    /// </summary>
+    public enum PheromoneKind
+    {
+        None,
+        /// <summary>觅食信息素：发现食物后沿途留下的"这里有吃的"</summary>
+        Food,
+        /// <summary>归巢信息素：带着食物回巢时留下的路标</summary>
+        Home,
+        /// <summary>玩家通道：玩家留下的气味，衰减速率独立</summary>
+        Player,
+        /// <summary>危险通道：有看守 / 死过蟑螂的地方</summary>
+        Danger
     }
 
     /// <summary>
@@ -31,22 +47,55 @@ namespace TapTapGameJam.Core
 
     public class GridManager : MonoBehaviour
     {
+        
+        [Header("网格配置")] 
+        [Tooltip("网格的列数 (X轴方向)")] public int width = 10;
+        [Tooltip("网格的行数 (Z轴方向)")] public int height = 10;
+
+        private Transform _proxyObject;
+
+        [Header("墙体探测")] [Tooltip("墙壁所在的物理层，TraceMapStateFromWall 只认这一层")]
+        public LayerMask wallLayer;
+
+        public float[,] PFood;
+        public float[,] PHome;
+        public float[,] PPlayer;
+        public float[,] PDanger;
+        public TileState[,] MapState;
+
+        // 单元格实际物理尺寸
+        private float _cellWidth;
+        private float _cellHeight;
+
+        /// <summary>
+        /// 信息素衰减/扩散用的临时缓冲，复用以避免每帧 new 一个二维数组
+        /// </summary>
+        private float[,] _pheromoneTemp;
+
+        private CockroachManager _cockroachManager;
+
+        /// <summary>
+        /// 单元格的实际物理尺寸。x = 列宽，y = 行高（世界 Z 方向）
+        /// </summary>
+        public Vector2 CellSize => new Vector2(_cellWidth, _cellHeight);
+
+        
         private bool IsValid(int x, int y)
         {
             return x >= 0 && y >= 0 && x < width && y < height;
         }
 
         /// <summary>
-        /// 获取网格左下角的物理世界坐标起始点
+        /// 获取网格左下角的物理世界坐标起始点（XZ 平面）
         /// </summary>
-        private Vector3 GetGridOrigin()
+        private Vector2 GetGridOrigin()
         {
             Vector3 pos = _proxyObject.position;
             float totalWidth = _proxyObject.localScale.x * 10f;
             float totalHeight = _proxyObject.localScale.z * 10f;
 
             // 假设代理物体中心在原点，计算出左下角的世界坐标
-            return new Vector3(pos.x - totalWidth / 2f, pos.y, pos.z - totalHeight / 2f);
+            return new Vector2(pos.x - totalWidth / 2f, pos.z - totalHeight / 2f);
         }
 
         private void OnDrawGizmos()
@@ -93,29 +142,12 @@ namespace TapTapGameJam.Core
             }
         }
 
-        [Header("网格配置")] 
-        [Tooltip("网格的列数 (X轴方向)")] public int width = 10;
-        [Tooltip("网格的行数 (Z轴方向)")] public int height = 10;
-
-        private Transform _proxyObject;
-
-        [Header("墙体探测")] [Tooltip("墙壁所在的物理层，TraceMapStateFromWall 只认这一层")]
-        public LayerMask wallLayer;
-
-        public float[,] PFood;
-        public float[,] PHome;
-        public float[,] PPlayer;
-        public float[,] PDanger;
-        public TileState[,] MapState;
-
-        // 单元格实际物理尺寸
-        private float _cellWidth;
-        private float _cellHeight;
-
         private void Awake()
         {
             _instance = this;
             InitGrid();
+            _pheromoneTemp = new float[width, height];
+            _cockroachManager = CockroachManager.Instance;
         }
 
         private void OnDestroy()
@@ -124,6 +156,16 @@ namespace TapTapGameJam.Core
             {
                 _instance = null;
             }
+        }
+
+        /// <summary>
+        /// 每帧推进信息素：线性衰减 + 扩散。
+        /// 衰减参数从 CockroachManager 的寻路配置里取。
+        /// </summary>
+        private void Update()
+        {
+            CockroachSettings settings = _cockroachManager.cockroachSetting;
+            TickPheromones(Time.deltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
         }
 
         /// <summary>
@@ -165,8 +207,8 @@ namespace TapTapGameJam.Core
             {
                 for (int y = 0; y < height; y++)
                 {
-                    Vector3 center = GridToWorld(new Vector2Int(x, y));
-                    Vector3 start = new Vector3(center.x, center.y + 0.5f, center.z);
+                    Vector2 center = GridToWorld(new Vector2Int(x, y));
+                    Vector3 start = new Vector3(center.x, _proxyObject.position.y + 0.5f, center.y);
 
                     bool isWall = Physics.Raycast(start, Vector3.up, 200.0f, wallLayer);
 
@@ -179,29 +221,50 @@ namespace TapTapGameJam.Core
             }
 
             Debug.Log($"[GridManager]：墙体探测完成，{width * height} 个格子中有 {wallCount} 个是墙");
+
+            // 墙体变了，离墙距离场必须重算
+            RefreshWallDistance();
         }
 
         /// <summary>
         /// 网格射线步进检测（2D DDA，类似 Amanatides &amp; Woo 算法）。
-        /// maxT 的单位是格子数：maxT = 5 表示"最多走 5 格"。
         /// 起点所在格子会被检测（如果一开始就在墙里，Distance 为 0，法线为 zero）。
         /// </summary>
-        /// <param name="worldPos">射线起点（世界坐标）</param>
-        /// <param name="direction">射线方向（世界坐标）</param>
-        /// <param name="maxT">最大步进距离，单位是格子数</param>
-        public GridRayHit RayHitGrid(Vector3 worldPos, Vector2 direction, float maxT)
+        /// <param name="worldPos">射线起点（世界 XZ 平面）</param>
+        /// <param name="direction">射线方向（世界 XZ 平面，不需要归一化）</param>
+        /// <param name="maxDistance">最大行进距离，单位是<b>世界单位</b>（不是格子数）</param>
+        public GridRayHit RayHitGrid(Vector2 worldPos, Vector2 direction, float maxDistance)
         {
             var result = new GridRayHit();
 
             // 把起点世界坐标换成"格子坐标系"：整数部分就是格子索引
-            Vector3 origin = GetGridOrigin();
+            Vector2 origin = GetGridOrigin();
             float px = (worldPos.x - origin.x) / _cellWidth;
-            float py = (worldPos.z - origin.z) / _cellHeight;
+            float py = (worldPos.y - origin.y) / _cellHeight;
 
-            // 方向也换到格子坐标系：dx 表示"每走 1 格，x 变化多少"
-            direction = direction.normalized;
-            float dx = direction.x / _cellWidth;
-            float dy = direction.y / _cellHeight;
+            // 方向也换到格子坐标系：gx 表示"沿 x 走 1 格时，格子坐标变化多少"
+            float gx = direction.x / _cellWidth;
+            float gy = direction.y / _cellHeight;
+            float glen = Mathf.Sqrt(gx * gx + gy * gy);
+
+            if (glen < 1e-6f)
+            {
+                // 方向退化：只检测起点所在格子
+                Vector2Int only = new Vector2Int(Mathf.FloorToInt(px), Mathf.FloorToInt(py));
+                result.HitPos = only;
+                result.IsBlocked = IsBlocked(only);
+                return result;
+            }
+
+            // 关键：归一化必须在"格子坐标系"里做，这样参数 t 就直接是"走了几格"。
+            // 若在世界空间归一化后再除以格子尺寸，格子不是正方形时步进长度就不一致了。
+            gx /= glen;
+            gy /= glen;
+
+            // 世界空间里每前进一个 t，实际走了多少距离（DDA 单步长度）
+            float stepWorldLen = Mathf.Sqrt(
+                (gx * _cellWidth) * (gx * _cellWidth) +
+                (gy * _cellHeight) * (gy * _cellHeight));
 
             int cellX = Mathf.FloorToInt(px);
             int cellY = Mathf.FloorToInt(py);
@@ -216,19 +279,21 @@ namespace TapTapGameJam.Core
             }
 
             // step 是格子索引的步进方向；tDelta 是走满一整格在参数 t 上需要多少
-            int stepX = dx > 0f ? 1 : (dx < 0f ? -1 : 0);
-            int stepY = dy > 0f ? 1 : (dy < 0f ? -1 : 0);
-            float tDeltaX = stepX != 0 ? Mathf.Abs(1f / dx) : float.PositiveInfinity;
-            float tDeltaY = stepY != 0 ? Mathf.Abs(1f / dy) : float.PositiveInfinity;
+            int stepX = gx > 0f ? 1 : (gx < 0f ? -1 : 0);
+            int stepY = gy > 0f ? 1 : (gy < 0f ? -1 : 0);
+            float tDeltaX = stepX != 0 ? Mathf.Abs(1f / gx) : float.PositiveInfinity;
+            float tDeltaY = stepY != 0 ? Mathf.Abs(1f / gy) : float.PositiveInfinity;
 
             // tMaxX / tMaxY：从起点出发，下一次跨过 x / y 方向格子边界的参数 t
-            float tMaxX = stepX > 0 ? (cellX + 1 - px) / dx
-                : stepX < 0 ? (cellX - px) / dx
+            float tMaxX = stepX > 0 ? (cellX + 1 - px) / gx
+                : stepX < 0 ? (cellX - px) / gx
                 : float.PositiveInfinity;
-            float tMaxY = stepY > 0 ? (cellY + 1 - py) / dy
-                : stepY < 0 ? (cellY - py) / dy
+            float tMaxY = stepY > 0 ? (cellY + 1 - py) / gy
+                : stepY < 0 ? (cellY - py) / gy
                 : float.PositiveInfinity;
 
+            // t 单位是格，乘以单步世界长度才是 worldDistance
+            float maxT = maxDistance / stepWorldLen;
             float lastT = 0f;
 
             // 每循环一次跨越一条格子边界。格子数有限，这里再加一层计数上限兜底，防止浮点异常导致死循环
@@ -244,21 +309,21 @@ namespace TapTapGameJam.Core
                     cellX += stepX;
                     tMaxX += tDeltaX;
                     // 跨过的是 x 方向的边界面，法线沿 x，指向射线来的一侧
-                    normal = new Vector2(-Mathf.Sign(dx), 0f);
+                    normal = new Vector2(-Mathf.Sign(gx), 0f);
                 }
                 else
                 {
                     t = tMaxY;
                     cellY += stepY;
                     tMaxY += tDeltaY;
-                    normal = new Vector2(0f, -Mathf.Sign(dy));
+                    normal = new Vector2(0f, -Mathf.Sign(gy));
                 }
 
                 if (t > maxT)
                 {
-                    // 还没走到墙就超出预算了，终点停在 maxT 处
+                    // 还没走到墙就超出预算了，终点停在预算处
                     result.HitPos = new Vector2Int(cellX, cellY);
-                    result.Distance = maxT;
+                    result.Distance = maxDistance;
                     return result;
                 }
 
@@ -266,7 +331,7 @@ namespace TapTapGameJam.Core
                 if (cellX < 0 || cellY < 0 || cellX >= width || cellY >= height)
                 {
                     result.HitPos = new Vector2Int(Mathf.Clamp(cellX, 0, width - 1), Mathf.Clamp(cellY, 0, height - 1));
-                    result.Distance = t;
+                    result.Distance = t * stepWorldLen;
                     return result;
                 }
 
@@ -274,7 +339,7 @@ namespace TapTapGameJam.Core
                 {
                     result.IsBlocked = true;
                     result.HitPos = new Vector2Int(cellX, cellY);
-                    result.Distance = t;
+                    result.Distance = t * stepWorldLen;
                     result.HitNormal = normal;
                     return result;
                 }
@@ -282,10 +347,25 @@ namespace TapTapGameJam.Core
                 lastT = t;
             }
 
-            Debug.LogWarning("[GridManager]：rayHitGrid 触发了步进上限，请检查 maxT 或网格尺寸");
+            Debug.LogWarning("[GridManager]：RayHitGrid 触发了步进上限，请检查 maxDistance 或网格尺寸");
             result.HitPos = new Vector2Int(Mathf.Clamp(cellX, 0, width - 1), Mathf.Clamp(cellY, 0, height - 1));
-            result.Distance = lastT;
+            result.Distance = lastT * stepWorldLen;
             return result;
+        }
+
+        /// <summary>
+        /// 两点之间是否有墙挡住（视线检测）。起点和终点所在格子本身不参与判定。
+        /// </summary>
+        public bool LosClear(Vector2 worldFrom, Vector2 worldTo)
+        {
+            Vector2 delta = worldTo - worldFrom;
+            float distance = delta.magnitude;
+            if (distance < 1e-4f)
+            {
+                return true;
+            }
+
+            return !RayHitGrid(worldFrom, delta, distance).IsBlocked;
         }
 
         /// <summary>
@@ -302,24 +382,24 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 1. 网格坐标转物理世界坐标（返回格子中心点）
+        /// 1. 网格坐标转物理世界坐标（返回格子中心点，XZ 平面）
         /// </summary>
-        public Vector3 GridToWorld(Vector2Int gridPos)
+        public Vector2 GridToWorld(Vector2Int gridPos)
         {
-            Vector3 origin = GetGridOrigin();
+            Vector2 origin = GetGridOrigin();
             float x = origin.x + (gridPos.x + 0.5f) * _cellWidth;
-            float z = origin.z + (gridPos.y + 0.5f) * _cellHeight;
-            return new Vector3(x, _proxyObject.position.y, z);
+            float z = origin.y + (gridPos.y + 0.5f) * _cellHeight;
+            return new Vector2(x, z);
         }
 
         /// <summary>
-        /// 2. 物理世界坐标转网格坐标
+        /// 2. 物理世界坐标（XZ 平面）转网格坐标
         /// </summary>
-        public Vector2Int WorldToGrid(Vector3 worldPos)
+        public Vector2Int WorldToGrid(Vector2 worldPos)
         {
-            Vector3 origin = GetGridOrigin();
+            Vector2 origin = GetGridOrigin();
             int x = Mathf.FloorToInt((worldPos.x - origin.x) / _cellWidth);
-            int y = Mathf.FloorToInt((worldPos.z - origin.z) / _cellHeight);
+            int y = Mathf.FloorToInt((worldPos.y - origin.y) / _cellHeight);
 
             // 限制在网格边界内
             x = Mathf.Clamp(x, 0, width - 1);
@@ -328,6 +408,367 @@ namespace TapTapGameJam.Core
             return new Vector2Int(x, y);
         }
 
+        #region 信息素场（PFood / PHome / PPlayer / PDanger）
+
+        /// <summary>
+        /// 采样下限：无信息素时的平局基准值，和参考实现里的 MIN_MARKER 一致
+        /// </summary>
+        public const float MinPheromone = 0.05f;
+
+        /// <summary>
+        /// 采样上限，防止无限叠加
+        /// </summary>
+        public const float MaxPheromone = 20000f;
+
+        /// <summary>
+        /// 格子中心到"最近墙体"的距离（单位：格），贴墙惩罚用。
+        /// 0 = 这格本身是墙。墙体变化后需要重新调用 RefreshWallDistance()。
+        /// </summary>
+        public float[,] WallDistance { get; private set; }
+
+        private static float[,] FieldOf(PheromoneKind kind, GridManager g)
+        {
+            switch (kind)
+            {
+                case PheromoneKind.Food: return g.PFood;
+                case PheromoneKind.Home: return g.PHome;
+                case PheromoneKind.Player: return g.PPlayer;
+                case PheromoneKind.Danger: return g.PDanger;
+                default: return null;
+            }
+        }
+
+        /// <summary>
+        /// 采样某通道在某世界坐标处的强度
+        /// </summary>
+        public float SamplePheromone(PheromoneKind kind, Vector2 worldPos)
+        {
+            float[,] field = FieldOf(kind, this);
+            if (field == null)
+            {
+                return 0f;
+            }
+
+            return SampleBilinear(field, worldPos);
+        }
+
+        /// <summary>
+        /// 按格子坐标采样
+        /// </summary>
+        public float SamplePheromone(PheromoneKind kind, Vector2Int cell)
+        {
+            float[,] field = FieldOf(kind, this);
+            if (field == null || !IsValid(cell.x, cell.y))
+            {
+                return 0f;
+            }
+
+            return field[cell.x, cell.y];
+        }
+
+        /// <summary>
+        /// 写入信息素。采用"刷新最大值"而不是累加，避免同一只蟑螂来回走把格子叠爆。
+        /// </summary>
+        /// <param name="smooth">true = 双线性摊到相邻 4 格中心（抗锯齿）；false = 只写单格</param>
+        public void WritePheromone(PheromoneKind kind, Vector2 worldPos, float intensity, bool smooth = true)
+        {
+            if (kind == PheromoneKind.None || intensity <= 0f)
+            {
+                return;
+            }
+
+            float[,] field = FieldOf(kind, this);
+            if (field == null)
+            {
+                return;
+            }
+
+            Vector2 origin = GetGridOrigin();
+            float gxf = (worldPos.x - origin.x) / _cellWidth;
+            float gyf = (worldPos.y - origin.y) / _cellHeight;
+
+            if (!smooth)
+            {
+                int cx = Mathf.FloorToInt(gxf);
+                int cy = Mathf.FloorToInt(gyf);
+                if (IsValid(cx, cy) && intensity > field[cx, cy])
+                {
+                    field[cx, cy] = Mathf.Min(intensity, MaxPheromone);
+                }
+
+                return;
+            }
+
+            // 和 refreshSmooth 一致：权重按最大项归一化，所以峰值强度不会损失
+            float u = gxf - 0.5f;
+            float v = gyf - 0.5f;
+            int x0 = Mathf.FloorToInt(u);
+            int y0 = Mathf.FloorToInt(v);
+            float fx = u - x0;
+            float fy = v - y0;
+
+            float w00 = (1f - fx) * (1f - fy);
+            float w10 = fx * (1f - fy);
+            float w01 = (1f - fx) * fy;
+            float w11 = fx * fy;
+            float wmax = Mathf.Max(Mathf.Max(w00, w10), Mathf.Max(w01, w11));
+            if (wmax <= 0f)
+            {
+                wmax = 1f;
+            }
+
+            PutMax(field, x0, y0, intensity * (w00 / wmax));
+            PutMax(field, x0 + 1, y0, intensity * (w10 / wmax));
+            PutMax(field, x0, y0 + 1, intensity * (w01 / wmax));
+            PutMax(field, x0 + 1, y0 + 1, intensity * (w11 / wmax));
+        }
+
+        private static void PutMax(float[,] field, int cx, int cy, float value)
+        {
+            if (value <= 0f || cx < 0 || cy < 0 || cx >= field.GetLength(0) || cy >= field.GetLength(1))
+            {
+                return;
+            }
+
+            if (value > field[cx, cy])
+            {
+                field[cx, cy] = Mathf.Min(value, MaxPheromone);
+            }
+        }
+
+        /// <summary>
+        /// 把一个通道在半径内整体清空 / 按比例削弱。factor=0 即彻底清空。
+        /// 食物被吃空时用它抹掉这一带的觅食信息素。
+        /// </summary>
+        public void ClearPheromoneInRadius(PheromoneKind kind, Vector2 worldCenter, float radius, float factor = 0f)
+        {
+            if (kind == PheromoneKind.None || radius <= 0f)
+            {
+                return;
+            }
+
+            float[,] field = FieldOf(kind, this);
+            if (field == null)
+            {
+                return;
+            }
+
+            Vector2 origin = GetGridOrigin();
+            float cxCenter = (worldCenter.x - origin.x) / _cellWidth;
+            float cyCenter = (worldCenter.y - origin.y) / _cellHeight;
+            float rCells = radius / Mathf.Min(_cellWidth, _cellHeight);
+
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(cxCenter - rCells));
+            int x1 = Mathf.Min(width - 1, Mathf.CeilToInt(cxCenter + rCells));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(cyCenter - rCells));
+            int y1 = Mathf.Min(height - 1, Mathf.CeilToInt(cyCenter + rCells));
+            float r2 = rCells * rCells;
+
+            for (int y = y0; y <= y1; y++)
+            {
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = x + 0.5f - cxCenter;
+                    float dy = y + 0.5f - cyCenter;
+                    if (dx * dx + dy * dy > r2)
+                    {
+                        continue;
+                    }
+
+                    float value = field[x, y] * factor;
+                    field[x, y] = value < MinPheromone ? 0f : value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 线性衰减 + 单向扩散一拍。
+        /// 各通道衰减速率不同：觅食最快失效（食物没了旧路线得赶紧消失）、危险次之、玩家通道最慢。
+        /// </summary>
+        /// <param name="dt">实际经过的时间</param>
+        /// <param name="baseDecay">基础线性衰减速率 /s（对应参考实现里的 pheromoneDecay）</param>
+        /// <param name="diffuse">扩散速率 0~1</param>
+        /// <param name="playerDecay">玩家通道的独立衰减速率 /s</param>
+        public void TickPheromones(float dt, float baseDecay, float diffuse, float playerDecay)
+        {
+            if (dt <= 0f)
+            {
+                return;
+            }
+
+            TickField(PFood, dt * baseDecay * 1.3f, diffuse);
+            TickField(PHome, dt * baseDecay, diffuse);
+            TickField(PDanger, dt * baseDecay * 2.2f, diffuse);
+            TickField(PPlayer, dt * playerDecay, diffuse);
+        }
+
+        private void TickField(float[,] field, float decay, float diffuse)
+        {
+            if (field == null)
+            {
+                return;
+            }
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    float v = field[x, y] - decay;
+                    field[x, y] = v < MinPheromone ? 0f : v;
+                }
+            }
+
+            if (diffuse <= 0f)
+            {
+                return;
+            }
+
+            // 可分离盒式模糊：先横向再纵向，避免每格 9 次采样
+            float[,] tmp = _pheromoneTemp;
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    float center = field[x, y];
+                    float left = x > 0 ? field[x - 1, y] : center;
+                    float right = x < width - 1 ? field[x + 1, y] : center;
+                    tmp[x, y] = (center * 2f + left + right) * 0.25f;
+                }
+            }
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    float center = tmp[x, y];
+                    float down = y > 0 ? tmp[x, y - 1] : center;
+                    float up = y < height - 1 ? tmp[x, y + 1] : center;
+                    float blurred = (center * 2f + down + up) * 0.25f;
+                    field[x, y] = field[x, y] + (blurred - field[x, y]) * diffuse;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 某世界坐标离最近墙体有多远（单位：格）。开阔处返回 >=4，贴墙接近 0。
+        /// </summary>
+        public float SampleWallDistance(Vector2 worldPos)
+        {
+            if (WallDistance == null)
+            {
+                RefreshWallDistance();
+            }
+
+            Vector2 origin = GetGridOrigin();
+            int x = Mathf.Clamp(Mathf.FloorToInt((worldPos.x - origin.x) / _cellWidth), 0, width - 1);
+            int y = Mathf.Clamp(Mathf.FloorToInt((worldPos.y - origin.y) / _cellHeight), 0, height - 1);
+            return WallDistance[x, y];
+        }
+
+        /// <summary>
+        /// 离墙权重：贴墙 ≈ 1-avoid，开阔处 = 1。采样点的贴墙惩罚就是乘上它。
+        /// </summary>
+        public float WallWeight(Vector2 worldPos, float avoid)
+        {
+            if (avoid <= 0f)
+            {
+                return 1f;
+            }
+
+            float d = SampleWallDistance(worldPos);
+            if (d >= 4f)
+            {
+                return 1f;
+            }
+
+            float t = d * 0.25f;
+            return 1f - avoid * (1f - t * t);
+        }
+
+        [ContextMenu("重算离墙距离场")]
+        public void RefreshWallDistance()
+        {
+            if (WallDistance == null)
+            {
+                WallDistance = new float[width, height];
+            }
+
+            // 两遍切角距离变换（chamfer 3-4）
+            const float diag = 1.4142f;
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    WallDistance[x, y] = MapState[x, y] == TileState.TileWall ? 0f : 1e6f;
+                }
+            }
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float d = WallDistance[x, y];
+                    if (x > 0 && WallDistance[x - 1, y] + 1f < d) d = WallDistance[x - 1, y] + 1f;
+                    if (y > 0)
+                    {
+                        if (WallDistance[x, y - 1] + 1f < d) d = WallDistance[x, y - 1] + 1f;
+                        if (x > 0 && WallDistance[x - 1, y - 1] + diag < d) d = WallDistance[x - 1, y - 1] + diag;
+                        if (x < width - 1 && WallDistance[x + 1, y - 1] + diag < d) d = WallDistance[x + 1, y - 1] + diag;
+                    }
+
+                    WallDistance[x, y] = d;
+                }
+            }
+
+            for (int y = height - 1; y >= 0; y--)
+            {
+                for (int x = width - 1; x >= 0; x--)
+                {
+                    float d = WallDistance[x, y];
+                    if (x < width - 1 && WallDistance[x + 1, y] + 1f < d) d = WallDistance[x + 1, y] + 1f;
+                    if (y < height - 1)
+                    {
+                        if (WallDistance[x, y + 1] + 1f < d) d = WallDistance[x, y + 1] + 1f;
+                        if (x < width - 1 && WallDistance[x + 1, y + 1] + diag < d) d = WallDistance[x + 1, y + 1] + diag;
+                        if (x > 0 && WallDistance[x - 1, y + 1] + diag < d) d = WallDistance[x - 1, y + 1] + diag;
+                    }
+
+                    WallDistance[x, y] = d;
+                }
+            }
+
+            // 世界边界也当成墙
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float border = Mathf.Min(Mathf.Min(x, width - 1 - x), Mathf.Min(y, height - 1 - y));
+                    if (border < WallDistance[x, y])
+                    {
+                        WallDistance[x, y] = border;
+                    }
+                }
+            }
+        }
+
+        private float SampleBilinear(float[,] field, Vector2 worldPos)
+        {
+            Vector2 origin = GetGridOrigin();
+            float u = (worldPos.x - origin.x) / _cellWidth - 0.5f;
+            float v = (worldPos.y - origin.y) / _cellHeight - 0.5f;
+            int x0 = Mathf.Clamp(Mathf.FloorToInt(u), 0, width - 1);
+            int y0 = Mathf.Clamp(Mathf.FloorToInt(v), 0, height - 1);
+            int x1 = Mathf.Clamp(x0 + 1, 0, width - 1);
+            int y1 = Mathf.Clamp(y0 + 1, 0, height - 1);
+            float fx = Mathf.Clamp01(u - x0);
+            float fy = Mathf.Clamp01(v - y0);
+
+            float top = Mathf.Lerp(field[x0, y0], field[x1, y0], fx);
+            float bottom = Mathf.Lerp(field[x0, y1], field[x1, y1], fx);
+            return Mathf.Lerp(top, bottom, fy);
+        }
+
+        #endregion
 
     }
 }
