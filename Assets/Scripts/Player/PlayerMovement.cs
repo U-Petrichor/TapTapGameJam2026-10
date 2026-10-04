@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using NUnit.Framework;
+using TapTapGameJam.Cockroach;
+using TapTapGameJam.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -28,6 +31,7 @@ namespace TapTapGameJam.Player
         private void FixedUpdate()
         {
             MovePlayer();
+            TryDepositAtNight();
         }
         /// <summary>
         /// 根据相机的方向确定Player移动方向
@@ -61,6 +65,19 @@ namespace TapTapGameJam.Player
                 MoveDirection.y * _moveSpeed
             );
             UpdateMoveAnimation();
+        }
+
+        public void TryDepositAtNight()
+        {
+            // TODO: 判断 GamePhase.Night
+            // 在夜晚，移动的同时释放玩家信息素
+            Assert.IsTrue(GridManager.Instance);
+            if (_rigidbody.linearVelocity.magnitude > 0.1f)
+            {
+                CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
+                GridManager.Instance.WritePheromone(PheromoneKind.Player, new Vector2(transform.position.x, transform.position.z),
+                    settings.MarkerMax, settings.MarkerRadius);
+            }
         }
 
 

@@ -10,8 +10,6 @@ using UnityEngine.Rendering;
 
 namespace TapTapGameJam.Cockroach
 {
-      // TODO: 接近Nest/Food直接转向
-      // TODO: 扩散性能优化 or 删除
     
     /// <summary>
     /// 蟑螂个体当下的行为状态
@@ -221,6 +219,7 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         public void Decide()
         {
+            Assert.IsTrue(nest);
             GridManager grid = GridManager.Instance;
 
             bool toReturn = currentState == CockroachState.Return;
@@ -229,7 +228,7 @@ namespace TapTapGameJam.Cockroach
             Vector2 pos = Position;
 
             // ---- Permanent：离目标足够近就直接看过去，不再采样 ----
-            if (toReturn && nest != null)
+            if (toReturn)
             {
                 Vector2 nestPos = nest.WorldPosition;
                 
@@ -261,11 +260,9 @@ namespace TapTapGameJam.Cockroach
             float triOffset = Mathf.Min(_settings.DetectCone * 0.5f, 0.7f);
 
             // 归巢时尽量选"离巢更近"的方向，刚出巢散开时选更远的（都绕开障碍）
-            float homeDist = nest != null ? (nest.WorldPosition - pos).magnitude : float.PositiveInfinity;
-            bool dispersing = !toReturn && nest != null && homeDist < nest.radius + _settings.LeaveZone;
-            float biasWeight = nest == null
-                ? 0f
-                : (dispersing ? Mathf.Max(_settings.HomeBias, 4f) : (toReturn ? _settings.HomeBias : 0f));
+            float homeDist = (nest.WorldPosition - pos).magnitude;
+            bool dispersing = !toReturn && homeDist < nest.radius + _settings.LeaveZone;
+            float biasWeight = (dispersing ? Mathf.Max(_settings.HomeBias, 4f) : (toReturn ? _settings.HomeBias : 0f));
             int distHere = biasWeight > 0f ? nest.NestDistance(pos) : 0;
 
             // 身处危险信息素里时放开采样范围（含正后方），仍然只是"打分选最安全方向"，不做硬折返
