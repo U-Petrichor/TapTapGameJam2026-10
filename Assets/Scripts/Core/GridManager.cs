@@ -243,7 +243,7 @@ namespace TapTapGameJam.Core
             _pheromoneFrameCounter = 0;
 
             CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
-            TickPheromones(_pheromoneAccumulatedDt, settings.PheromoneDecay, settings.PlayerDecay);
+            TickPheromones(_pheromoneAccumulatedDt);
 
             _pheromoneAccumulatedDt = 0f;
         }
@@ -516,16 +516,6 @@ namespace TapTapGameJam.Core
         #region 信息素场（PFood / PHome / PPlayer / PDanger）
 
         /// <summary>
-        /// 采样下限：无信息素时的平局基准值，和参考实现里的 MIN_MARKER 一致
-        /// </summary>
-        public const float MinPheromone = 0.05f;
-
-        /// <summary>
-        /// 采样上限，防止无限叠加
-        /// </summary>
-        public const float MaxPheromone = 20000f;
-
-        /// <summary>
         /// 格子中心到"最近墙体"的距离（单位：格），贴墙惩罚用。
         /// 0 = 这格本身是墙。墙体变化后需要重新调用 RefreshWallDistance()。
         /// </summary>
@@ -586,6 +576,8 @@ namespace TapTapGameJam.Core
                 return;
             }
 
+            float maxPheromone = CockroachManager.Instance.cockroachSetting.MarkerMax;
+            
             float[,] field = FieldOf(kind, this);
             if (field == null)
             {
@@ -603,7 +595,7 @@ namespace TapTapGameJam.Core
                 int cy = Mathf.FloorToInt(gyf);
                 if (IsValid(cx, cy) && intensity > field[cx, cy])
                 {
-                    field[cx, cy] = Mathf.Min(intensity, MaxPheromone);
+                    field[cx, cy] = Mathf.Min(intensity, maxPheromone);
                 }
 
                 return;
@@ -647,7 +639,7 @@ namespace TapTapGameJam.Core
 
             if (value > field[cx, cy])
             {
-                field[cx, cy] = Mathf.Min(value, MaxPheromone);
+                field[cx, cy] = Mathf.Min(value, CockroachManager.Instance.cockroachSetting.MarkerMax);
             }
         }
 
@@ -691,29 +683,27 @@ namespace TapTapGameJam.Core
                     }
 
                     float value = field[x, y] * factor;
-                    field[x, y] = value < MinPheromone ? 0f : value;
+                    field[x, y] = value;
                 }
             }
         }
 
         /// <summary>
-        /// 线性衰减一拍。
-        /// 各通道衰减速率不同：觅食最快失效（食物没了旧路线得赶紧消失）、危险次之、玩家通道最慢。
+        /// 线性衰减一拍，各通道衰减速率不同
         /// </summary>
         /// <param name="dt">实际经过的时间</param>
-        /// <param name="baseDecay">基础线性衰减速率 /s（对应参考实现里的 pheromoneDecay）</param>
-        /// <param name="playerDecay">玩家通道的独立衰减速率 /s</param>
-        public void TickPheromones(float dt, float baseDecay, float playerDecay)
+        public void TickPheromones(float dt)
         {
+            CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
             if (dt <= 0f)
             {
                 return;
             }
 
-            TickField(PFood, dt * baseDecay * 1.3f);
-            TickField(PHome, dt * baseDecay);
-            TickField(PDanger, dt * baseDecay * 2.2f);
-            TickField(PPlayer, dt * playerDecay);
+            TickField(PFood, dt * settings.PheromoneDecay);
+            TickField(PHome, dt * settings.PheromoneDecay);
+            TickField(PDanger, dt * settings.PheromoneDecay);
+            TickField(PPlayer, dt * settings.PlayerPheromoneDecay);
         }
 
         private void TickField(float[,] field, float decay)
@@ -728,7 +718,7 @@ namespace TapTapGameJam.Core
                 for (int y = 0; y < height; y++)
                 {
                     float v = field[x, y] - decay;
-                    field[x, y] = v < MinPheromone ? 0f : v;
+                    field[x, y] = v;
                 }
             }
         }

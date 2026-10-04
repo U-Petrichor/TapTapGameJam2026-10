@@ -1,4 +1,5 @@
 using System;
+using TapTapGameJam.Cockroach;
 using Unity.Collections;
 using UnityEngine;
 
@@ -27,7 +28,7 @@ namespace TapTapGameJam.Core
         /// <summary>
         /// 信息素刷新（更新贴图）间隔，单位是 FixedUpdate 的次数。
         /// </summary>
-        private const int PheromoneFreshFrameInterval = 10;
+        private const int PheromoneFreshFrameInterval = 4;
 
         private int _pheromoneFrameCounter;
         
@@ -137,23 +138,10 @@ namespace TapTapGameJam.Core
             float[,] home = grid.PHome;
             float[,] player = grid.PPlayer;
             float[,] danger = grid.PDanger;
+            
+            float invmax = 1.0f / CockroachManager.Instance.cockroachSetting.MarkerMax;
 
-            // 1) 找四路里的全局最大值，作为这一帧归一化的分母
-            float max = 0f;
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    float f = food[x, y];   if (f > max) max = f;
-                    float g = home[x, y];   if (g > max) max = g;
-                    float p = player[x, y]; if (p > max) max = p;
-                    float d = danger[x, y]; if (d > max) max = d;
-                }
-            }
-
-            float inv = max > 1e-6f ? 1f / max : 0f;
-
-            // 2) 写入。纹理第 y 行 ←→ 格子 y，第 x 列 ←→ 格子 x
+            // 1) 写入。纹理第 y 行 ←→ 格子 y，第 x 列 ←→ 格子 x
             //    （贴图 v=0 那一行就是 WorldZ 最小的那一行，和 WorldOrigin 的定义一致）
             NativeArray<Color32> raw = _tex.GetRawTextureData<Color32>();
             for (int y = 0; y < h; y++)
@@ -162,10 +150,10 @@ namespace TapTapGameJam.Core
                 for (int x = 0; x < w; x++)
                 {
                     raw[row + x] = new Color32(
-                        ToByte(food[x, y] * inv),
-                        ToByte(home[x, y] * inv),
-                        ToByte(player[x, y] * inv),
-                        ToByte(danger[x, y] * inv));
+                        ToByte(food[x, y] * invmax),
+                        ToByte(home[x, y] * invmax),
+                        ToByte(player[x, y] * invmax),
+                        ToByte(danger[x, y] * invmax));
                 }
             }
 

@@ -58,17 +58,20 @@ namespace TapTapGameJam.Cockroach
         /// <summary>雷达/交互半径（世界单位）</summary>
         [Tooltip("身体半径")] public float InteractRadius = 0.34f;
 
-        /// <summary>在巢穴里待命时的游荡速度</summary>
-        [Tooltip("巢内游荡速度")] public float InsideSpeed = 4.9f;
-
         /// <summary>超出活动范围时，每秒被拉回巢穴多少距离</summary>
         [Tooltip("超范围回拉速度")] public float RangePushSpeed = 1.6f;
 
         // ---- 信息素 ----
 
-        /// <summary>释放强度基准（刚离巢 / 刚取到食物时）</summary>
-        [Tooltip("释放强度基准")] public float MarkerMax = 1000f;
+        /// <summary>释放强度最大值</summary>
+        [Tooltip("释放强度基准")] public float MarkerMax = 100f;
 
+        /// <summary>蟑螂释放强度基准（刚离巢 / 刚取到食物时）</summary>
+        [Tooltip("蟑螂释放强度")] public float MarkerCockroachBasis = 80f;
+
+        /// <summary>玩家释放强度（不应用时间衰减）</summary>
+        [Tooltip("玩家释放强度")] public float MarkerPlayerBasis = 100f;
+        
         /// <summary>释放强度随时间指数衰减的系数：M·exp(-k·t)</summary>
         [Tooltip("释放强度时间衰减系数")] public float MarkerTimeCoef = 0.25f;
 
@@ -101,10 +104,10 @@ namespace TapTapGameJam.Cockroach
 
         // ---- 信息素衰减（由 GridManager.Update 每帧使用） ----
 
-        /// <summary>信息素线性衰减速率 /s。觅食通道 ×1.3、危险通道 ×2.2</summary>
-        [Tooltip("信息素线性衰减 /s")] public float PheromoneDecay = 3f;
-
+        /// <summary>信息素线性衰减速率 /s</summary>
+        [Tooltip("信息素线性衰减 /s")] public float PheromoneDecay = 5.0f;
+        
         /// <summary>玩家通道的独立衰减速率 /s</summary>
-        [Tooltip("玩家通道衰减 /s")] public float PlayerDecay = 200f;
+        [Tooltip("玩家通道衰减 /s")] public float PlayerPheromoneDecay = 15.0f;
     }
 }

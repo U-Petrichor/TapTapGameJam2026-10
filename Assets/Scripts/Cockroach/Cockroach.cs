@@ -41,12 +41,7 @@ namespace TapTapGameJam.Cockroach
 
     /// <summary>
     /// 蟑螂个体。
-    /// 决策移植自 ant_test/js/entities.js 的 Ant.decide，行动移植自 Ant.update。
     /// 信息素读写走 GridManager 的四个信息素场，食物信息走 ItemManager。
-    ///
-    /// 职责划分：
-    ///   <see cref="Decide"/> 只算出一个 _targetAngle，由 CockroachManager 按统一节拍调用；
-    ///   <see cref="Update"/> 只做移动/转向/撞墙/取食，每帧跑，不含任何决策计时器。
     ///
     /// 坐标系约定：所有逻辑运算都在世界 XZ 平面的 Vector2 上做；
     /// 角度 0 指向世界 +x，π/2 指向世界 +z，即 方向 = (sin(angle), cos(angle))。
@@ -178,28 +173,6 @@ namespace TapTapGameJam.Cockroach
             return Items.GetFoodOnMap();
         }
 
-        /// <summary>
-        /// 半径内最近的食物（对应参考实现的 world.foodNear）
-        /// </summary>
-        public FoodItem GetNearestFood(Vector2 origin, float range)
-        {
-            IReadOnlyList<FoodItem> foods = GetFoodSources();
-            FoodItem best = null;
-            float bestSqr = range * range;
-
-            for (int i = 0; i < foods.Count; i++)
-            {
-                FoodItem food = foods[i];
-                float sqr = (FlatOf(food.transform.position) - origin).sqrMagnitude;
-                if (sqr < bestSqr)
-                {
-                    bestSqr = sqr;
-                    best = food;
-                }
-            }
-
-            return best;
-        }
 
         /// <summary>
         /// 半径内最近的墙体格子中心（对应参考实现的 world.wallNear）
@@ -259,20 +232,26 @@ namespace TapTapGameJam.Cockroach
             if (toReturn && nest != null)
             {
                 Vector2 nestPos = nest.WorldPosition;
+                
                 if ((nestPos - pos).magnitude < nest.radius + permanentRange)
                 {
-                    _targetAngle = NormAng(AngleTo(pos, nestPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
+                    _targetAngle = _forwardAngle = NormAng(AngleTo(pos, nestPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
                     return;
                 }
             }
             else
             {
-                FoodItem food = GetNearestFood(pos, permanentRange);
-                if (food != null)
+                IReadOnlyList<FoodItem> foods = GetFoodSources();
+
+                foreach (FoodItem food in foods)
                 {
                     Vector2 foodPos = FlatOf(food.transform.position);
-                    _targetAngle = NormAng(AngleTo(pos, foodPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
-                    return;
+                    if ((foodPos - pos).magnitude < food.interactRaius + permanentRange)
+                    {
+
+                        _targetAngle = _forwardAngle = NormAng(AngleTo(pos, foodPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
+                        return;
+                    }
                 }
             }
 
@@ -342,7 +321,7 @@ namespace TapTapGameJam.Cockroach
                         v = Mathf.Max(v, grid.SamplePheromone(PheromoneKind.Player, samplePos));
                     }
 
-                    score = Mathf.Max(GridManager.MinPheromone, v) * grid.WallWeight(samplePos, _settings.WallAvoid);
+                    score = v * grid.WallWeight(samplePos, _settings.WallAvoid);
                 }
 
                 if (biasWeight > 0f)
@@ -388,10 +367,10 @@ namespace TapTapGameJam.Cockroach
             _targetAngle = NormAng(AngleOfDir(bestDir) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
 
             // 反停滞：轻微削弱刚跟随过的格子
-            if (bestScore > GridManager.MinPheromone * 4f && Rand01() < 0.25f)
-            {
-                grid.WritePheromone(kind, bestSamplePos, grid.SamplePheromone(kind, bestSamplePos) * 0.985f, 0f);
-            }
+            // if (bestScore > GridManager.MinPheromone * 4f && Rand01() < 0.25f)
+            // {
+            //     grid.WritePheromone(kind, bestSamplePos, grid.SamplePheromone(kind, bestSamplePos) * 0.985f, 0f);
+            // }
         }
 
         #endregion
@@ -406,7 +385,7 @@ namespace TapTapGameJam.Cockroach
         {
             GridManager grid = GridManager.Instance;
 
-            float intensity = _settings.MarkerMax * Mathf.Exp(-_settings.MarkerTimeCoef * _phaseClock);
+            float intensity = _settings.MarkerCockroachBasis * Mathf.Exp(-_settings.MarkerTimeCoef * _phaseClock);
 
             if (currentState == CockroachState.Return && _carrying > 0f)
             {
@@ -481,8 +460,8 @@ namespace TapTapGameJam.Cockroach
             {
                 if (currentState == CockroachState.Forage)
                 {
-                    _phaseClock = 0f;
                     currentState = CockroachState.Return; // Hatch指令时强制归巢
+                    // _phaseClock = 0f; 不刷新信息素强度
                 }
                 if (currentState == CockroachState.Inside)
                 {
@@ -592,7 +571,6 @@ namespace TapTapGameJam.Cockroach
                 Vector2 foodPos = FlatOf(food.transform.position);
 
                 float reachDistance = _settings.InteractRadius + food.interactRaius;
-                float permanentDistance = _settings.PermanentRange + food.interactRaius;
                 float distance2 = (foodPos - pos).sqrMagnitude;
                 
                 if (distance2 < reachDistance * reachDistance)
@@ -619,13 +597,6 @@ namespace TapTapGameJam.Cockroach
                     _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
                     return;
                 }
-
-                if (distance2 < permanentDistance * permanentDistance)
-                {
-                    // 在视野范围内，强制改方向
-                    _targetAngle = _forwardAngle = AngleOfDir(foodPos - pos);
-                }
-
             }
         }
 
