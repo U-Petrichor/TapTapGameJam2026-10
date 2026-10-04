@@ -9,6 +9,9 @@ using UnityEngine.Rendering;
 
 namespace TapTapGameJam.Cockroach
 {
+      // TODO: 接近Nest/Food直接转向
+      // TODO: 扩散性能优化 or 删除
+    
     /// <summary>
     /// 蟑螂个体当下的行为状态
     /// </summary>
@@ -386,7 +389,7 @@ namespace TapTapGameJam.Cockroach
             // 反停滞：轻微削弱刚跟随过的格子
             if (bestScore > GridManager.MinPheromone * 4f && Rand01() < 0.25f)
             {
-                grid.WritePheromone(kind, bestSamplePos, grid.SamplePheromone(kind, bestSamplePos) * 0.985f, false);
+                grid.WritePheromone(kind, bestSamplePos, grid.SamplePheromone(kind, bestSamplePos) * 0.985f, 0f);
             }
         }
 
@@ -423,12 +426,12 @@ namespace TapTapGameJam.Cockroach
                     }
                 }
 
-                grid.WritePheromone(PheromoneKind.Food, Position, v, _settings.MarkerSmooth);
+                grid.WritePheromone(PheromoneKind.Food, Position, v, _settings.MarkerRadius);
             }
             else
             {
                 // 外出觅食时撒归巢信息素，这样同伴才知道"家在哪边"
-                grid.WritePheromone(PheromoneKind.Home, Position, intensity, _settings.MarkerSmooth);
+                grid.WritePheromone(PheromoneKind.Home, Position, intensity, _settings.MarkerRadius);
             }
         }
 
@@ -565,10 +568,9 @@ namespace TapTapGameJam.Cockroach
             {
                 TryEat();
             }
-            else if (currentState == CockroachState.Return && nest != null
-                                                  && (nest.WorldPosition - Position).magnitude < nest.radius * 1.2f)
+            else if (currentState == CockroachState.Return)
             {
-                EnterNest();
+                TryEnterNest();
             }
         }
 
@@ -577,6 +579,8 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         private void TryEat()
         {
+            Assert.IsTrue(currentState == CockroachState.Forage);
+            
             IReadOnlyList<FoodItem> foods = GetFoodSources();
             Vector2 pos = Position;
 
@@ -585,55 +589,82 @@ namespace TapTapGameJam.Cockroach
                 FoodItem food = foods[i];
                 Vector2 foodPos = FlatOf(food.transform.position);
 
-                float reach = _settings.InteractRadius + food.interactRaius;
-                if ((foodPos - pos).sqrMagnitude > reach * reach)
+                float reachDistance = _settings.InteractRadius + food.interactRaius;
+                float permanentDistance = _settings.PermanentRange + food.interactRaius;
+                float distance2 = (foodPos - pos).sqrMagnitude;
+                
+                if (distance2 < reachDistance * reachDistance)
                 {
-                    continue;
+                    // 得吃
+                    float take = food.Consume(_settings.CarryCapacity);
+                    if (take <= 0f)
+                    {
+                        continue;
+                    }
+
+                    // 吃空了：把这一带的觅食信息素抹掉，别再把同伴引过来
+                    _lastLoad = !food.HasNutrition;
+                    if (_lastLoad)
+                    {
+                        GridManager.Instance.ClearPheromoneInRadius(PheromoneKind.Food, foodPos, _settings.EmptyClearRadius, 0f);
+                    }
+
+                    _carrying = take;
+                    currentState = CockroachState.Return;
+                    _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
+
+                    // 吃到食物立即折返（允许瞬间转向）
+                    _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
+                    return;
                 }
 
-                float take = food.Consume(_settings.CarryCapacity);
-                if (take <= 0f)
+                if (distance2 < permanentDistance * permanentDistance)
                 {
-                    continue;
+                    // 在视野范围内，强制改方向
+                    _targetAngle = _forwardAngle = AngleOfDir(foodPos - pos);
                 }
 
-                // 吃空了：把这一带的觅食信息素抹掉，别再把同伴引过来
-                _lastLoad = !food.HasNutrition;
-                if (_lastLoad)
-                {
-                    GridManager.Instance.ClearPheromoneInRadius(PheromoneKind.Food, foodPos, _settings.EmptyClearRadius, 0f);
-                }
-
-                _carrying = take;
-                currentState = CockroachState.Return;
-                _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
-
-                // 吃到食物立即折返（允许瞬间转向）
-                _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
-                return;
             }
         }
 
         /// <summary>
         /// 到巢：把营养交给共享池，决定继续觅食 or 入巢孵化
         /// </summary>
-        private void EnterNest()
+        private void TryEnterNest()
         {
-            CockroachManager.Instance.sharedNutrition += _carrying;
-            _lastLoad = false;
-            _carrying = 0f;
+            Assert.IsTrue(currentState == CockroachState.Return);
             
-            if (nestCommand == CockroachCommand.Foraging)
+            Vector2 nestPos = nest.WorldPosition;
+            Vector2 pos = Position;
+            
+            float reachDistance = _settings.InteractRadius + nest.radius;
+            float permanentDistance = _settings.PermanentRange + nest.radius;
+            float distance2 = (nestPos - pos).sqrMagnitude;
+            
+            if (distance2 < reachDistance * reachDistance)
             {
-                _phaseClock = 0f;
-                currentState =  CockroachState.Forage;
-                _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI);
-            }
+                // 进入巢穴
+                CockroachManager.Instance.sharedNutrition += _carrying;
+                _lastLoad = false;
+                _carrying = 0f;
+            
+                if (nestCommand == CockroachCommand.Foraging)
+                {
+                    _phaseClock = 0f;
+                    currentState =  CockroachState.Forage;
+                    _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI);
+                }
 
-            if (nestCommand == CockroachCommand.Hatch)
+                if (nestCommand == CockroachCommand.Hatch)
+                {
+                    _phaseClock = 0f;
+                    currentState = CockroachState.Inside;
+                }
+            }
+            else if (distance2 < permanentDistance * permanentDistance)
             {
-                _phaseClock = 0f;
-                currentState = CockroachState.Inside;
+                // 在视野范围内，强制改方向
+                _targetAngle = _forwardAngle = AngleOfDir(nestPos - pos);
             }
         }
 

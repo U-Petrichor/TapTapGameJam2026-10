@@ -8,8 +8,6 @@ namespace TapTapGameJam.Cockroach
     /// 蟑螂系统的总管理者。
     /// 层级是 CockroachManager → CockNest → Cockroach，每一层只由下一层向它报到。
     /// 决策节奏由这里统一控制：固定每 <see cref="DecisionFrameInterval"/> 个 FixedUpdate
-    /// 走一次「刷新各巢穴距离场 → 全体蟑螂决策 → 全体释放信息素」。
-    /// 蟑螂自己的 Update 只负责移动、转向、撞墙，不含任何计时器。
     /// </summary>
     public class CockroachManager : MonoBehaviour
     {
@@ -63,14 +61,13 @@ namespace TapTapGameJam.Cockroach
                 CockNestList[i].RefreshDistanceField();
             }
 
-            // 2. 全体决策 + 释放信息素
+            // 2. 全体决策
             for (int i = 0; i < CockNestList.Count; i++)
             {
                 List<Cockroach> roaches = CockNestList[i].CockroachList;
                 for (int j = 0; j < roaches.Count; j++)
                 {
                     roaches[j].Decide();
-                    // roaches[j].Deposit();
                 }
             }
         }

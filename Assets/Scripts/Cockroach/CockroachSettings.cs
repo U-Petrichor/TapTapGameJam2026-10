@@ -33,10 +33,10 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("贴墙惩罚强度")] public float WallAvoid = 0.7f;
 
         /// <summary>撞墙预判距离：在身体之外提前"看到"墙</summary>
-        [Tooltip("撞墙预判距离")] public float WallLook = 3f;
+        [Tooltip("撞墙预判距离")] public float WallLook = 1.5f;
 
         /// <summary>距食物/巢穴足够近时强制转向的距离</summary>
-        [Tooltip("距食物/巢穴足够近时强制转向的距离")] public float PermanentRange = 5.5f;
+        [Tooltip("距食物/巢穴足够近时强制转向的距离")] public float PermanentRange = 2f;
 
         // ---- 移动 ----
 
@@ -73,8 +73,11 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("释放强度时间衰减系数")] public float MarkerTimeCoef = 0.25f;
 
 
-        /// <summary>释放时是否做双线性平滑（抗锯齿）</summary>
-        [Tooltip("释放时双线性平滑")] public bool MarkerSmooth = true;
+        /// <summary>
+        /// 信息素刷子半径（世界单位）。释放时以蟑螂所在位置为圆心，按这个半径刷到网格上：
+        /// 圆心强度高，向外抛物线衰减到边缘的 0。<b>0 = 退化成只写一个格子</b>。
+        /// </summary>
+        [Tooltip("信息素刷子半径（世界单位），0 = 只写一格")] public float MarkerRadius = 0.5f;
 
         /// <summary>危险信息素负权重，越大越躲</summary>
         [Tooltip("危险信息素负权重")] public float DangerAvoid = 2.5f;
@@ -103,8 +106,5 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>玩家通道的独立衰减速率 /s</summary>
         [Tooltip("玩家通道衰减 /s")] public float PlayerDecay = 200f;
-
-        /// <summary>信息素扩散速率 0~1。<b>0 = 关闭扩散</b>（每帧做可分离模糊，开销明显）</summary>
-        [Tooltip("信息素扩散 0~1，0 = 关闭")] public float PheromoneDiffuse = 0f;
     }
 }

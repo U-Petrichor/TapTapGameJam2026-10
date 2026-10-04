@@ -74,11 +74,6 @@ namespace TapTapGameJam.Core
         private float _cellWidth;
         private float _cellHeight;
 
-        /// <summary>
-        /// 信息素衰减/扩散用的临时缓冲，复用以避免每帧 new 一个二维数组
-        /// </summary>
-        private float[,] _pheromoneTemp;
-
         // ============================ 坐标约定 ============================
         // 1. 网格覆盖的世界矩形 = 本物体 Renderer.bounds 在 XZ 上的投影。
         // 2. 格子 (0,0) 在矩形的 (min.x, min.z) 角 —— 也就是 x 最小、z 最小的那个角。
@@ -218,7 +213,6 @@ namespace TapTapGameJam.Core
         {
             _instance = this;
             InitGrid();
-            _pheromoneTemp = new float[width, height];
         }
 
         private void OnDestroy()
@@ -230,13 +224,12 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 每帧推进信息素：线性衰减 + 扩散。
-        /// 衰减参数从 CockroachManager 的寻路配置里取。
+        /// 每帧推进信息素：只做线性衰减，不做扩散。
         /// </summary>
         private void FixedUpdate()
         {
             CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
-            TickPheromones(Time.fixedDeltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
+            TickPheromones(Time.fixedDeltaTime, settings.PheromoneDecay, settings.PlayerDecay);
         }
 
         /// <summary>
@@ -271,8 +264,7 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 网格只能铺在一个水平面上。Quad 忘了绕 X 转 90° 是最常见的错，
-        /// 这里直接报出来，免得又在"对不齐"上耗时间。
+        /// 检查：网格只能铺在一个水平面上
         /// </summary>
         private void ValidatePlacement()
         {
@@ -305,9 +297,9 @@ namespace TapTapGameJam.Core
                 for (int y = 0; y < height; y++)
                 {
                     Vector2 center = GridToWorld(new Vector2Int(x, y));
-                    Vector3 start = new Vector3(center.x, transform.position.y + 0.5f, center.y);
+                    Vector3 start = new Vector3(center.x, transform.position.y + 100.0f, center.y);
 
-                    bool isWall = Physics.Raycast(start, Vector3.up, 200.0f, wallLayer);
+                    bool isWall = Physics.Raycast(start, Vector3.down, 200.0f, wallLayer);
 
                     MapState[x, y] = isWall ? TileState.TileWall : TileState.TileEmpty;
                     if (isWall)
@@ -564,10 +556,14 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 写入信息素。采用"刷新最大值"而不是累加，避免同一只蟑螂来回走把格子叠爆。
+        /// 写入信息素。以 worldPos 为圆心、radius 为世界空间半径，在网格上刷一个圆形区域：
+        /// 圆心权重 1，向外按抛物线衰减到边缘的 0（中心强、边缘淡）。
+        /// 写入采用"刷新最大值"而不是累加，避免同一只蟑螂来回走把格子叠爆。
         /// </summary>
-        /// <param name="smooth">true = 双线性摊到相邻 4 格中心（抗锯齿）；false = 只写单格</param>
-        public void WritePheromone(PheromoneKind kind, Vector2 worldPos, float intensity, bool smooth = true)
+        /// <param name="radius">
+        /// 刷子半径，世界单位。&lt;= 0 时退化成只写 worldPos 所在的那一格。
+        /// </param>
+        public void WritePheromone(PheromoneKind kind, Vector2 worldPos, float intensity, float radius)
         {
             if (kind == PheromoneKind.None || intensity <= 0f)
             {
@@ -584,7 +580,8 @@ namespace TapTapGameJam.Core
             float gxf = (worldPos.x - origin.x) / _cellWidth;
             float gyf = (worldPos.y - origin.y) / _cellHeight;
 
-            if (!smooth)
+            // 半径为 0：只写单格
+            if (radius <= 0f)
             {
                 int cx = Mathf.FloorToInt(gxf);
                 int cy = Mathf.FloorToInt(gyf);
@@ -596,28 +593,33 @@ namespace TapTapGameJam.Core
                 return;
             }
 
-            // 和 refreshSmooth 一致：权重按最大项归一化，所以峰值强度不会损失
-            float u = gxf - 0.5f;
-            float v = gyf - 0.5f;
-            int x0 = Mathf.FloorToInt(u);
-            int y0 = Mathf.FloorToInt(v);
-            float fx = u - x0;
-            float fy = v - y0;
+            // 世界空间的圆在网格空间是椭圆（格子非正方形时），所以 x / y 两个方向的半径分开算
+            float rx = radius / _cellWidth;
+            float ry = radius / _cellHeight;
 
-            float w00 = (1f - fx) * (1f - fy);
-            float w10 = fx * (1f - fy);
-            float w01 = (1f - fx) * fy;
-            float w11 = fx * fy;
-            float wmax = Mathf.Max(Mathf.Max(w00, w10), Mathf.Max(w01, w11));
-            if (wmax <= 0f)
+            int x0 = Mathf.Max(0, Mathf.FloorToInt(gxf - rx));
+            int x1 = Mathf.Min(width - 1, Mathf.CeilToInt(gxf + rx));
+            int y0 = Mathf.Max(0, Mathf.FloorToInt(gyf - ry));
+            int y1 = Mathf.Min(height - 1, Mathf.CeilToInt(gyf + ry));
+
+            for (int y = y0; y <= y1; y++)
             {
-                wmax = 1f;
-            }
+                // 格子中心到刷子中心的偏移，除以半径 → 归一化的椭圆距离
+                float dy = (y + 0.5f - gyf) / ry;
 
-            PutMax(field, x0, y0, intensity * (w00 / wmax));
-            PutMax(field, x0 + 1, y0, intensity * (w10 / wmax));
-            PutMax(field, x0, y0 + 1, intensity * (w01 / wmax));
-            PutMax(field, x0 + 1, y0 + 1, intensity * (w11 / wmax));
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = (x + 0.5f - gxf) / rx;
+                    float t2 = dx * dx + dy * dy;
+                    if (t2 >= 1f)
+                    {
+                        continue;
+                    }
+
+                    // 抛物线衰减：圆心 = 1，边缘 = 0
+                    PutMax(field, x, y, intensity * (1f - t2));
+                }
+            }
         }
 
         private static void PutMax(float[,] field, int cx, int cy, float value)
@@ -679,27 +681,26 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 线性衰减 + 单向扩散一拍。
+        /// 线性衰减一拍。
         /// 各通道衰减速率不同：觅食最快失效（食物没了旧路线得赶紧消失）、危险次之、玩家通道最慢。
         /// </summary>
         /// <param name="dt">实际经过的时间</param>
         /// <param name="baseDecay">基础线性衰减速率 /s（对应参考实现里的 pheromoneDecay）</param>
-        /// <param name="diffuse">扩散速率 0~1</param>
         /// <param name="playerDecay">玩家通道的独立衰减速率 /s</param>
-        public void TickPheromones(float dt, float baseDecay, float diffuse, float playerDecay)
+        public void TickPheromones(float dt, float baseDecay, float playerDecay)
         {
             if (dt <= 0f)
             {
                 return;
             }
 
-            TickField(PFood, dt * baseDecay * 1.3f, diffuse);
-            TickField(PHome, dt * baseDecay, diffuse);
-            TickField(PDanger, dt * baseDecay * 2.2f, diffuse);
-            TickField(PPlayer, dt * playerDecay, diffuse);
+            TickField(PFood, dt * baseDecay * 1.3f);
+            TickField(PHome, dt * baseDecay);
+            TickField(PDanger, dt * baseDecay * 2.2f);
+            TickField(PPlayer, dt * playerDecay);
         }
 
-        private void TickField(float[,] field, float decay, float diffuse)
+        private void TickField(float[,] field, float decay)
         {
             if (field == null)
             {
@@ -712,36 +713,6 @@ namespace TapTapGameJam.Core
                 {
                     float v = field[x, y] - decay;
                     field[x, y] = v < MinPheromone ? 0f : v;
-                }
-            }
-
-            if (diffuse <= 0f)
-            {
-                return;
-            }
-
-            // 可分离盒式模糊：先横向再纵向，避免每格 9 次采样
-            float[,] tmp = _pheromoneTemp;
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    float center = field[x, y];
-                    float left = x > 0 ? field[x - 1, y] : center;
-                    float right = x < width - 1 ? field[x + 1, y] : center;
-                    tmp[x, y] = (center * 2f + left + right) * 0.25f;
-                }
-            }
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    float center = tmp[x, y];
-                    float down = y > 0 ? tmp[x, y - 1] : center;
-                    float up = y < height - 1 ? tmp[x, y + 1] : center;
-                    float blurred = (center * 2f + down + up) * 0.25f;
-                    field[x, y] = field[x, y] + (blurred - field[x, y]) * diffuse;
                 }
             }
         }
