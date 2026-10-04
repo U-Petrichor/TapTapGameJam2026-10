@@ -9,17 +9,20 @@ namespace TapTapGameJam.Items
     /// </summary>
     public class FoodItem : PickableItem
     {
-        [Tooltip("总营养")] public float totalNutrition;
+        [Tooltip("总营养")] public float totalNutrition = 10;
 
         [Tooltip("剩余营养")] public float remainingNutrition;
 
+        [Tooltip("可交互半径")] public float interactRaius = 0.5f;
+
+        
         /// <summary>还有没有吃的价值，没有的话 ItemManager 不应该再返回它</summary>
         public bool HasNutrition => remainingNutrition > 0f;
 
-        protected override void OnEnable()
+        protected override void Start()
         {
             remainingNutrition = totalNutrition;
-            base.OnEnable();
+            base.Start();
         }
 
         public override bool CanInteract(PlayerBasic player)

@@ -72,8 +72,6 @@ namespace TapTapGameJam.Core
         /// </summary>
         private float[,] _pheromoneTemp;
 
-        private CockroachManager _cockroachManager;
-
         /// <summary>
         /// 单元格的实际物理尺寸。x = 列宽，y = 行高（世界 Z 方向）
         /// </summary>
@@ -147,7 +145,6 @@ namespace TapTapGameJam.Core
             _instance = this;
             InitGrid();
             _pheromoneTemp = new float[width, height];
-            _cockroachManager = CockroachManager.Instance;
         }
 
         private void OnDestroy()
@@ -164,7 +161,7 @@ namespace TapTapGameJam.Core
         /// </summary>
         private void Update()
         {
-            CockroachSettings settings = _cockroachManager.cockroachSetting;
+            CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
             TickPheromones(Time.deltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
         }
 

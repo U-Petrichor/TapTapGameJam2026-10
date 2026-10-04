@@ -55,8 +55,8 @@ namespace TapTapGameJam.Cockroach
         /// <summary>速度抖动上限（乘数）</summary>
         [Tooltip("速度抖动上限")] public float SpeedJitterMax = 1.14f;
 
-        /// <summary>雷达/身体半径（世界单位）</summary>
-        [Tooltip("身体半径")] public float Radius = 0.34f;
+        /// <summary>雷达/交互半径（世界单位）</summary>
+        [Tooltip("身体半径")] public float InteractRadius = 0.34f;
 
         /// <summary>在巢穴里待命时的游荡速度</summary>
         [Tooltip("巢内游荡速度")] public float InsideSpeed = 4.9f;

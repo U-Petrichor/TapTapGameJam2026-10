@@ -5,6 +5,7 @@ using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace TapTapGameJam.Cockroach
 {
@@ -59,6 +60,8 @@ namespace TapTapGameJam.Cockroach
 
         [HideInInspector]
         public CockroachCommand nestCommand = CockroachCommand.Hatch;
+        
+        [SerializeField] // 临时debug用
         private CockroachState currentState = CockroachState.Inside;
         
         [Header("运动参数")] [SerializeField]
@@ -441,9 +444,9 @@ namespace TapTapGameJam.Cockroach
         {
             GridManager grid = GridManager.Instance;
 
-            float total = _settings.Radius + 1f + extra;
-            int steps = Mathf.Max(1, Mathf.CeilToInt(total / _settings.Radius));
-
+            float total = _settings.InteractRadius + 1f + extra;
+            int steps = Mathf.Max(1, Mathf.CeilToInt(total / _settings.InteractRadius));
+    
             for (int i = 1; i <= steps; i++)
             {
                 float t = total * i / steps;
@@ -470,6 +473,7 @@ namespace TapTapGameJam.Cockroach
 
             _phaseClock += dt;
 
+            // 状态切换
             if (nestCommand == CockroachCommand.Hatch)
             {
                 if (currentState == CockroachState.Forage)
@@ -480,64 +484,74 @@ namespace TapTapGameJam.Cockroach
                 }
             }
 
-            /* ---- 平滑转向 ---- */
-            _forwardAngle = RotateTowards(_forwardAngle, _targetAngle, dt, _settings.TurnSpeed);
-
-            /* ---- 移动 + 碰撞反弹 ---- */
-            float baseSpeed = currentState == CockroachState.Return ? _settings.Speed * 1.06f : _settings.Speed;
-
-            // 近处有墙且还没转开时减速转向，避免"顶着墙往前推"
-            float speedMul = 1f;
-            if (_settings.WallLook > 0f && RayAhead(Position, DirOfAngle(_forwardAngle), _settings.WallLook * 0.5f))
+            if (nestCommand == CockroachCommand.Foraging &&  currentState == CockroachState.Inside)
             {
-                float err = Mathf.Abs(NormAng(_targetAngle - _forwardAngle));
-                speedMul = Mathf.Clamp(Mathf.Cos(Mathf.Min(err, Mathf.PI)), 0.45f, 1f);
+                currentState = CockroachState.Forage;
             }
 
-            float speed = baseSpeed * _speedJitter * speedMul;
-
-            Vector2 pos = Position;
-            Vector2 next = pos + DirOfAngle(_forwardAngle) * (speed * dt);
-
-            // 分轴检测，能沿着墙滑行而不是卡死
-            bool hitX = grid.IsBlocked(grid.WorldToGrid(new Vector2(next.x, pos.y)));
-            bool hitZ = grid.IsBlocked(grid.WorldToGrid(new Vector2(next.x, next.y)));
-
-            if (hitX)
+            
+            // 运动逻辑
+            if (currentState != CockroachState.Inside)
             {
-                next.x = pos.x;
-            }
+                /* ---- 平滑转向 ---- */
+                _forwardAngle = RotateTowards(_forwardAngle, _targetAngle, dt, _settings.TurnSpeed);
 
-            if (hitZ)
-            {
-                next.y = pos.y;
-            }
+                /* ---- 移动 + 碰撞反弹 ---- */
+                float baseSpeed = currentState == CockroachState.Return ? _settings.Speed * 1.06f : _settings.Speed;
 
-            if (hitX || hitZ)
-            {
-                // 撞墙反弹：瞬间反射当前朝向，不再等平滑转向
-                float reflected;
-                if (hitX && hitZ)
+                // 近处有墙且还没转开时减速转向，避免"顶着墙往前推"
+                float speedMul = 1f;
+                if (_settings.WallLook > 0f && RayAhead(Position, DirOfAngle(_forwardAngle), _settings.WallLook * 0.5f))
                 {
-                    reflected = NormAng(_forwardAngle + Mathf.PI + Rand(-0.4f, 0.4f));
-                }
-                else if (hitX)
-                {
-                    reflected = NormAng(-_forwardAngle + Rand(-0.25f, 0.25f));
-                }
-                else
-                {
-                    reflected = NormAng(Mathf.PI - _forwardAngle + Rand(-0.25f, 0.25f));
+                    float err = Mathf.Abs(NormAng(_targetAngle - _forwardAngle));
+                    speedMul = Mathf.Clamp(Mathf.Cos(Mathf.Min(err, Mathf.PI)), 0.45f, 1f);
                 }
 
-                _forwardAngle = reflected;
-                _targetAngle = reflected;
+                float speed = baseSpeed * _speedJitter * speedMul;
+
+                Vector2 pos = Position;
+                Vector2 next = pos + DirOfAngle(_forwardAngle) * (speed * dt);
+
+                // 分轴检测，能沿着墙滑行而不是卡死
+                bool hitX = grid.IsBlocked(grid.WorldToGrid(new Vector2(next.x, pos.y)));
+                bool hitZ = grid.IsBlocked(grid.WorldToGrid(new Vector2(next.x, next.y)));
+
+                if (hitX)
+                {
+                    next.x = pos.x;
+                }
+
+                if (hitZ)
+                {
+                    next.y = pos.y;
+                }
+
+                if (hitX || hitZ)
+                {
+                    // 撞墙反弹：瞬间反射当前朝向，不再等平滑转向
+                    float reflected;
+                    if (hitX && hitZ)
+                    {
+                        reflected = NormAng(_forwardAngle + Mathf.PI + Rand(-0.4f, 0.4f));
+                    }
+                    else if (hitX)
+                    {
+                        reflected = NormAng(-_forwardAngle + Rand(-0.25f, 0.25f));
+                    }
+                    else
+                    {
+                        reflected = NormAng(Mathf.PI - _forwardAngle + Rand(-0.25f, 0.25f));
+                    }
+
+                    _forwardAngle = reflected;
+                    _targetAngle = reflected;
+                }
+
+                Position = next;
+
+                /* ---- 活动范围：超出所有巢穴范围视为撞墙 ---- */
+                ClampInsideRanges(dt);
             }
-
-            Position = next;
-
-            /* ---- 活动范围：超出所有巢穴范围视为撞墙 ---- */
-            ClampInsideRanges(dt);
 
             /* ---- 取食 / 归巢 ---- */
             if (currentState == CockroachState.Forage)
@@ -564,7 +578,7 @@ namespace TapTapGameJam.Cockroach
                 FoodItem food = foods[i];
                 Vector2 foodPos = FlatOf(food.transform.position);
 
-                float reach = _settings.Radius + 1f;
+                float reach = _settings.InteractRadius + food.interactRaius;
                 if ((foodPos - pos).sqrMagnitude > reach * reach)
                 {
                     continue;
@@ -603,6 +617,8 @@ namespace TapTapGameJam.Cockroach
 
             _carrying = 0f;
             currentState = nestCommand == CockroachCommand.Hatch ? CockroachState.Inside : CockroachState.Forage;
+            Debug.Log(name + " enter Nest, state: " +  currentState);
+            
             _phaseClock = 0f;
             _lastLoad = false;
             _targetAngle = NormAng(_forwardAngle + Mathf.PI);

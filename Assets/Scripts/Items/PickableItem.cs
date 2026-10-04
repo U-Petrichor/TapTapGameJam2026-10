@@ -51,7 +51,7 @@ namespace TapTapGameJam.Items
 
         public bool IsOnMap => Location == ItemLocation.OnMap;
 
-        protected virtual void OnEnable()
+        protected virtual void Start()
         {
             // 物品出生（或从池里被重新启用）时登记自己
             if (ItemManager.Instance != null)

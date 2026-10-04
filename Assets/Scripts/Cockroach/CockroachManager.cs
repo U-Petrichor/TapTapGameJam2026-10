@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -44,6 +45,14 @@ namespace TapTapGameJam.Cockroach
         private void Awake()
         {
             _instance = this;
+        }
+
+        private void Start()
+        {
+            // TODO: 临时游戏测试逻辑，后续由正式游戏流程接管
+            
+            // TODO: 在地图中生成一个Nest
+            
         }
 
         private void FixedUpdate()
