@@ -1,3 +1,4 @@
+using System;
 using TapTapGameJam.Cockroach;
 using UnityEngine;
 
@@ -52,7 +53,13 @@ namespace TapTapGameJam.Core
         [Tooltip("网格的列数 (X轴方向)")] public int width = 10;
         [Tooltip("网格的行数 (Z轴方向)")] public int height = 10;
 
-        private Transform _proxyObject;
+        /// <summary>本物体的 Renderer。网格覆盖的世界矩形由它的 bounds 决定，不再假设 mesh 是哪个</summary>
+        private Renderer _renderer;
+
+        /// <summary>上一次算 footprint 时的 transform 和网格尺寸，用来判断要不要重算</summary>
+        private Matrix4x4 _cachedTRS;
+        private int _cachedWidth = int.MinValue;
+        private int _cachedHeight = int.MinValue;
 
         [Header("墙体探测")] [Tooltip("墙壁所在的物理层，TraceMapStateFromWall 只认这一层")]
         public LayerMask wallLayer;
@@ -72,8 +79,31 @@ namespace TapTapGameJam.Core
         /// </summary>
         private float[,] _pheromoneTemp;
 
+        // ============================ 坐标约定 ============================
+        // 1. 网格覆盖的世界矩形 = 本物体 Renderer.bounds 在 XZ 上的投影。
+        // 2. 格子 (0,0) 在矩形的 (min.x, min.z) 角 —— 也就是 x 最小、z 最小的那个角。
+        //    x 沿世界 +X 增长，y 沿世界 +Z 增长。
+        // 3. 格子中心 = WorldOrigin + (格子坐标 + 0.5) * CellSize。
+        //
+        // 为什么用 bounds 而不是 localScale*10：
+        //   bounds 已经包含了 mesh 的本地尺寸和本地朝向（Plane 平铺在 XZ、Quad 在 XY）、
+        //   mesh 的 pivot 偏移、以及物体自身的 scale/rotation。
+        //   所以 Plane(10x10) 和 Quad(1x1，需绕 X 转 90°) 都能一次算对，
+        //   既不需要知道用的是哪个 mesh，也不需要知道 pivot 在不在中心。
+        //
+        // 因此 shader 里也一律不用 mesh 的 uv：
+        //   Plane 的 uv 在 XZ 平面、Quad 的 uv 在 XY 平面，两者 v 的朝向还不一样；
+        //   用 positionWS 反算网格坐标可以完全绕开这些差异。
+        // =================================================================
+
+        /// <summary>网格覆盖的世界矩形左下角（x 最小、z 最小的角），世界 XZ 坐标</summary>
+        public Vector2 WorldOrigin { get; private set; }
+
+        /// <summary>网格覆盖的世界矩形尺寸，单位是世界单位</summary>
+        public Vector2 WorldSpan { get; private set; }
+
         /// <summary>
-        /// 单元格的实际物理尺寸。x = 列宽，y = 行高（世界 Z 方向）
+        /// 单元格的实际物理尺寸。x = 列宽（世界 X 方向），y = 行高（世界 Z 方向）
         /// </summary>
         public Vector2 CellSize => new Vector2(_cellWidth, _cellHeight);
 
@@ -84,44 +114,88 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 获取网格左下角的物理世界坐标起始点（XZ 平面）
+        /// 取本物体在世界 XZ 上占的矩形。返回 false = 这个物体上没有 Renderer，算不出来。
+        /// </summary>
+        public bool TryGetFootprint(out Vector2 origin, out Vector2 span)
+        {
+            if (_renderer == null)
+            {
+                _renderer = GetComponent<Renderer>();
+            }
+
+            if (_renderer == null)
+            {
+                origin = Vector2.zero;
+                span = Vector2.one;
+                return false;
+            }
+
+            Bounds b = _renderer.bounds;
+            origin = new Vector2(b.min.x, b.min.z);
+            span = new Vector2(Mathf.Max(b.size.x, 1e-4f), Mathf.Max(b.size.z, 1e-4f));
+            return true;
+        }
+
+        /// <summary>
+        /// 保证 WorldOrigin / WorldSpan / 格子尺寸是当前 transform 和网格尺寸下算出来的。
+        /// 物体被移动或缩放过就会重算；没变的话每帧只多比较一个矩阵，开销可忽略。
+        /// </summary>
+        public void EnsureFootprint()
+        {
+            Matrix4x4 trs = transform.localToWorldMatrix;
+            if (trs == _cachedTRS && width == _cachedWidth && height == _cachedHeight)
+            {
+                return;
+            }
+
+            _cachedTRS = trs;
+            _cachedWidth = width;
+            _cachedHeight = height;
+
+            if (!TryGetFootprint(out Vector2 origin, out Vector2 span))
+            {
+                return;
+            }
+
+            WorldOrigin = origin;
+            WorldSpan = span;
+            _cellWidth = span.x / Mathf.Max(width, 1);
+            _cellHeight = span.y / Mathf.Max(height, 1);
+        }
+
+        /// <summary>
+        /// 获取网格左下角的世界 XZ 坐标（格子 (0,0) 外侧的那个角）
         /// </summary>
         private Vector2 GetGridOrigin()
         {
-            Vector3 pos = _proxyObject.position;
-            float totalWidth = _proxyObject.localScale.x * 10f;
-            float totalHeight = _proxyObject.localScale.z * 10f;
-
-            // 假设代理物体中心在原点，计算出左下角的世界坐标
-            return new Vector2(pos.x - totalWidth / 2f, pos.z - totalHeight / 2f);
+            EnsureFootprint();
+            return WorldOrigin;
         }
 
         private void OnDrawGizmos()
         {
-            Transform target = _proxyObject != null ? _proxyObject : transform;
-            if (target == null) return;
+            // 和运行时用完全同一套约定画：这组线应该正好贴住 mesh 的外边缘。
+            // 在 Scene 视图里看到线跑到 mesh 外面或者只盖住一半，就说明物体没放平（见 Awake 的警告）。
+            if (!TryGetFootprint(out Vector2 origin, out Vector2 span))
+            {
+                return;
+            }
 
-            Vector3 pos = target.position;
-            float totalWidth = target.localScale.x * 10f;
-            float totalHeight = target.localScale.z * 10f;
-            Vector3 origin = new Vector3(pos.x - totalWidth / 2f, pos.y, pos.z - totalHeight / 2f);
-
-            float cW = totalWidth / width;
-            float cH = totalHeight / height;
+            float cW = span.x / Mathf.Max(width, 1);
+            float cH = span.y / Mathf.Max(height, 1);
+            Vector3 corner = new Vector3(origin.x, transform.position.y, origin.y);
 
             Gizmos.color = Color.cyan;
             for (int x = 0; x <= width; x++)
             {
-                Vector3 start = origin + new Vector3(x * cW, 0, 0);
-                Vector3 end = start + new Vector3(0, 0, totalHeight);
-                Gizmos.DrawLine(start, end);
+                Vector3 start = corner + new Vector3(x * cW, 0f, 0f);
+                Gizmos.DrawLine(start, start + new Vector3(0f, 0f, span.y));
             }
 
             for (int y = 0; y <= height; y++)
             {
-                Vector3 start = origin + new Vector3(0, 0, y * cH);
-                Vector3 end = start + new Vector3(totalWidth, 0, 0);
-                Gizmos.DrawLine(start, end);
+                Vector3 start = corner + new Vector3(0f, 0f, y * cH);
+                Gizmos.DrawLine(start, start + new Vector3(span.x, 0f, 0f));
             }
         }
 
@@ -143,6 +217,10 @@ namespace TapTapGameJam.Core
         private void Awake()
         {
             _instance = this;
+        }
+
+        private void Start()
+        {
             InitGrid();
             _pheromoneTemp = new float[width, height];
         }
@@ -159,7 +237,7 @@ namespace TapTapGameJam.Core
         /// 每帧推进信息素：线性衰减 + 扩散。
         /// 衰减参数从 CockroachManager 的寻路配置里取。
         /// </summary>
-        private void Update()
+        private void FixedUpdate()
         {
             CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
             TickPheromones(Time.deltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
@@ -170,15 +248,7 @@ namespace TapTapGameJam.Core
         /// </summary>
         private void InitGrid()
         {
-            _proxyObject = transform;
-
-            // Unity默认Plane大小为 10x10 单位，结合 localScale 计算实际物理宽高
-            float totalWidth = _proxyObject.localScale.x * 10f;
-            float totalHeight = _proxyObject.localScale.z * 10f;
-
-            // 计算每个格子的宽高
-            _cellWidth = totalWidth / width;
-            _cellHeight = totalHeight / height;
+            _renderer = GetComponent<Renderer>();
 
             // 初始化二维数组
             PFood = new float[width, height];
@@ -186,9 +256,38 @@ namespace TapTapGameJam.Core
             PPlayer = new float[width, height];
             PDanger = new float[width, height];
             MapState = new TileState[width, height];
+
+            // 强制按当前 transform 算一遍世界范围
+            _cachedTRS = default;
+            _cachedWidth = int.MinValue;
+            _cachedHeight = int.MinValue;
+            EnsureFootprint();
+            ValidatePlacement();
+
             TraceMapStateFromWall();
 
-            Debug.Log($"网格初始化成功：大小 {width}x{height}，格子物理尺寸：{_cellWidth:F2} x {_cellHeight:F2}");
+            Debug.Log($"[GridManager] 网格 {width}x{height}；世界范围 x[{WorldOrigin.x:F2}, {WorldOrigin.x + WorldSpan.x:F2}] z[{WorldOrigin.y:F2}, {WorldOrigin.y + WorldSpan.y:F2}]；格子 {_cellWidth:F3} x {_cellHeight:F3}");
+        }
+
+        /// <summary>
+        /// 网格只能铺在一个水平面上。Quad 忘了绕 X 转 90° 是最常见的错，
+        /// 这里直接报出来，免得又在"对不齐"上耗时间。
+        /// </summary>
+        private void ValidatePlacement()
+        {
+            if (_renderer == null)
+            {
+                Debug.LogError($"[GridManager] {name} 上没有 Renderer。网格需要一个渲染物体（Plane 或 Quad）来提供世界范围。", this);
+                return;
+            }
+
+            Bounds b = _renderer.bounds;
+            float flat = b.size.y;
+            float wide = Mathf.Max(b.size.x, b.size.z);
+            if (flat > wide * 0.01f)
+            {
+                Debug.LogWarning($"[GridManager] {name} 看起来不是平放的（bounds 高度 {flat:F3}，平面尺寸 {wide:F3}）。Plane 不需要旋转；Quad 需要 Rotation.x = 90。", this);
+            }
         }
 
         /// <summary>
@@ -205,7 +304,7 @@ namespace TapTapGameJam.Core
                 for (int y = 0; y < height; y++)
                 {
                     Vector2 center = GridToWorld(new Vector2Int(x, y));
-                    Vector3 start = new Vector3(center.x, _proxyObject.position.y + 0.5f, center.y);
+                    Vector3 start = new Vector3(center.x, transform.position.y + 0.5f, center.y);
 
                     bool isWall = Physics.Raycast(start, Vector3.up, 200.0f, wallLayer);
 
