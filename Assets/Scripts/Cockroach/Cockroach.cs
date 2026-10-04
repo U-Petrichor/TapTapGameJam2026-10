@@ -157,9 +157,9 @@ namespace TapTapGameJam.Cockroach
             nest?.Add(this);
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
-            UpdateLogic(Time.deltaTime);
+            UpdateLogic(Time.fixedDeltaTime);
         }
 
         #endregion
@@ -397,7 +397,6 @@ namespace TapTapGameJam.Cockroach
         /// <summary>
         /// 释放信息素：强度随「离巢 / 取食」的时间指数衰减。
         /// 从食物处出发的那条路逐渐变淡，最后消失——这是觅食路径"自然遗忘"的机制。
-        /// 由 CockroachManager 和 Decide 一起按同一节拍调用。
         /// </summary>
         public void Deposit()
         {
@@ -477,19 +476,27 @@ namespace TapTapGameJam.Cockroach
             if (nestCommand == CockroachCommand.Hatch)
             {
                 if (currentState == CockroachState.Forage)
+                {
+                    _phaseClock = 0f;
                     currentState = CockroachState.Return; // Hatch指令时强制归巢
+                }
                 if (currentState == CockroachState.Inside)
                 {
                     // TODO: 孵化逻辑
                 }
             }
 
-            if (nestCommand == CockroachCommand.Foraging &&  currentState == CockroachState.Inside)
+            if (nestCommand == CockroachCommand.Foraging && currentState == CockroachState.Inside)
             {
+                _phaseClock = 0f;
                 currentState = CockroachState.Forage;
             }
 
-            
+            if (currentState != CockroachState.Inside)
+            {
+                Deposit();
+            }
+
             // 运动逻辑
             if (currentState != CockroachState.Inside)
             {
@@ -602,8 +609,7 @@ namespace TapTapGameJam.Cockroach
                 _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
 
                 // 吃到食物立即折返（允许瞬间转向）
-                _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
-                _targetAngle = _forwardAngle;
+                _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
                 return;
             }
         }
@@ -614,14 +620,21 @@ namespace TapTapGameJam.Cockroach
         private void EnterNest()
         {
             CockroachManager.Instance.sharedNutrition += _carrying;
-
-            _carrying = 0f;
-            currentState = nestCommand == CockroachCommand.Hatch ? CockroachState.Inside : CockroachState.Forage;
-            Debug.Log(name + " enter Nest, state: " +  currentState);
-            
-            _phaseClock = 0f;
             _lastLoad = false;
-            _targetAngle = NormAng(_forwardAngle + Mathf.PI);
+            _carrying = 0f;
+            
+            if (nestCommand == CockroachCommand.Foraging)
+            {
+                _phaseClock = 0f;
+                currentState =  CockroachState.Forage;
+                _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI);
+            }
+
+            if (nestCommand == CockroachCommand.Hatch)
+            {
+                _phaseClock = 0f;
+                currentState = CockroachState.Inside;
+            }
         }
 
         #endregion

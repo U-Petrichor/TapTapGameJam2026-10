@@ -217,10 +217,6 @@ namespace TapTapGameJam.Core
         private void Awake()
         {
             _instance = this;
-        }
-
-        private void Start()
-        {
             InitGrid();
             _pheromoneTemp = new float[width, height];
         }
@@ -240,7 +236,7 @@ namespace TapTapGameJam.Core
         private void FixedUpdate()
         {
             CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
-            TickPheromones(Time.deltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
+            TickPheromones(Time.fixedDeltaTime, settings.PheromoneDecay, settings.PheromoneDiffuse, settings.PlayerDecay);
         }
 
         /// <summary>
@@ -267,6 +263,11 @@ namespace TapTapGameJam.Core
             TraceMapStateFromWall();
 
             Debug.Log($"[GridManager] 网格 {width}x{height}；世界范围 x[{WorldOrigin.x:F2}, {WorldOrigin.x + WorldSpan.x:F2}] z[{WorldOrigin.y:F2}, {WorldOrigin.y + WorldSpan.y:F2}]；格子 {_cellWidth:F3} x {_cellHeight:F3}");
+        }
+
+        private void Start()
+        {
+            TraceMapStateFromWall();
         }
 
         /// <summary>

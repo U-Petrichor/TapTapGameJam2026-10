@@ -47,14 +47,6 @@ namespace TapTapGameJam.Cockroach
             _instance = this;
         }
 
-        private void Start()
-        {
-            // TODO: 临时游戏测试逻辑，后续由正式游戏流程接管
-            
-            // TODO: 在地图中生成一个Nest
-            
-        }
-
         private void FixedUpdate()
         {
             _decisionFrameCounter++;
@@ -78,7 +70,7 @@ namespace TapTapGameJam.Cockroach
                 for (int j = 0; j < roaches.Count; j++)
                 {
                     roaches[j].Decide();
-                    roaches[j].Deposit();
+                    // roaches[j].Deposit();
                 }
             }
         }
