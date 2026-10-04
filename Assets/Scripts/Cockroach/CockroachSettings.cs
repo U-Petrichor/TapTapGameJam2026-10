@@ -21,7 +21,7 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("锥形随机采样点数")] public int SampleCount = 24;
 
         /// <summary>探测距离（世界单位）</summary>
-        [Tooltip("探测距离")] public float DetectRange = 6f;
+        [Tooltip("探测距离")] public float DetectRange = 2f;
 
         /// <summary>探测半角（弧度），π/2 即正前方 ±90°</summary>
         [Tooltip("探测半角(rad)，π/2 即正前方 ±90°")] public float DetectCone = 1.57f;
@@ -91,7 +91,7 @@ namespace TapTapGameJam.Cockroach
         // ---- 归巢 ----
 
         /// <summary>归巢偏置：探测不到信息素时仍能大致朝巢穴走</summary>
-        [Tooltip("归巢偏置")] public float HomeBias = 8f;
+        [Tooltip("归巢偏置")] public float HomeBias = 2f;
 
         /// <summary>离巢散开区：刚出巢的蟑螂忽略信息素，先向外散开</summary>
         [Tooltip("离巢散开区")] public float LeaveZone = 2.2f;

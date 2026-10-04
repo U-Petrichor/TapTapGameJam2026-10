@@ -58,12 +58,11 @@ namespace TapTapGameJam.Cockroach
         [HideInInspector]
         public CockroachCommand nestCommand = CockroachCommand.Hatch;
         
-        [SerializeField] // 临时debug用
+        [SerializeField]
         private CockroachState currentState = CockroachState.Inside;
         
-        [Header("运动参数")] [SerializeField]
-        private CockroachSettings _settings = new CockroachSettings();
-
+        private CockroachSettings _settings;
+        
         // 朝向。角度 0 = 世界 +x，π/2 = 世界 +z
         private float _forwardAngle;
         private float _targetAngle;
@@ -222,6 +221,8 @@ namespace TapTapGameJam.Cockroach
             Assert.IsTrue(nest);
             GridManager grid = GridManager.Instance;
 
+            if (currentState == CockroachState.Inside) return;
+
             bool toReturn = currentState == CockroachState.Return;
             PheromoneKind kind = toReturn ? PheromoneKind.Home : PheromoneKind.Food;
             float permanentRange = _settings.PermanentRange;
@@ -234,7 +235,7 @@ namespace TapTapGameJam.Cockroach
                 
                 if ((nestPos - pos).magnitude < nest.radius + permanentRange)
                 {
-                    _targetAngle = _forwardAngle = NormAng(AngleTo(pos, nestPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
+                    _targetAngle = _forwardAngle = NormAng(AngleTo(pos, nestPos));
                     return;
                 }
             }
@@ -248,7 +249,7 @@ namespace TapTapGameJam.Cockroach
                     if ((foodPos - pos).magnitude < food.interactRaius + permanentRange)
                     {
 
-                        _targetAngle = _forwardAngle = NormAng(AngleTo(pos, foodPos) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
+                        _targetAngle = _forwardAngle = NormAng(AngleTo(pos, foodPos));
                         return;
                     }
                 }
@@ -257,7 +258,6 @@ namespace TapTapGameJam.Cockroach
             // ---- 采样 ----
             float baseAngle = _forwardAngle;
             int sampleCount = Mathf.Max(3, _settings.SampleCount);
-            float triOffset = Mathf.Min(_settings.DetectCone * 0.5f, 0.7f);
 
             // 归巢时尽量选"离巢更近"的方向，刚出巢散开时选更远的（都绕开障碍）
             float homeDist = (nest.WorldPosition - pos).magnitude;
@@ -292,23 +292,13 @@ namespace TapTapGameJam.Cockroach
                     continue;
                 }
 
-                // 采样点落在巢穴上 → 直奔巢口
-                if (toReturn && nest != null && (nest.WorldPosition - samplePos).magnitude < nest.radius * 0.95f)
-                {
-                    bestDir = dir;
-                    bestScore = float.PositiveInfinity;
-                    bestSamplePos = samplePos;
-                    hasBest = true;
-                    break;
-                }
-
-                float score;
-                if (dispersing)
-                {
-                    // 巢口附近觅食信息素会连成一片"穹顶"，此时只按向外散开 + 避墙来选方向
-                    score = grid.WallWeight(samplePos, _settings.WallAvoid) * 6f;
-                }
-                else
+                float score = 0;
+                // if (dispersing) TODO: 暂时简化测试
+                // {
+                //     // 巢口附近觅食信息素会连成一片"穹顶"，此时只按向外散开 + 避墙来选方向
+                //     score = grid.WallWeight(samplePos, _settings.WallAvoid) * 6f;
+                // }
+                // else
                 {
                     float v = grid.SamplePheromone(kind, samplePos);
 
@@ -318,17 +308,15 @@ namespace TapTapGameJam.Cockroach
                         v = Mathf.Max(v, grid.SamplePheromone(PheromoneKind.Player, samplePos));
                     }
 
-                    score = v * grid.WallWeight(samplePos, _settings.WallAvoid);
+                    score = v;
+                    // score = v * grid.WallWeight(samplePos, _settings.WallAvoid);
                 }
 
                 if (biasWeight > 0f)
                 {
                     int distSample = nest.NestDistance(samplePos);
                     int gain = toReturn ? distHere - distSample : distSample - distHere;
-                    if (gain > 0)
-                    {
-                        score += biasWeight * Mathf.Min(gain, 12) * 0.4f;
-                    }
+                    score += biasWeight * gain;
                 }
 
                 // 危险信息素：负权重（绕开，而不是折返）
@@ -355,15 +343,11 @@ namespace TapTapGameJam.Cockroach
                 }
             }
 
-            if (!hasBest)
-            {
-                // 一个能走的采样点都没有：随便偏一点，接下来靠撞墙反弹脱困
-                bestDir = DirOfAngle(baseAngle + Rand(-0.7f, 0.7f));
-            }
+            if (!hasBest) bestDir = DirOfAngle(baseAngle);
 
             _targetAngle = NormAng(AngleOfDir(bestDir) + Rand(-_settings.DirectionNoise, _settings.DirectionNoise));
 
-            // 反停滞：轻微削弱刚跟随过的格子
+            // 反停滞：轻微削弱刚跟随过的格子 TODO: 暂时移除测试
             // if (bestScore > GridManager.MinPheromone * 4f && Rand01() < 0.25f)
             // {
             //     grid.WritePheromone(kind, bestSamplePos, grid.SamplePheromone(kind, bestSamplePos) * 0.985f, 0f);
@@ -485,17 +469,17 @@ namespace TapTapGameJam.Cockroach
                 _forwardAngle = RotateTowards(_forwardAngle, _targetAngle, dt, _settings.TurnSpeed);
 
                 /* ---- 移动 + 碰撞反弹 ---- */
-                float baseSpeed = currentState == CockroachState.Return ? _settings.Speed * 1.06f : _settings.Speed;
+                float speed = _settings.Speed * _speedJitter;
 
-                // 近处有墙且还没转开时减速转向，避免"顶着墙往前推"
-                float speedMul = 1f;
-                if (_settings.WallLook > 0f && RayAhead(Position, DirOfAngle(_forwardAngle), _settings.WallLook * 0.5f))
-                {
-                    float err = Mathf.Abs(NormAng(_targetAngle - _forwardAngle));
-                    speedMul = Mathf.Clamp(Mathf.Cos(Mathf.Min(err, Mathf.PI)), 0.45f, 1f);
-                }
-
-                float speed = baseSpeed * _speedJitter * speedMul;
+                // 近处有墙且还没转开时减速转向，避免"顶着墙往前推" TODO: 暂时移除看效果
+                // float speedMul = 1f;
+                // if (_settings.WallLook > 0f && RayAhead(Position, DirOfAngle(_forwardAngle), _settings.WallLook * 0.5f))
+                // {
+                //     float err = Mathf.Abs(NormAng(_targetAngle - _forwardAngle));
+                //     speedMul = Mathf.Clamp(Mathf.Cos(Mathf.Min(err, Mathf.PI)), 0.45f, 1f);
+                // }
+                //
+                // float speed = baseSpeed * speedMul;
 
                 Vector2 pos = Position;
                 Vector2 next = pos + DirOfAngle(_forwardAngle) * (speed * dt);
@@ -608,7 +592,6 @@ namespace TapTapGameJam.Cockroach
             Vector2 pos = Position;
             
             float reachDistance = _settings.InteractRadius + nest.radius;
-            float permanentDistance = _settings.PermanentRange + nest.radius;
             float distance2 = (nestPos - pos).sqrMagnitude;
             
             if (distance2 < reachDistance * reachDistance)
@@ -633,11 +616,6 @@ namespace TapTapGameJam.Cockroach
                     GetComponent<Renderer>().enabled = false;
                     // TODO: 进入其他巢穴的逻辑（决定是否加）
                 }
-            }
-            else if (distance2 < permanentDistance * permanentDistance)
-            {
-                // 在视野范围内，强制改方向
-                _targetAngle = _forwardAngle = AngleOfDir(nestPos - pos);
             }
         }
 

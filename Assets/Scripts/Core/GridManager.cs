@@ -718,7 +718,7 @@ namespace TapTapGameJam.Core
                 for (int y = 0; y < height; y++)
                 {
                     float v = field[x, y] - decay;
-                    field[x, y] = v;
+                    field[x, y] = Mathf.Max(0.0f, v);
                 }
             }
         }

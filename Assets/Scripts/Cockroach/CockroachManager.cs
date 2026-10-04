@@ -16,7 +16,7 @@ namespace TapTapGameJam.Cockroach
         /// <summary>
         /// 每隔几个 FixedUpdate 做一次全体决策
         /// </summary>
-        public const int DecisionFrameInterval = 10;
+        public const int DecisionFrameInterval = 5;
 
         public static CockroachManager Instance
         {
