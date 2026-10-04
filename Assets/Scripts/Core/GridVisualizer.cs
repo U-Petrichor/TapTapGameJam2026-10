@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using UnityEngine;
 
@@ -23,6 +24,13 @@ namespace TapTapGameJam.Core
         public bool showPheromones = true;
         public bool showGridLines = true;
 
+        /// <summary>
+        /// 信息素刷新（更新贴图）间隔，单位是 FixedUpdate 的次数。
+        /// </summary>
+        private const int PheromoneFreshFrameInterval = 10;
+
+        private int _pheromoneFrameCounter;
+        
         static readonly int PheroTexId   = Shader.PropertyToID("_PheroTex");
         static readonly int GridOriginId = Shader.PropertyToID("_GridOriginWS");
         static readonly int GridSpanId   = Shader.PropertyToID("_GridSpanWS");
@@ -68,9 +76,16 @@ namespace TapTapGameJam.Core
             }
         }
 
-        void LateUpdate()
+        private void FixedUpdate()
         {
-            // 放在 LateUpdate：确保 GridManager.Update 里的 TickPheromones 已经跑完
+
+            if (++_pheromoneFrameCounter < PheromoneFreshFrameInterval)
+            {
+                return;
+            }
+
+            _pheromoneFrameCounter = 0;
+
             grid.EnsureFootprint();
             EnsureTexture();
             PackPheromones();

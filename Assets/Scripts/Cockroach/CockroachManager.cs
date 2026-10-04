@@ -45,6 +45,16 @@ namespace TapTapGameJam.Cockroach
             _instance = this;
         }
 
+        private void Start()
+        {
+            // 1. 决策前先让每个巢穴把距离场刷新好，蟑螂才知道"哪边离家更近"
+            for (int i = 0; i < CockNestList.Count; i++)
+            {
+                // TODO: 刷新距离场 + TraceWall 的逻辑放到场景变化时（进入夜晚 or 某个墙壁被破坏）
+                CockNestList[i].RefreshDistanceField();
+            }
+        }
+
         private void FixedUpdate()
         {
             _decisionFrameCounter++;
@@ -55,13 +65,7 @@ namespace TapTapGameJam.Cockroach
 
             _decisionFrameCounter = 0;
 
-            // 1. 决策前先让每个巢穴把距离场刷新好，蟑螂才知道"哪边离家更近"
-            for (int i = 0; i < CockNestList.Count; i++)
-            {
-                CockNestList[i].RefreshDistanceField();
-            }
-
-            // 2. 全体决策
+            // 全体决策
             for (int i = 0; i < CockNestList.Count; i++)
             {
                 List<Cockroach> roaches = CockNestList[i].CockroachList;

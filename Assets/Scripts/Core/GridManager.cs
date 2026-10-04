@@ -224,12 +224,28 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 每帧推进信息素：只做线性衰减，不做扩散。
+        /// 信息素刷新（衰减）间隔，单位是 FixedUpdate 的次数。
         /// </summary>
+        private const int PheromoneFreshFrameInterval = 10;
+
+        private int _pheromoneFrameCounter;
+        private float _pheromoneAccumulatedDt;
+
         private void FixedUpdate()
         {
+            _pheromoneAccumulatedDt += Time.fixedDeltaTime;
+
+            if (++_pheromoneFrameCounter < PheromoneFreshFrameInterval)
+            {
+                return;
+            }
+
+            _pheromoneFrameCounter = 0;
+
             CockroachSettings settings = CockroachManager.Instance.cockroachSetting;
-            TickPheromones(Time.fixedDeltaTime, settings.PheromoneDecay, settings.PlayerDecay);
+            TickPheromones(_pheromoneAccumulatedDt, settings.PheromoneDecay, settings.PlayerDecay);
+
+            _pheromoneAccumulatedDt = 0f;
         }
 
         /// <summary>

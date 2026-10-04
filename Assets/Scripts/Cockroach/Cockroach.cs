@@ -4,6 +4,7 @@ using NUnit.Framework;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -493,6 +494,7 @@ namespace TapTapGameJam.Cockroach
             {
                 _phaseClock = 0f;
                 currentState = CockroachState.Forage;
+                GetComponent<Renderer>().enabled = true;
             }
 
             if (currentState != CockroachState.Inside)
@@ -659,6 +661,9 @@ namespace TapTapGameJam.Cockroach
                 {
                     _phaseClock = 0f;
                     currentState = CockroachState.Inside;
+                    Position = nestPos;
+                    GetComponent<Renderer>().enabled = false;
+                    // TODO: 进入其他巢穴的逻辑（决定是否加）
                 }
             }
             else if (distance2 < permanentDistance * permanentDistance)

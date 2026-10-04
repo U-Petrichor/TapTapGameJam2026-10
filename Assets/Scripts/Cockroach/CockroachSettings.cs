@@ -77,7 +77,7 @@ namespace TapTapGameJam.Cockroach
         /// 信息素刷子半径（世界单位）。释放时以蟑螂所在位置为圆心，按这个半径刷到网格上：
         /// 圆心强度高，向外抛物线衰减到边缘的 0。<b>0 = 退化成只写一个格子</b>。
         /// </summary>
-        [Tooltip("信息素刷子半径（世界单位），0 = 只写一格")] public float MarkerRadius = 0.5f;
+        [Tooltip("信息素刷子半径（世界单位），0 = 只写一格")] public float MarkerRadius = 0.3f;
 
         /// <summary>危险信息素负权重，越大越躲</summary>
         [Tooltip("危险信息素负权重")] public float DangerAvoid = 2.5f;
