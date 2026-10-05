@@ -88,6 +88,12 @@ namespace TapTapGameJam.Cockroach
         /// <summary>觅食信息素在巢口 fade 距离内线性淡出，避免在巢口堆出"穹顶"</summary>
         [Tooltip("巢口信息素淡出距离")] public float FoodTrailFade = 3f;
 
+        /// <summary>被击杀时爆发的危险信息素强度（× MarkerMax）</summary>
+        [Tooltip("死亡爆发强度（× MarkerMax）")] public float DangerBurstMul = 0.85f;
+
+        /// <summary>被击杀时爆发的危险信息素半径（世界单位）</summary>
+        [Tooltip("死亡爆发半径")] public float DangerBurstRadius = 2.5f;
+
         // ---- 归巢 ----
 
         /// <summary>归巢偏置：探测不到信息素时仍能大致朝巢穴走</summary>

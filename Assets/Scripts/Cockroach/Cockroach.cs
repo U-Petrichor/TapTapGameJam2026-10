@@ -92,6 +92,9 @@ namespace TapTapGameJam.Cockroach
             }
         }
 
+        /// <summary>在巢里待命（守卫不理会这种）</summary>
+        public bool IsInside => currentState == CockroachState.Inside;
+
         /// <summary>已经叼着的营养</summary>
         private float _carrying;
         
@@ -151,6 +154,21 @@ namespace TapTapGameJam.Cockroach
             nest?.Remove(this);
             nest = newNest;
             nest?.Add(this);
+        }
+
+        /// <summary>
+        /// 被击杀：原地爆发一次危险信息素警告同伴，然后销毁自己。
+        /// 巢穴名单由 OnDisable 负责摘除。
+        /// </summary>
+        public void Die()
+        {
+            GridManager grid = GridManager.Instance;
+            if (grid != null && _settings != null)
+            {
+                grid.BurstDanger(Position, _settings.MarkerMax * _settings.DangerBurstMul, _settings.DangerBurstRadius);
+            }
+
+            Destroy(gameObject);
         }
 
         private void FixedUpdate()

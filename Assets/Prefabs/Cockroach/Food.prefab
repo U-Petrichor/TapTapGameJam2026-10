@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: e2c07fc0faa500f47ab2bc3628aa2c3a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -130,5 +130,6 @@ MonoBehaviour:
   itemShape:
     blockOffsets: []
   _hoverPrompt: 
-  totalNutrition: 23
-  remainingNutrition: 23
+  totalNutrition: 200
+  remainingNutrition: 200
+  interactRaius: 0.5

@@ -689,6 +689,15 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
+        /// 危险信息素爆发：以 worldPos 为圆心刷一圈 danger（中心浓、边缘淡）。
+        /// 蟑螂 / 玩家被击杀时用它警告同伴。
+        /// </summary>
+        public void BurstDanger(Vector2 worldPos, float intensity, float radius)
+        {
+            WritePheromone(PheromoneKind.Danger, worldPos, intensity, radius);
+        }
+
+        /// <summary>
         /// 线性衰减一拍，各通道衰减速率不同
         /// </summary>
         /// <param name="dt">实际经过的时间</param>

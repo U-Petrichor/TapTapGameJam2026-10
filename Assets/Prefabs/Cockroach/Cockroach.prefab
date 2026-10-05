@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4483367537558808529}
   - component: {fileID: 7149651077116982911}
   - component: {fileID: 5851588498478393892}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cockroach
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -127,31 +127,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Cockroach.Cockroach
   nest: {fileID: 0}
   nestCommand: 0
-  _settings:
-    SampleCount: 24
-    DetectRange: 6
-    DetectCone: 1.57
-    LibertyCoef: 0.01
-    WallAvoid: 0.7
-    WallLook: 3
-    PermanentRange: 5.5
-    Speed: 3.5
-    TurnSpeed: 4
-    DirectionNoise: 0.1
-    SpeedJitterMin: 0.86
-    SpeedJitterMax: 1.14
-    Radius: 0.34
-    InsideSpeed: 4.9
-    RangePushSpeed: 1.6
-    MarkerMax: 1000
-    MarkerTimeCoef: 0.25
-    MarkerSmooth: 1
-    DangerAvoid: 2.5
-    FoodTrailFade: 3
-    HomeBias: 8
-    LeaveZone: 2.2
-    CarryCapacity: 5
-    EmptyClearRadius: 3
-    PheromoneDecay: 3
-    PlayerDecay: 200
-    PheromoneDiffuse: 0
+  currentState: 0
