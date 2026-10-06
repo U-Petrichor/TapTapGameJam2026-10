@@ -34,6 +34,7 @@ namespace TapTapGameJam.Cockroach
         [Header("蟑螂寻路设置")]
         public CockroachSettings cockroachSetting = new CockroachSettings();
 
+        // TODO： 和PlayerResources合并取其一
         [Header("共享总营养")] public float sharedNutrition;
 
         public List<CockNest> CockNestList { get; private set; } = new List<CockNest>();

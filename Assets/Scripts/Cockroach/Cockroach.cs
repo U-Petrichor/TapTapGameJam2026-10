@@ -121,16 +121,14 @@ namespace TapTapGameJam.Cockroach
             _forwardAngle = Rand(0f, Mathf.PI * 2f);
             _targetAngle = _forwardAngle;
             _speedJitter = Rand(_settings.SpeedJitterMin, _settings.SpeedJitterMax);
-
-            nest = nest != null ? nest : FindNearestNest(Position);
-
-            Assert.IsTrue(nest != null);
-            nest.Add(this);
-            Position = JitterInsideNest(nest);
         }
 
         private void OnEnable()
         {
+            if (!nest) nest = FindNearestNest(Position);
+
+            nest.Add(this);
+            Position = JitterInsideNest(nest);
             EventPipeline.Publish(new EventCockroachCountChange(Manager.CockroachTotalCount(), 1));
         }
 
@@ -615,7 +613,8 @@ namespace TapTapGameJam.Cockroach
             if (distance2 < reachDistance * reachDistance)
             {
                 // 进入巢穴
-                CockroachManager.Instance.sharedNutrition += _carrying;
+                EventPipeline.Publish(new EventNutritionChange(Manager.sharedNutrition, _carrying));
+                Manager.sharedNutrition += _carrying;
                 _lastLoad = false;
                 _carrying = 0f;
             

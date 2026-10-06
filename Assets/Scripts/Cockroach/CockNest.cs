@@ -29,6 +29,9 @@ namespace TapTapGameJam.Cockroach
 
         private CockroachCommand currentCommand = CockroachCommand.Hatch;
 
+        /// <summary>当前指令。给 UI 读取用</summary>
+        public CockroachCommand CurrentCommand => currentCommand;
+
         /// <summary>
         /// 到本巢穴的格数距离场
         /// </summary>
