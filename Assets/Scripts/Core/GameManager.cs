@@ -16,6 +16,7 @@ namespace TapTapGameJam.Core
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private ShopMenu _shopMenu;
         [SerializeField] private GamePhaseManager _gamePhaseManager;
+        private int _dayCount=0 ;
 
         private void Awake()
         {
@@ -51,6 +52,7 @@ namespace TapTapGameJam.Core
                     {
                         _gamePhaseManager.EnterPhase(GamePhase.Day);
                         _gamePhaseManager.CouldWork = true;
+                        EventPipeline.Publish<EventNewDay>(new EventNewDay(_dayCount++));
                         break;
                     }
                 case GamePhase.Shopping:

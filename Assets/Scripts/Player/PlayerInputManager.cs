@@ -14,20 +14,44 @@ namespace TapTapGameJam.Player
         private PlayerBasic _player;
         private bool _isESCMenuOpen = false; // 当前是否打开了ESC菜单
         private bool _isBackpackOpen = false; // 当前是否打开了背包
-        private bool _isCtrlPressed = false; // 当前是否按下了Ctrl键
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
 
         public event Action EventOnInteractPress;
-        public event Action<int> EventOnInteractionScroll; // 传入滚轮方向，1为向上，-1为向下
-        public event Action<int> EventOnCameraScroll; // 传入滚轮方向，1为靠近，-1为远离
+        public event Action EventOnInteractionSwitchPress; // 按 Q 切换到下一个交互目标
+        public event Action<int> EventOnCameraScroll; // 传入滚轮方向，1为远离，-1为靠近
+        public event Action<int> EventOnCameraRotate; // [ 为 +1，] 为 -1，每次旋转 45 度
+
+        private InputAction _rotateCameraLeft;
+        private InputAction _rotateCameraRight;
 
 
         private void Start()
         {
             rb = GetComponent<Rigidbody>();
             _player = GetComponent<PlayerBasic>();
+            // Start 时 PlayerInput 已完成初始化，使用它为当前玩家创建的 actions。
+            if (_playerInput != null && _playerInput.actions != null)
+            {
+                // 通过固定 ID 查找 CameraClockwise / CameraAntiClockwise，重命名动作不影响连接。
+                _rotateCameraLeft = _playerInput.actions.FindAction("9f97b44a-5cb2-4719-ba84-723d489da067");
+                _rotateCameraRight = _playerInput.actions.FindAction("fcb1663d-5bba-4b07-8639-fe019e2a7f76");
+            }
+        }
+
+        private void Update()
+        {
+            // 跟随 ActionMap 的启停，打开背包或 ESC 菜单时不响应相机旋转。
+            if (_rotateCameraLeft != null && _rotateCameraLeft.enabled
+                && _playerInput.currentActionMap == _rotateCameraLeft.actionMap
+                && _rotateCameraLeft.WasPerformedThisFrame())
+                EventOnCameraRotate?.Invoke(1);
+
+            if (_rotateCameraRight != null && _rotateCameraRight.enabled
+                && _playerInput.currentActionMap == _rotateCameraRight.actionMap
+                && _rotateCameraRight.WasPerformedThisFrame())
+                EventOnCameraRotate?.Invoke(-1);
         }
 
         #region 玩家移动
@@ -54,9 +78,6 @@ namespace TapTapGameJam.Player
         }
         public void OnMouseScroll(InputAction.CallbackContext context)
         {
-            // 传入值，鼠标往下是-120，往上是+120
-            // 但是PlayerInteractionManager中，List的索引越大，在UI层面是越靠下的，所以往下滚，UI应该往下，索引应当增加；往上滚，UI应该往上，索引应当减少
-            // 于是我们这里得反过来
             if (!context.performed)
             {
                 return;
@@ -65,33 +86,18 @@ namespace TapTapGameJam.Player
 
             if (scrollValue < 0f)
             {
-                if (_isCtrlPressed == true)
-                {
-                    EventOnInteractionScroll?.Invoke(1);
-                }
-                else
-                {
-                    EventOnCameraScroll?.Invoke(1);
-                }
+                EventOnCameraScroll?.Invoke(1);
             }
             else if (scrollValue > 0f)
             {
-                if(_isCtrlPressed == true)
-                {
-                    EventOnInteractionScroll?.Invoke(-1);
-                }
-                else
-                {
-                    EventOnCameraScroll?.Invoke(-1);
-                }
+                EventOnCameraScroll?.Invoke(-1);
             }
         }
-        public void OnCtrlPressed(InputAction.CallbackContext context)
+        public void OnSwitchInteraction(InputAction.CallbackContext context)
         {
-            if (context.performed || context.canceled)
-            {
-                _isCtrlPressed = context.ReadValueAsButton();
-            }
+            if (!context.performed) return;
+
+            EventOnInteractionSwitchPress?.Invoke();
         }
         #endregion
         #region 控制背包

@@ -7,3 +7,4 @@
 *.unity text eol=lf
 *.prefab text eol=lf
 *.asset text eol=lf
+Assets/Model/hopeLastOne/changjing01.fbx filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,26 @@
+{
+  "source_scene": "E:\\DEMO\\TapTapGameJam\\TapTapGameJam\\Assets\\Scenes\\GameScene.unity",
+  "source_sha256": "8bc4a2266527f226273acafdc4cece1f5fc8170f2b3ff2d38e276b9de768b943",
+  "reconstructed_copy": "E:\\DEMO\\TapTapGameJam\\TapTapGameJam\\RecoverySnapshots\\20261005-205321\\GameScene_ResourcesUI_IconsRemoved.unity",
+  "reconstructed_sha256": "1dbc861cd290e99e0b4cd17874025645704f36dc618e9f0676a7cf40417233d4",
+  "exact_pre_reload_scene_found": false,
+  "known_change_reconstructed": [
+    "HUDCanvas/ResourcesUI/Coins/Icon deleted",
+    "HUDCanvas/ResourcesUI/Nutrition/Icon deleted",
+    "HUDCanvas/ResourcesUI/CockroachNum/Icon deleted"
+  ],
+  "other_ui_changes_reconstructed": false,
+  "current_scene_overwritten": false,
+  "evidence": [
+    "Temp/__Backupscenes is absent",
+    "Assets/_Recovery/0.unity timestamp 2026-10-05 03:28:26 +08:00; still includes all three Icons",
+    "Parent scene-recovery-20261005-0332 directory contains only morning copies",
+    "Two unreachable Git blobs are C# sources, not scenes",
+    "Windows shadow copy query returned no entries"
+  ],
+  "validation": {
+    "removed_serialized_blocks": 12,
+    "new_interaction_ui_preserved": true,
+    "remaining_references_to_deleted_ids": false
+  }
+}

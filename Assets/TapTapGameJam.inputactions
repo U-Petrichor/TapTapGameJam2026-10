@@ -57,9 +57,29 @@
                     "priority": 0
                 },
                 {
-                    "name": "Ctrl",
+                    "name": "SwitchInteraction",
                     "type": "Button",
                     "id": "33ad2ab1-f610-46fb-98bb-c7843a418b69",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "CameraClockwise",
+                    "type": "Button",
+                    "id": "9f97b44a-5cb2-4719-ba84-723d489da067",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "CameraAntiClockwise",
+                    "type": "Button",
+                    "id": "fcb1663d-5bba-4b07-8639-fe019e2a7f76",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -247,11 +267,33 @@
                 {
                     "name": "",
                     "id": "d14e49aa-6b4b-4e6e-877a-7ecf9e9e60d2",
-                    "path": "<Keyboard>/ctrl",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Ctrl",
+                    "action": "SwitchInteraction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "17b4c43f-a070-455b-9aeb-30ad1adbdf0e",
+                    "path": "<Keyboard>/leftBracket",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraClockwise",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "92635918-6373-4293-9f32-30cccdfb16fb",
+                    "path": "<Keyboard>/rightBracket",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraAntiClockwise",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

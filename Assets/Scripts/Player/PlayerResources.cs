@@ -10,6 +10,7 @@ namespace TapTapGameJam.Player
         [field: SerializeField] public int Coins { get; private set; } = 0;
         [Tooltip("营养值")]
         [field: SerializeField] public int Nutrition { get; private set; } = 0;
+        public int TalentPoint { get; private set; } = 0;
 
         [field: SerializeField] public int CoffeeCount { get; private set; } = 0;
 
@@ -50,6 +51,21 @@ namespace TapTapGameJam.Player
             }
             return false;
         }
-        
+        public void AddTalentPoint(int amount)
+        {
+            TalentPoint += amount;
+            EventPipeline.Publish<EventTalentPointChange>(new EventTalentPointChange(TalentPoint, amount));
+        }
+        public bool TrySpendTalentPoint(int amount)
+        {
+            if (TalentPoint >= amount)
+            {
+                TalentPoint -= amount;
+                EventPipeline.Publish<EventTalentPointChange>(new EventTalentPointChange(TalentPoint, amount));
+                return true;
+            }
+            return false;
+        }
+
     }
 }

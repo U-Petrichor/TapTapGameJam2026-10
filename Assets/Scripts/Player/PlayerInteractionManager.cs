@@ -11,24 +11,45 @@ namespace TapTapGameJam.Player
     {
         [field: SerializeField] private PlayerBasic _player;
         [field: SerializeField] private PlayerInputManager _inputManager;
-        private List<IInteractable> _candidates = new();
+        private readonly List<IInteractable> _candidates = new();
         public IReadOnlyList<IInteractable> Candidates => _candidates;
+        public bool HasInteractionTargets => _candidates.Count > 0;
+        public string CurrentInteractionPrompt => _currentTarget?.InteractionPrompt ?? string.Empty;
         private IInteractable _currentTarget;
         private int _currentTargetIndex = 0;
 
+        // 新 UI 只接收显示、隐藏和文字通知，不维护交互对象列表。
+        public event Action EventShowInteractionUI;
+        public event Action EventHideInteractionUI;
+        public event Action<string> EventInteractionPromptChanged;
+
+        // 保留旧事件以兼容仍使用旧选择 UI 的场景。
         public event Action<IInteractable> EventTargetChanged;
         public event Action<IInteractable> EventObjectAdded;
         public event Action<IInteractable> EventObjectDeleted;
+
+        private void Awake()
+        {
+            if (_player == null) _player = GetComponent<PlayerBasic>();
+            if (_inputManager == null) _inputManager = GetComponent<PlayerInputManager>();
+        }
 
         private void OnEnable()
         {
             // 订阅交互按键
             _inputManager.EventOnInteractPress += HandleInteract;
-            // 订阅鼠标滚轮滑动
-            _inputManager.EventOnInteractionScroll += HandleMouseScroll;
+            // 订阅 Q 切换交互目标
+            _inputManager.EventOnInteractionSwitchPress += HandleSwitchInteraction;
+        }
+        private void OnDisable()
+        {
+            _inputManager.EventOnInteractPress -= HandleInteract;
+            _inputManager.EventOnInteractionSwitchPress -= HandleSwitchInteraction;
         }
         public void Register(IInteractable interactable)
         {
+            if (interactable == null || _candidates.Contains(interactable)) return;
+
             // 1. 加入队列
             _candidates.Add(interactable);
             EventObjectAdded?.Invoke(interactable);
@@ -37,65 +58,52 @@ namespace TapTapGameJam.Player
             {
                 _currentTargetIndex = 0; // 索引归0
                 SetCurrentTarget(interactable); // 当前指向的单位改为这个
+                EventShowInteractionUI?.Invoke();
             }
         }
         public void Unregister(IInteractable interactable)
         {
             // 事先记录要删除的这个所处的索引位置
             int deletedIndex = _candidates.IndexOf(interactable);
+            if (deletedIndex < 0) return;
             // 删除的是不是当前指向的目标
             bool isCurrentTarget = interactable == _currentTarget;
 
-            // 先什么都不管，先删除
-            _candidates.Remove(interactable);
+            // 先从候选列表移除，再更新当前目标和 UI。
+            _candidates.RemoveAt(deletedIndex);
             EventObjectDeleted?.Invoke(interactable);
 
             // 如果删完后为空
             if (_candidates.Count == 0)
             {
-                _currentTarget = null;
                 _currentTargetIndex = 0;
-                EventTargetChanged?.Invoke(null);
+                SetCurrentTarget(null);
+                EventHideInteractionUI?.Invoke();
                 return;
             }
 
-            // 如果被删的那个在当前指向的目标之前，那么Index应该减少，但是指向相同的物品
-            // 如果在之后，就没有必要变动
+            // 删除当前目标之前的对象时，保持目标不变，只修正索引。
             if (deletedIndex < _currentTargetIndex)
             {
                 _currentTargetIndex -= 1;
                 return;
             }
-
-
-            // 如果删除的是当前指向的目标，注意之前已经让UI删除了，所以在这个分支需要告诉UI一个新的可指向对象
+            // 当前目标消失后选择原位置的下一个；原目标在末尾则选择前一个。
             if (isCurrentTarget)
             {
-                // 并且原先指向的是最后一个
-                if (_currentTargetIndex == _candidates.Count)
-                {
-                    _currentTargetIndex -= 1;
-                }
-                // else 删除的是当前指向的，但不是最后一个，那么Index不变，但是指向的物品变了
+                _currentTargetIndex = Math.Min(_currentTargetIndex, _candidates.Count - 1);
+                SetCurrentTarget(_candidates[_currentTargetIndex]);
             }
-            // 如果删除的不是指向的目标，还要分在之前和在之后
-            SetCurrentTarget(_candidates[_currentTargetIndex]);
-
-
         }
         private void SetCurrentTarget(IInteractable target)
         {
-            if (target == null)
-            {
-                Debug.LogError($"PlayerInteractionManager：传入的当前指向对象为null");
-                return;
-            }
             if (_currentTarget == target)
             {
                 return;
             }
 
             _currentTarget = target;
+            EventInteractionPromptChanged?.Invoke(CurrentInteractionPrompt);
             EventTargetChanged?.Invoke(_currentTarget);
         }
         public void HandleInteract()
@@ -113,14 +121,13 @@ namespace TapTapGameJam.Player
             }
             // else分支为无可交互对象，什么都不做
         }
-        public void HandleMouseScroll(int direction)
+        public void HandleSwitchInteraction()
         {
-            if (_candidates.Count == 0) return;
-            else
-            {
-                _currentTargetIndex = (_currentTargetIndex + direction + _candidates.Count) % _candidates.Count;
-                SetCurrentTarget(_candidates[_currentTargetIndex]);
-            }
+            if (_candidates.Count <= 1) return;
+
+            // Q 每次只向下切换一个，到末尾后回到第一个。
+            _currentTargetIndex = (_currentTargetIndex + 1) % _candidates.Count;
+            SetCurrentTarget(_candidates[_currentTargetIndex]);
         }
     }
 }

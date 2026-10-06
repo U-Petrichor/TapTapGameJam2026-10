@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: dcc651b5057511c4eb8307dbe4fce5dd
   - enabled: 1
-    path: Assets/Scenes/GameScene.unity
+    path: Assets/Scenes/NoUseAnymore.unity
     guid: c3892e35e57cf1d4a97956811bef379a
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

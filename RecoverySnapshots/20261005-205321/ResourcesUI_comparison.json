@@ -1,0 +1,215 @@
+[
+  {
+    "source": "E:\\DEMO\\TapTapGameJam\\TapTapGameJam\\Assets\\Scenes\\GameScene.unity",
+    "nodes": [
+      {
+        "path": "HUDCanvas/ResourcesUI",
+        "gameObjectID": "2085038564",
+        "transformID": "2085038565",
+        "parentTransformID": "1743955155"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Background",
+        "gameObjectID": "375949678",
+        "transformID": "375949679",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum",
+        "gameObjectID": "154786187",
+        "transformID": "154786188",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Icon",
+        "gameObjectID": "1228609274",
+        "transformID": "1228609275",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Nums",
+        "gameObjectID": "1816421691",
+        "transformID": "1816421692",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins",
+        "gameObjectID": "532977488",
+        "transformID": "532977489",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Icon",
+        "gameObjectID": "311492119",
+        "transformID": "311492120",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Nums",
+        "gameObjectID": "762898336",
+        "transformID": "762898337",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition",
+        "gameObjectID": "1004947582",
+        "transformID": "1004947583",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Icon",
+        "gameObjectID": "1292372519",
+        "transformID": "1292372520",
+        "parentTransformID": "1004947583"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Nums",
+        "gameObjectID": "1431126851",
+        "transformID": "1431126852",
+        "parentTransformID": "1004947583"
+      }
+    ]
+  },
+  {
+    "source": "E:\\DEMO\\TapTapGameJam\\TapTapGameJam\\Assets\\_Recovery\\0.unity",
+    "nodes": [
+      {
+        "path": "HUDCanvas/ResourcesUI",
+        "gameObjectID": "2085038564",
+        "transformID": "2085038565",
+        "parentTransformID": "1743955155"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Background",
+        "gameObjectID": "375949678",
+        "transformID": "375949679",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum",
+        "gameObjectID": "154786187",
+        "transformID": "154786188",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Icon",
+        "gameObjectID": "1228609274",
+        "transformID": "1228609275",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Nums",
+        "gameObjectID": "1816421691",
+        "transformID": "1816421692",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins",
+        "gameObjectID": "532977488",
+        "transformID": "532977489",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Icon",
+        "gameObjectID": "311492119",
+        "transformID": "311492120",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Nums",
+        "gameObjectID": "762898336",
+        "transformID": "762898337",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition",
+        "gameObjectID": "1004947582",
+        "transformID": "1004947583",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Icon",
+        "gameObjectID": "1292372519",
+        "transformID": "1292372520",
+        "parentTransformID": "1004947583"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Nums",
+        "gameObjectID": "1431126851",
+        "transformID": "1431126852",
+        "parentTransformID": "1004947583"
+      }
+    ]
+  },
+  {
+    "source": "E:\\DEMO\\TapTapGameJam\\TapTapGameJam\\Assets\\Scenes\\NoUseAnymore.unity",
+    "nodes": [
+      {
+        "path": "HUDCanvas/ResourcesUI",
+        "gameObjectID": "2085038564",
+        "transformID": "2085038565",
+        "parentTransformID": "1743955155"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Background",
+        "gameObjectID": "375949678",
+        "transformID": "375949679",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum",
+        "gameObjectID": "154786187",
+        "transformID": "154786188",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Icon",
+        "gameObjectID": "1228609274",
+        "transformID": "1228609275",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/CockroachNum/Nums",
+        "gameObjectID": "1816421691",
+        "transformID": "1816421692",
+        "parentTransformID": "154786188"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins",
+        "gameObjectID": "532977488",
+        "transformID": "532977489",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Icon",
+        "gameObjectID": "311492119",
+        "transformID": "311492120",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Coins/Nums",
+        "gameObjectID": "762898336",
+        "transformID": "762898337",
+        "parentTransformID": "532977489"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition",
+        "gameObjectID": "1004947582",
+        "transformID": "1004947583",
+        "parentTransformID": "2085038565"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Icon",
+        "gameObjectID": "1292372519",
+        "transformID": "1292372520",
+        "parentTransformID": "1004947583"
+      },
+      {
+        "path": "HUDCanvas/ResourcesUI/Nutrition/Nums",
+        "gameObjectID": "1431126851",
+        "transformID": "1431126852",
+        "parentTransformID": "1004947583"
+      }
+    ]
+  }
+]

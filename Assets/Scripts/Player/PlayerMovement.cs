@@ -20,8 +20,6 @@ namespace TapTapGameJam.Player
 
         private Vector2 _moveInput;
         private Vector2 MoveDirection;
-
-
         // 由当前状态提交允许执行的移动方向。
         public void SetMoveInput(Vector2 input)
         {

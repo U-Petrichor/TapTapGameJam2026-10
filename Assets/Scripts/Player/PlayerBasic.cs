@@ -10,6 +10,7 @@ namespace TapTapGameJam.Player
         [field: SerializeField] public PlayerMovement PlayerMovement { get; private set; }
         [field: SerializeField] public PlayerAnimationManager AnimationManager { get; private set; }
         [field: SerializeField] public PlayerInteractionManager PlayerInteractionManager { get; private set; }
+        [field: SerializeField] public PlayerResources PlayerResources { get; private set; }
 
 
         public IdleState Idle { get; private set; }

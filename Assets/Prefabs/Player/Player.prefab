@@ -362,11 +362,27 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-    m_ActionId: 7e1b9419-c9e2-4fbd-92eb-6524a3592b33
-    m_ActionName: Player/MouseScroll
+    m_ActionId: e1310b5d-4b0b-4364-9688-3b3698782f5a
+    m_ActionName: 'DayPlayer/MouseScroll[/Mouse/scroll/y]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3136187452460036554}
+        m_TargetAssemblyTypeName: TapTapGameJam.Player.PlayerInputManager, Assembly-CSharp
+        m_MethodName: OnSwitchInteraction
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 33ad2ab1-f610-46fb-98bb-c7843a418b69
+    m_ActionName: 'DayPlayer/SwitchInteraction[/Keyboard/q]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: Player
+  m_DefaultActionMap: DayPlayer
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!114 &1530149381192232540

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TapTapGameJam.Types;
+using System;
 
 namespace TapTapGameJam.Events
 {
@@ -17,6 +18,7 @@ namespace TapTapGameJam.Events
     /// <summary>
     /// 这个事件目前主要是让部分UI在小游戏阶段隐藏，目前只在白天使用
     /// true=小游戏开始，false=小游戏结束
+    /// 在3D版制作咖啡时有使用
     /// </summary>
     public readonly struct EventPlayMiniGame : IEvent
     {
@@ -27,6 +29,29 @@ namespace TapTapGameJam.Events
         }
     }
 
+    /// <summary>
+    /// 当玩家交互部分小游戏时，使用此事件，可以统一管理UI、音效
+    /// true=小游戏开始，false=小游戏结束
+    /// index = 0 ->清理拖把污水的任务
+    /// </summary>
+    public readonly struct EventSwitchMiniGamePanel:IEvent
+    {
+        public bool IsStart { get; }
+        // MiniGameIndex打算在控制的Canvas内声明并设置，这样一个小游戏自己有一个编号
+        // 当要执行对应的小游戏，需要打开对应的Panel时只需要传一个整形就行；
+        public int MiniGameIndex { get; }
+        /// <summary>
+        /// 这个需要所有小游戏在发布此事件时一并传出用于处理游戏完成或失败时的处理方法
+        /// 并且接受一个bool值
+        /// </summary>
+        public Action<bool> OnFinished { get; }
+        public EventSwitchMiniGamePanel(bool isStart,int miniGameIndex,Action<bool> action){
+            IsStart = isStart;
+            MiniGameIndex = miniGameIndex;
+            OnFinished = action;
+        }
+    }
+
     public readonly struct GamePhaseChangedEvent : IEvent
     {
         public GamePhase NewPhase { get; }
@@ -34,6 +59,18 @@ namespace TapTapGameJam.Events
         public GamePhaseChangedEvent(GamePhase newPhase)
         {
             NewPhase = newPhase;
+        }
+    }
+
+    /// <summary>
+    /// 这个事件在GameManager当中发布，每次到白天时会更新，区间为[1,+无穷]
+    /// </summary>
+    public readonly struct EventNewDay : IEvent
+    {
+        public int DayCount { get; }
+        public EventNewDay(int dayCount)
+        {
+            DayCount = dayCount;
         }
     }
     public readonly struct BackpackEvent : IEvent
@@ -82,6 +119,15 @@ namespace TapTapGameJam.Events
         public EventNutritionChange(int remainingNutrition, int changeValue)
         {
             RemainingNutrition = remainingNutrition;
+            ChangeValue = changeValue;
+        }
+    }
+    public readonly struct EventTalentPointChange : IEvent
+    {
+        public int RemainingTalentPoint { get; }
+        public int ChangeValue { get; }
+        public EventTalentPointChange(int remainingTalentPoint,int changeValue){
+            RemainingTalentPoint = remainingTalentPoint;
             ChangeValue = changeValue;
         }
     }
