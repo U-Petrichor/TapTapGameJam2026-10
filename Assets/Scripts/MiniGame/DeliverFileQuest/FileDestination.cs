@@ -16,7 +16,7 @@ namespace TapTapGameJam.MiniGame
 
         private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
 
-        private void Start()
+        private void Awake()
         {
             _detectCollider.enabled = false;
         }
@@ -27,22 +27,28 @@ namespace TapTapGameJam.MiniGame
         }
         public bool CanInteract(PlayerBasic player)
         {
-            return true;
+            return player != null && isActiveAndEnabled && !IsFree &&
+                _detectCollider != null && _detectCollider.enabled;
         }
 
         public void Interact(PlayerBasic player)
         {
-            // 先取消订阅
+            if (!CanInteract(player)) return;
+            ResetTask();
+            EventFileDestinationFinish?.Invoke(player);
+        }
+
+        public void ResetTask()
+        {
             foreach (var x in _registered)
             {
-                x.Key.Unregister(this);
+                if (x.Key != null) x.Key.Unregister(this);
             }
             _registered.Clear();
             // 接取文件的部分结束了，关闭检测器
 
-            _detectCollider.enabled = false;
+            if (_detectCollider != null) _detectCollider.enabled = false;
             IsFree = true;// 任务结束，重新变为空闲状态
-            EventFileDestinationFinish?.Invoke(player);
 
         }
         public void OnTriggerEnter(Collider other)

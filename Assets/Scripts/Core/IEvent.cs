@@ -16,27 +16,22 @@ namespace TapTapGameJam.Events
     }
 
     /// <summary>
-    /// 这个事件目前主要是让部分UI在小游戏阶段隐藏，目前只在白天使用
-    /// true=小游戏开始，false=小游戏结束
-    /// 在3D版制作咖啡时有使用
-    /// </summary>
-    public readonly struct EventPlayMiniGame : IEvent
-    {
-        public bool IsStart { get; }
-        public EventPlayMiniGame(bool isStart)
-        {
-            IsStart = isStart;
-        }
-    }
-
-    /// <summary>
-    /// 当玩家交互部分小游戏时，使用此事件，可以统一管理UI、音效
-    /// true=小游戏开始，false=小游戏结束
+    /// 当玩家交互部分小游戏时，使用此事件
+    /// 目前主要作用：
+    /// 1. 通知MiniGamePanelUI打开
+    /// 2. 通知玩家切换ActionMap
     /// index = 0 ->清理拖把污水的任务
+    /// index = 1 ->
+    /// index = 2 ->
+    /// index = 3 ->
+    /// index = 4 ->
+    /// index = 5 ->
+    /// index = 6 ->
+    /// index = 7 ->
+    /// index = 8 ->
     /// </summary>
-    public readonly struct EventSwitchMiniGamePanel:IEvent
+    public readonly struct EventOpenMiniGamePanel:IEvent
     {
-        public bool IsStart { get; }
         // MiniGameIndex打算在控制的Canvas内声明并设置，这样一个小游戏自己有一个编号
         // 当要执行对应的小游戏，需要打开对应的Panel时只需要传一个整形就行；
         public int MiniGameIndex { get; }
@@ -45,12 +40,17 @@ namespace TapTapGameJam.Events
         /// 并且接受一个bool值
         /// </summary>
         public Action<bool> OnFinished { get; }
-        public EventSwitchMiniGamePanel(bool isStart,int miniGameIndex,Action<bool> action){
-            IsStart = isStart;
+        public EventOpenMiniGamePanel(int miniGameIndex,Action<bool> action){
             MiniGameIndex = miniGameIndex;
             OnFinished = action;
         }
     }
+    /// <summary>
+    /// 当玩家关闭小游戏时，使用此事件
+    /// 目前主要作用
+    /// 1. 通知玩家切换回DayPlayer的ActionMap
+    /// </summary>
+    public readonly struct EventCloseMiniGamePanel : IEvent { }
 
     public readonly struct GamePhaseChangedEvent : IEvent
     {

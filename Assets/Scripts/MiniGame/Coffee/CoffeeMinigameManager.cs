@@ -12,7 +12,7 @@ using UnityEngine.UI;
 namespace TapTapGameJam.Coffee
 {
     // 场景中的咖啡流程协调者：连接配方、3D 器具、输入和 UI，直接开关自己的镜头。
-    public class CoffeeMinigameManager : MiniGameTaskCandidate
+    public class CoffeeMinigameManager : MiniGameCandidate
     {
         // 小游戏整体状态；具体的烧水、磨豆等步骤由 CoffeeRecipe 记录。
         public enum SessionState
@@ -239,7 +239,6 @@ namespace TapTapGameJam.Coffee
         public void Begin(PlayerBasic player)
         {
             // 先通知，小游戏开始，让其他组件处理
-            EventPipeline.Publish<EventPlayMiniGame>(new EventPlayMiniGame(true));
             if (!isActiveAndEnabled || IsRunning || player == null ||
                 player.InputManager == null || player.PlayerMovement == null ||
                 !ValidateSetup(player)) return;
@@ -276,7 +275,6 @@ namespace TapTapGameJam.Coffee
         public void Exit()
         {
             // 先通知，小游戏结束，让其他组件处理
-            EventPipeline.Publish<EventPlayMiniGame>(new EventPlayMiniGame(false));
             if (!IsRunning || State == SessionState.Exiting) return;
             StopAllCoroutines();
             State = SessionState.Exiting;
@@ -610,7 +608,7 @@ namespace TapTapGameJam.Coffee
             Abort();
         }
 
-        public override MiniGameTask CreateTask()
+        public override MiniGame.MiniGameInstanceBasic CreateTask()
         {
             throw new System.NotImplementedException();
         }

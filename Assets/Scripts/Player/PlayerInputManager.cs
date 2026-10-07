@@ -26,6 +26,16 @@ namespace TapTapGameJam.Player
         private InputAction _rotateCameraLeft;
         private InputAction _rotateCameraRight;
 
+        private void OnEnable()
+        {
+            EventPipeline.Subscribe<EventOpenMiniGamePanel>(OnOpenMiniGame);
+            EventPipeline.Subscribe<EventCloseMiniGamePanel>(OnCloseMiniGame);
+        }
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<EventOpenMiniGamePanel>(OnOpenMiniGame);
+            EventPipeline.UnSubscribe<EventCloseMiniGamePanel>(OnCloseMiniGame);
+        }
 
         private void Start()
         {
@@ -53,7 +63,16 @@ namespace TapTapGameJam.Player
                 && _rotateCameraRight.WasPerformedThisFrame())
                 EventOnCameraRotate?.Invoke(-1);
         }
-
+        #region 打开和关闭MiniGame的时候切换ActionMap
+        private void OnOpenMiniGame(EventOpenMiniGamePanel evt)
+        {
+            SwitchActionMap("MiniGameInstanceBasic");
+        }
+        private void OnCloseMiniGame(EventCloseMiniGamePanel evt)
+        {
+            SwitchActionMap("DayPlayer");
+        }
+        #endregion
         #region 玩家移动
 
         /// <summary>
@@ -171,6 +190,7 @@ namespace TapTapGameJam.Player
         #region 切换ActionMap
         public void SwitchActionMap(string actionMapName)
         {
+            Debug.Log($"切换为ActionMap：{actionMapName}");
             switch (actionMapName)
             {
                 case "DayPlayer":
@@ -178,9 +198,9 @@ namespace TapTapGameJam.Player
                         _playerInput.SwitchCurrentActionMap("DayPlayer");
                         break;
                     }
-                case "NightPlayer":
+                case "MiniGameInstanceBasic":
                     {
-                        _playerInput.SwitchCurrentActionMap("NightPlayer");
+                        _playerInput.SwitchCurrentActionMap("MiniGameInstanceBasic");
                         break;
                     }
                 case "ESCMenu":

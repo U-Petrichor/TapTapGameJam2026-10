@@ -41,7 +41,6 @@ namespace TapTapGameJam.UI
                 interactionManager.EventHideInteractionUI += OnHideInteractionUI;
                 interactionManager.EventInteractionPromptChanged += OnPromptChanged;
             }
-            EventPipeline.Subscribe<EventPlayMiniGame>(OnPlayMiniGame);
             EventPipeline.Subscribe<GamePhaseChangedEvent>(OnGamePhaseChange);
 
             // UI 晚于玩家启用时，也能显示已选中的目标。
@@ -58,7 +57,6 @@ namespace TapTapGameJam.UI
                 interactionManager.EventHideInteractionUI -= OnHideInteractionUI;
                 interactionManager.EventInteractionPromptChanged -= OnPromptChanged;
             }
-            EventPipeline.UnSubscribe<EventPlayMiniGame>(OnPlayMiniGame);
             EventPipeline.UnSubscribe<GamePhaseChangedEvent>(OnGamePhaseChange);
         }
 
@@ -78,12 +76,6 @@ namespace TapTapGameJam.UI
         private void OnPromptChanged(string prompt)
         {
             if (interactionPrompt != null) interactionPrompt.text = prompt ?? string.Empty;
-        }
-
-        private void OnPlayMiniGame(EventPlayMiniGame evt)
-        {
-            _isPlayingMiniGame = evt.IsStart;
-            RefreshVisibility();
         }
 
         private void OnGamePhaseChange(GamePhaseChangedEvent evt)

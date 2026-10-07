@@ -13,7 +13,7 @@ namespace TapTapGameJam.MiniGame
         public override void Interact(PlayerBasic player)
         {
             _playerResources = player.PlayerResources;
-            EventPipeline.Publish<EventSwitchMiniGamePanel>(new EventSwitchMiniGamePanel(true, 0,OnFinish));
+            EventPipeline.Publish<EventOpenMiniGamePanel>(new EventOpenMiniGamePanel(0,OnFinish));
         }
         private void OnFinish(bool isFinish)
         {

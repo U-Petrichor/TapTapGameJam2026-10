@@ -12,7 +12,6 @@ namespace TapTapGameJam.UI
         [SerializeField] private Button SettingsBtn;
         [SerializeField] private Button ReturnToMainMenuBtn;
         [SerializeField] private Button ExitGameBtn;
-        private bool _isMenuOpen = false;
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -53,12 +52,10 @@ namespace TapTapGameJam.UI
             if (evt.IsOpen)
             {
                 OpenESCMenu();
-                _isMenuOpen = true;
             }
             else
             {
                 CloseESCMenu();
-                _isMenuOpen = false;
             }
         }
         public void OpenESCMenu()

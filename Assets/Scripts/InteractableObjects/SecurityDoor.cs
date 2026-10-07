@@ -9,7 +9,6 @@ public class SecurityDoor : MonoBehaviour,IInteractable
 {
     public string InteractionPrompt => "开门";
     private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
-    private bool _isOpen = false;
     [SerializeField] private Collider _blockCollider;
     [SerializeField] private Collider _detectCollider;
     [SerializeField] private Animator _animator;
@@ -84,13 +83,11 @@ public class SecurityDoor : MonoBehaviour,IInteractable
     }
     private void UnlockTheDoor()
     {
-        _isOpen = true;
         _blockCollider.enabled = false; // 关闭碰撞体，允许玩家通行
         _detectCollider.enabled = false; // 关闭检测碰撞体
     }
     private void LockTheDoor()
     {
-        _isOpen = false;
         _blockCollider.enabled = true; // 打开碰撞体，禁止玩家通行
         _detectCollider.enabled = false; // 允许检测碰撞体，玩家才会显示可交互的提示
     }

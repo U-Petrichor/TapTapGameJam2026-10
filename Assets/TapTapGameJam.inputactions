@@ -377,6 +377,35 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "MiniGame",
+            "id": "bcf6d71f-2ab6-43f4-8e88-52e98ff6586d",
+            "actions": [
+                {
+                    "name": "EscCloseTheGame",
+                    "type": "Button",
+                    "id": "cc31c162-2400-4be8-b974-a3e072091142",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "9a76dc42-04ca-4a3c-a8f9-98f141f463dd",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "EscCloseTheGame",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [
