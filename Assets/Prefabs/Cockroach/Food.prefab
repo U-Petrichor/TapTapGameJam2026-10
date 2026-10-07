@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3363968567292523395}
   - component: {fileID: 5772644691422852285}
   - component: {fileID: 4722343574069268780}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 4715478021395022250}
   - component: {fileID: 7064964965474845355}
   - component: {fileID: 716995746339021712}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -231,8 +231,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 12
-  m_fontSizeBase: 12
+  m_fontSize: 16
+  m_fontSizeBase: 16
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -421,7 +421,7 @@ GameObject:
   - component: {fileID: 2375791676562309875}
   - component: {fileID: 2549153966849407205}
   - component: {fileID: 4307092605451109494}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}

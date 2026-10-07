@@ -63,18 +63,18 @@ namespace TapTapGameJam.UI
             Transform parent = transform.parent;
 
             // ---- 旋转 ----
-            // 想要的世界朝向：UI 的 +Z 指向相机，屏幕上看就是正视图
-            Vector3 toCamera = transform.position - camTransform.position;
-            if (toCamera.sqrMagnitude > 0.000001f)
-            {
-                Quaternion worldRotation = Quaternion.LookRotation(toCamera);
+            // 直接抄相机的世界旋转，让 UI 平面和近裁剪面共面。
+            // 注意不要用 Quaternion.LookRotation(自己 - 相机)：那是让 UI 朝向"相机所在的位置"，
+            // 只有 UI 正好在画面中心时两者才等价。一旦偏离中心，UI 平面就与近裁剪面不平行，
+            // 透视投影会把它投成梯形 —— 屏幕上看起来就是"斜过来"。
+            // 对齐相机 forward 相当于把相机当正交用，屏幕任意位置都是正的。
+            Quaternion worldRotation = camTransform.rotation;
 
-                // 换算回 local 空间：父节点转了、缩放了，这里自动抵消掉。
-                // 直接写 transform.rotation 会把父节点的旋转算进去，父物体一动 UI 就歪。
-                transform.localRotation = parent != null
-                    ? Quaternion.Inverse(parent.rotation) * worldRotation
-                    : worldRotation;
-            }
+            // 换算回 local 空间：父节点转了、缩放了，这里自动抵消掉。
+            // 直接写 transform.rotation 会把父节点的旋转算进去，父物体一动 UI 就歪。
+            transform.localRotation = parent != null
+                ? Quaternion.Inverse(parent.rotation) * worldRotation
+                : worldRotation;
 
             // ---- 自动缩放 ----
             if (!_autoScale)
@@ -82,7 +82,7 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            float worldScale = _baseScale * (toCamera.magnitude / _referenceDistance);
+            float worldScale = _baseScale * (Vector3.Distance(transform.position, camTransform.position) / _referenceDistance);
 
             // 注意：必须读 parent.lossyScale，不能读 transform.lossyScale。
             // transform.lossyScale 把自身的 localScale 也算在内，用它反解等于"读自己写自己"，
