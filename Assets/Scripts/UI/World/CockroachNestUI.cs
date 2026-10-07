@@ -58,7 +58,7 @@ namespace TapTapGameJam.UI
             string countColor = count > 0 ? _countColor : _emptyColor;
 
             _text.text =
-                $"<color={countColor}>{count}</color> 只\n" +
+                $"<color={countColor}>{count}</color> cockroaches\n" +
                 $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
         }
 
@@ -69,7 +69,7 @@ namespace TapTapGameJam.UI
 
         private static string CommandLabel(CockroachCommand command)
         {
-            return command == CockroachCommand.Hatch ? "孵化" : "觅食";
+            return command == CockroachCommand.Hatch ? "Command: Hatch" : "Command: Forging";
         }
     }
 }
