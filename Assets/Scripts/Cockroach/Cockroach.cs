@@ -60,7 +60,7 @@ namespace TapTapGameJam.Cockroach
         
         [SerializeField]
         private CockroachState currentState = CockroachState.Inside;
-        
+
         private CockroachSettings _settings;
         
         // 朝向。角度 0 = 世界 +x，π/2 = 世界 +z
@@ -128,7 +128,9 @@ namespace TapTapGameJam.Cockroach
             if (!nest) nest = FindNearestNest(Position);
 
             nest.Add(this);
+            SetState(currentState);
             Position = JitterInsideNest(nest);
+
             EventPipeline.Publish(new EventCockroachCountChange(Manager.CockroachTotalCount(), 1));
         }
 
@@ -140,7 +142,28 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 换巢。新旧两边的名单都由这里维护，外部只管调这一个方法。
+        /// 改状态，并负责让巢穴的"巢内数量"统计跟上。
+        /// 所有 currentState 的赋值都要走这里，否则计数会漂。
+        /// </summary>
+        private void SetState(CockroachState newState)
+        {
+            if (newState == currentState) return;
+            if (newState == CockroachState.Inside)
+            {
+                nest?.ReportWentInside();
+                // Inside 状态下是隐身的
+                GetComponent<Renderer>().enabled = false;
+            }
+            else if(currentState == CockroachState.Inside)
+            {
+                nest?.ReportWentOutside();
+                GetComponent<Renderer>().enabled = true;
+            }
+            currentState = newState;
+        }
+
+        /// <summary>
+        /// 换巢。新旧两边的名单和巢内计数都由这里维护，外部只管调这一个方法。
         /// </summary>
         public void ChangeNest(CockNest newNest)
         {
@@ -152,6 +175,17 @@ namespace TapTapGameJam.Cockroach
             nest?.Remove(this);
             nest = newNest;
             nest?.Add(this);
+        }
+
+        /// <summary>
+        /// 由巢穴孵化出来后调用：绑定巢穴、落到巢内、直接进入 Inside 待命。
+        /// </summary>
+        public void SpawnInside(CockNest newNest)
+        {
+            Assert.IsTrue(newNest);
+            ChangeNest(newNest);
+            SetState(CockroachState.Inside);
+            Position = JitterInsideNest(newNest);
         }
 
         /// <summary>
@@ -457,20 +491,15 @@ namespace TapTapGameJam.Cockroach
             {
                 if (currentState == CockroachState.Forage)
                 {
-                    currentState = CockroachState.Return; // Hatch指令时强制归巢
+                    SetState(CockroachState.Return); // Hatch指令时强制归巢
                     // _phaseClock = 0f; 不刷新信息素强度
-                }
-                if (currentState == CockroachState.Inside)
-                {
-                    // TODO: 孵化逻辑
                 }
             }
 
             if (nestCommand == CockroachCommand.Foraging && currentState == CockroachState.Inside)
             {
                 _phaseClock = 0f;
-                currentState = CockroachState.Forage;
-                GetComponent<Renderer>().enabled = true;
+                SetState(CockroachState.Forage);
             }
 
             if (currentState != CockroachState.Inside)
@@ -587,7 +616,7 @@ namespace TapTapGameJam.Cockroach
                     }
 
                     _carrying = take;
-                    currentState = CockroachState.Return;
+                    SetState(CockroachState.Return);
                     _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
 
                     // 吃到食物立即折返（允许瞬间转向）
@@ -621,16 +650,15 @@ namespace TapTapGameJam.Cockroach
                 if (nestCommand == CockroachCommand.Foraging)
                 {
                     _phaseClock = 0f;
-                    currentState =  CockroachState.Forage;
+                    SetState(CockroachState.Forage);
                     _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI);
                 }
 
                 if (nestCommand == CockroachCommand.Hatch)
                 {
                     _phaseClock = 0f;
-                    currentState = CockroachState.Inside;
+                    SetState(CockroachState.Inside);
                     Position = nestPos;
-                    GetComponent<Renderer>().enabled = false;
                     // TODO: 进入其他巢穴的逻辑（决定是否加）
                 }
             }

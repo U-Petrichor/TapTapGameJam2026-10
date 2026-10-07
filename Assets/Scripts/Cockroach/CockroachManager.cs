@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TapTapGameJam.Events;
 using UnityEngine;
 
 namespace TapTapGameJam.Cockroach
@@ -86,6 +87,22 @@ namespace TapTapGameJam.Cockroach
             }
 
             return total;
+        }
+
+        /// <summary>
+        /// 从共享营养池里扣掉 amount。够才扣，返回是否扣成功。
+        /// 孵化、以及以后任何共用这个池子的玩法都从这里走，保证事件只在这一处发。
+        /// </summary>
+        public bool TrySpendSharedNutrition(float amount)
+        {
+            if (amount <= 0f || sharedNutrition < amount)
+            {
+                return false;
+            }
+
+            sharedNutrition -= amount;
+            EventPipeline.Publish(new EventNutritionChange(sharedNutrition, -amount));
+            return true;
         }
     }
 }

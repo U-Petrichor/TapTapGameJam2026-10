@@ -1,17 +1,26 @@
 using TapTapGameJam.Cockroach;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TapTapGameJam.UI
 {
     /// <summary>
-    /// 挂在 World Space Canvas 上，每帧读 CockroachNest 的蟑螂数量和当前指令，刷新文本。
+    /// 挂在 World Space Canvas 上，每帧读 CockNest 的蟑螂数量、当前指令和孵化进度。
+    ///
+    /// 孵化进度环的 Image 需要在 Inspector 里设成：
+    ///     Image Type = Filled, Fill Method = Radial 360, Fill Origin = Top, Clockwise
+    /// 不设的话 fillAmount 不会生效（图还是整圆）。它每孵出一只转满一圈，
+    /// 并且只在 Hatch 指令下显示。
     /// </summary>
     [DisallowMultipleComponent]
     public class CockroachNestUI : MonoBehaviour
     {
         [Tooltip("文本")]
         [SerializeField] private TMP_Text _text;
+
+        [Tooltip("孵化进度环。留空则不显示进度")]
+        [SerializeField] private Image _hatchProgressRing;
 
         [Tooltip("要显示的巢穴。留空则从自己往上找")]
         [SerializeField] private CockNest _nest;
@@ -54,6 +63,28 @@ namespace TapTapGameJam.UI
             _text.text =
                 $"<color={countColor}>{count}</color> cockroaches\n" +
                 $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
+
+            RefreshHatchRing();
+        }
+
+        /// <summary>孵化进度环：只在 Hatch 指令下显示，fillAmount 就是进度</summary>
+        private void RefreshHatchRing()
+        {
+            if (_hatchProgressRing == null)
+            {
+                return;
+            }
+
+            bool show = _nest.CurrentCommand == CockroachCommand.Hatch;
+            if (_hatchProgressRing.enabled != show)
+            {
+                _hatchProgressRing.enabled = show;
+            }
+
+            if (show)
+            {
+                _hatchProgressRing.fillAmount = _nest.HatchProgress;
+            }
         }
 
         /// <summary>
