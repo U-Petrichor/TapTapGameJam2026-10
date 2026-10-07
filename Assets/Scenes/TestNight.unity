@@ -2022,6 +2022,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 9
       objectReference: {fileID: 0}
+    - target: {fileID: 4790303812032832564, guid: cfe1a241f917009458f18ebdc795d9d7, type: 3}
+      propertyPath: isActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4790303812032832564, guid: cfe1a241f917009458f18ebdc795d9d7, type: 3}
+      propertyPath: _ringWidth
+      value: 0.2
+      objectReference: {fileID: 0}
     - target: {fileID: 5828157824778684251, guid: cfe1a241f917009458f18ebdc795d9d7, type: 3}
       propertyPath: m_Name
       value: Nest

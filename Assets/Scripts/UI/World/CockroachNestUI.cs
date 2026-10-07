@@ -18,16 +18,10 @@ namespace TapTapGameJam.UI
 
         [Header("富文本颜色")]
         [Tooltip("蟑螂数量为 0 时的颜色")]
-        [SerializeField] private string _emptyColor = "#9A9A9A";
+        [SerializeField] private Color _emptyColor = new Color(0.6f, 0.6f, 0.6f, 1f);
 
         [Tooltip("有蟑螂时的颜色")]
-        [SerializeField] private string _countColor = "#8CE05A";
-
-        [Tooltip("孵化指令的颜色")]
-        [SerializeField] private string _hatchColor = "#E0C05A";
-
-        [Tooltip("觅食指令的颜色")]
-        [SerializeField] private string _foragingColor = "#5AC8E0";
+        [SerializeField] private Color _countColor = new Color(0.55f, 0.88f, 0.35f, 1f);
 
         private void Awake()
         {
@@ -55,16 +49,28 @@ namespace TapTapGameJam.UI
             }
 
             int count = _nest.CockroachList.Count;
-            string countColor = count > 0 ? _countColor : _emptyColor;
+            string countColor = ToRichTextColor(count > 0 ? _countColor : _emptyColor);
 
             _text.text =
                 $"<color={countColor}>{count}</color> cockroaches\n" +
                 $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
         }
 
-        private string CommandColor(CockroachCommand command)
+        /// <summary>
+        /// 指令颜色。源头在 CockNest.HatchColor / ForagingColor，
+        /// 范围虚线圈用的是同一份，不会再各自漂移。
+        /// </summary>
+        private static string CommandColor(CockroachCommand command)
         {
-            return command == CockroachCommand.Hatch ? _hatchColor : _foragingColor;
+            return ToRichTextColor(command == CockroachCommand.Hatch
+                ? CockNest.HatchColor
+                : CockNest.ForagingColor);
+        }
+
+        /// <summary>转成富文本能吃的 #RRGGBB</summary>
+        private static string ToRichTextColor(Color color)
+        {
+            return $"#{ColorUtility.ToHtmlStringRGB(color)}";
         }
 
         private static string CommandLabel(CockroachCommand command)
