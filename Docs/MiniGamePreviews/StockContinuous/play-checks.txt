@@ -1,0 +1,38 @@
+PASS: panel/player/resources exist
+PASS: clean task generated
+PASS: clean UI active and accepts input
+PASS: clean image receives real UI raycast
+PASS: dragging erases 90 percent and finishes clean task
+PASS: clean reward matches task configuration
+PASS: stock daily availability created immediately
+PASS: stock guide points to existing chair entry
+PASS: twelve initial prices and two forecasts are affordable
+PASS: opening consumes the sole daily attempt
+PASS: stock buy button receives real UI raycast
+PASS: one-share purchase uses float account without wallet rounding
+PASS: repeated buy-sell is permitted with at most one share and no same-price gain
+PASS: curve grows continuously between completed half-second quotes
+PASS: thirteen-slot window scrolls revealed prices left without future prices
+PASS: stock chart renders smooth cubic segments in thirteen positions with twelve completed samples
+PASS: only completed samples receive twelve price labels
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: buy and sell clearly use the drawing target quote
+PASS: 18.5 seconds liquidates and commits integer net profit
+PASS: results freeze trades and show settled profit
+PASS: 20 seconds closes panel and removes exhausted daily guide
+PASS: same-day reentry is blocked
+PASS: new day restores exactly one attempt
+PASS: early exit settles float net profit once and consumes daily attempt
+PASS: day-end close settles once at current float price for either subscription order
+PASS: day-end close settles once at current float price for either subscription order

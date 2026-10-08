@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using NUnit.Framework;
 using TapTapGameJam.Cockroach;
 using TapTapGameJam.Core;
 using UnityEngine;
@@ -69,7 +68,9 @@ namespace TapTapGameJam.Player
         {
             // TODO: 判断 GamePhase.Night
             // 在夜晚，移动的同时释放玩家信息素
-            Assert.IsTrue(GridManager.Instance);
+            // 白天或初始化阶段尚未创建夜晚网格，不写信息素。
+            if (GridManager.Instance == null || CockroachManager.Instance == null ||
+                CockroachManager.Instance.cockroachSetting == null) return;
             if (_rigidbody.linearVelocity.magnitude > 0.1f)
             {
                 CockroachSettings settings = CockroachManager.Instance.cockroachSetting;

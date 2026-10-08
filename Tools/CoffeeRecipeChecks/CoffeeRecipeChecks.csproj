@@ -10,7 +10,7 @@
     <OutputPath>../../Temp/CoffeeRecipeChecks/bin/</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/Coffee/CoffeeRecipe.cs" Link="CoffeeRecipe.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeRecipe.cs" Link="CoffeeRecipe.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

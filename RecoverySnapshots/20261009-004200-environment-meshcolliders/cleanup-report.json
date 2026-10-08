@@ -1,0 +1,11 @@
+{
+  "scene": "Assets/Scenes/GameScene.unity",
+  "scope": "Scene/Environment",
+  "removed_mesh_colliders": 3118,
+  "modified_game_objects": 3118,
+  "remaining_mesh_colliders": 0,
+  "backup": "RecoverySnapshots\\20261009-004200-environment-meshcolliders\\GameScene_before.unity",
+  "before_sha256": "a1dd740ad7f5f1251c8fc3d78b960622ed27d2c8e9315e1730758971a43426f9",
+  "after_sha256": "8746e6fb383c3d94fa8ad8ae12db13ec5694340655dfd8867fe373782ddc21c2",
+  "verification": "Only matching MeshCollider documents and their GameObject component-list entries changed; no dangling references; all other component documents identical."
+}

@@ -1,24 +1,22 @@
 <Project>
-  <PropertyGroup>
-    <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/../../Temp/SortFileChecks/obj/</BaseIntermediateOutputPath>
-  </PropertyGroup>
+  <PropertyGroup><BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/../../Temp/SortFileChecks/obj/</BaseIntermediateOutputPath></PropertyGroup>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <OutputPath>../../Temp/SortFileChecks/bin/</OutputPath>
-  </PropertyGroup>
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><OutputPath>../../Temp/SortFileChecks/bin/</OutputPath></PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/MiniGame/SortFileQuest/SortFile.cs" Link="SortFile.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/SortFileQuest/SortFileQuest.cs" Link="SortFileQuest.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameTask.cs" Link="MiniGameTask.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameTaskCandidate.cs" Link="MiniGameTaskCandidate.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameTaskManager.cs" Link="MiniGameTaskManager.cs" />
-    <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" Link="EventPipeline.cs" />
-    <Compile Include="../../Assets/Scripts/Core/IEvent.cs" Link="IEvent.cs" />
-    <Compile Include="../../Assets/Scripts/Core/Types.cs" Link="Types.cs" />
-    <Compile Include="../PourDogFoodQuestChecks/TestDoubles.cs" Link="TestDoubles.cs" /><Compile Include="../../Assets/Scripts/UI/MiniGameContents/SortFileRound.cs" Link="SortFileRound.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFile.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameInstanceBasic.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameCandidate.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SinglePointQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
+    <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" />
+    <Compile Include="../../Assets/Scripts/Core/IEvent.cs" />
+    <Compile Include="../../Assets/Scripts/Core/Types.cs" />
+    <Compile Include="../MiniGameChecks/TestDoubles.cs" Link="TestDoubles.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileRound.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

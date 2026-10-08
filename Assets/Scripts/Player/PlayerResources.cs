@@ -28,6 +28,7 @@ namespace TapTapGameJam.Player
         }
         public bool TrySpendCoins(int amount)
         {
+            if (amount <= 0) return false;
             if (Coins >= amount)
             {
                 Coins -= amount;

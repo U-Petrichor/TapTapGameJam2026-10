@@ -40,9 +40,16 @@ namespace TapTapGameJam.Events
         /// 并且接受一个bool值
         /// </summary>
         public Action<bool> OnFinished { get; }
-        public EventOpenMiniGamePanel(int miniGameIndex,Action<bool> action){
+        public TapTapGameJam.Player.PlayerBasic Player { get; }
+        public object Owner { get; }
+        public Action OnStarted { get; }
+        public EventOpenMiniGamePanel(int miniGameIndex,Action<bool> action,
+            TapTapGameJam.Player.PlayerBasic player = null, object owner = null, Action onStarted = null){
             MiniGameIndex = miniGameIndex;
             OnFinished = action;
+            Player = player;
+            Owner = owner;
+            OnStarted = onStarted;
         }
     }
     /// <summary>
@@ -51,6 +58,13 @@ namespace TapTapGameJam.Events
     /// 1. 通知玩家切换回DayPlayer的ActionMap
     /// </summary>
     public readonly struct EventCloseMiniGamePanel : IEvent { }
+
+    // 关闭请求带上发起点位，避免旧任务取消时关闭另一个任务的面板。
+    public readonly struct EventRequestCloseMiniGamePanel : IEvent
+    {
+        public object Owner { get; }
+        public EventRequestCloseMiniGamePanel(object owner = null) => Owner = owner;
+    }
 
     public readonly struct GamePhaseChangedEvent : IEvent
     {

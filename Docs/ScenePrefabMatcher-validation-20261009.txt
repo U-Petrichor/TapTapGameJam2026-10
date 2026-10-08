@@ -1,0 +1,43 @@
+[Log] PASS: tiny FBX error and different material match
+[Log] PASS: vertex/index reordering matches
+[Log] PASS: different triangle winding is excluded
+[Log] PASS: behaviour components are protected
+[Log] PASS: existing colliders are protected by default
+[Log] PASS: stale geometry is rejected before conversion
+[Log] PASS: conversion preserves exact mesh and material references
+[Log] PASS: rotation and mirrored nonuniform scale remain exact
+[Log] PASS: collider inherits from sample
+[Log] PASS: one undo restores original plain object
+[Log] PASS: most-used duplicate sample remains canonical
+[Log] PASS: relink preserves scale formerly inherited from old prefab
+[Log] PASS: undo restores old prefab connection
+[Log] PASS: explicit collider replacement inherits prepared BoxCollider
+[Log] PASS: undo restores removed collider
+[Log] PASS: numbering begins at one and Hierarchy uses numeric ordering past ten
+[Log] PASS: one prefab counter spans parents without reparenting
+[Log] PASS: unmatched siblings retain their relative order
+[Log] PASS: repeated organization is stable
+[Log] Naming undo: order=[True]; names=[True]; remote=[A_Base]
+[Log] PASS: one undo restores names and sibling order
+[Log] PASS: unmatched sibling name collisions are rejected before mutation
+[Log] PASS: scene-root sorting also supports undo
+[Log] PASS: replacement can number all connected matches in the same batch
+[Log] PASS: one undo restores conversion, all names and Hierarchy sorting together
+[Log] PASS: child colliders require explicit replacement option
+[Log] PASS: pure collider children are eligible when enabled
+[Log] PASS: child object and pose survive while duplicate collision is removed
+[Log] PASS: one undo restores chair and its original child collider
+[Log] PASS: child behaviour components remain protected
+[Log] PASS: prefab with root mesh and child Collider is a valid sample
+[Log] PASS: child collider inherits authored 45-degree pose without duplicates
+[Log] PASS: undo restores the original collision helper pose and connection
+[Log] PASS: prefab collider hierarchy is added when the original model has no children
+[Log] PASS: undo removes newly inherited collider children
+[Log] PASS: disabled rotation matching excludes baked rotations
+[Log] PASS: baked rotation, translation and reordered topology match
+[Log] PASS: baked model conversion preserves exact appearance and root pose
+[Log] PASS: child collider follows baked geometry while inheriting collider properties
+[Log] PASS: rotation compensation is stable on repeated scan
+[Log] PASS: one undo restores baked model and removes compensated collider hierarchy
+[Log] PREFAB_MATCHER_SMOKE_PASS; fixture=Assets/_Recovery/PrefabMatcherSmoke-3a413274a14841d2a8929c87567de487
+[Log] Original active scene and unsaved state preserved.

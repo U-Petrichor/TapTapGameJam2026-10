@@ -1,0 +1,18 @@
+Scene: Assets/Scenes/GameScene.unity
+Scope: Scene/Environment
+Verified and saved.
+New prefab instances: 218
+Existing instances unified: 52
+Total matched walls: 416
+Already connected: 146
+Skipped: 0
+Exact original meshes, material references, renderer settings, transforms and object/component references preserved.
+BoxColliders inherit from prefab assets without Collider property overrides.
+All unmatched components verified unchanged.
+Assets/Prefabs/Environment/Wall/Wall5.prefab: 16 changed
+Assets/Prefabs/Environment/Wall/Wall3.prefab: 168 changed
+Assets/Prefabs/Environment/Wall/Wall1.prefab: 69 changed
+Assets/Prefabs/Environment/Wall/Wall10.prefab: 1 changed
+Assets/Prefabs/Environment/Wall/Wall7.prefab: 8 changed
+Assets/Prefabs/Environment/Wall/Wall9.prefab: 6 changed
+Assets/Prefabs/Environment/Wall/Wall8.prefab: 2 changed

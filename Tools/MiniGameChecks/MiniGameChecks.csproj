@@ -1,0 +1,46 @@
+<Project>
+  <PropertyGroup><BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/../../Temp/MiniGameChecks/obj/</BaseIntermediateOutputPath></PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><OutputPath>../../Temp/MiniGameChecks/bin/</OutputPath></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" />
+    <Compile Include="../../Assets/Scripts/Core/IEvent.cs" />
+    <Compile Include="../../Assets/Scripts/Core/Types.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameInstanceBasic.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameCandidate.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SinglePointQuest.cs" />
+    <!-- List logic dependencies explicitly: game folders also contain Unity UI components. -->
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/PourDogFood.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/PourDogFoodInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/PourDogFoodQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFile.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/CleanInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/CleanMopWater.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/CleanQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/TaskMakeCoffee.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeRecipe.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockTradePoint.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairPoint.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/DeliverFileGame/DeliveryFileInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/WipeMask.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockRound.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockPriceGenerator.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockChartView.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockCurve.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockAxisRange.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairRound.cs" />
+    <Compile Include="Program.cs" /><Compile Include="StockChecks.cs" /><Compile Include="StockChartChecks.cs" /><Compile Include="TestDoubles.cs" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

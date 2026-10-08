@@ -17,6 +17,12 @@ namespace TapTapGameJam.MiniGame
         public IReadOnlyList<MiniGameInstanceBasic> Tasks => _tasks;
         public event Action<MiniGameInstanceBasic> TaskAdded;
         public event Action<MiniGameInstanceBasic> TaskRemoved;
+        public void RegisterCandidate(MiniGameCandidate candidate)
+        {
+            _candidatePool.RemoveAll(item => item == null);
+            if (candidate != null && !_candidatePool.Contains(candidate)) _candidatePool.Add(candidate);
+            if (_isDayTime) EnsureDailyActivities();
+        }
 
         // 小游戏目前只在白天刷新，所以需要_isDayTime去控制，游戏阶段为其他时间段时停止
         private bool _isDayTime=false;
@@ -36,6 +42,7 @@ namespace TapTapGameJam.MiniGame
             {
                 return;
             }
+            EnsureDailyActivities();
             _spawnTime -= Time.deltaTime;
             if (_spawnTime < 0f)
             {
@@ -57,10 +64,12 @@ namespace TapTapGameJam.MiniGame
             // 订阅此事件是为了切换_isDayTime，除了白天，其他时间段不刷新任务
             // 同时，从DayTime切换为其他时间段时，也要清空当前任务列表
             EventPipeline.Subscribe<GamePhaseChangedEvent>(HandlePhaseChanged); 
+            EventPipeline.Subscribe<EventGameOver>(HandleGameOver);
         }
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
+            EventPipeline.UnSubscribe<EventGameOver>(HandleGameOver);
             _isDayTime = false;
             CancelAll();
         }
@@ -68,10 +77,15 @@ namespace TapTapGameJam.MiniGame
         {
             if (evt.NewPhase == GamePhase.Day)
             {
+                bool enteringDay = !_isDayTime;
                 // 如果是白天，那么这个小游戏管理器就要开始重新起作用了
                 CancelAll();
                 _spawnTime = 0f;
                 _isDayTime = true;
+                if (enteringDay)
+                    foreach (var candidate in _candidatePool)
+                        if (candidate != null) candidate.BeginNewDay();
+                EnsureDailyActivities();
             }
             else
             {
@@ -92,7 +106,7 @@ namespace TapTapGameJam.MiniGame
 
             foreach(var candidate in _candidatePool)
             {
-                if(candidate!=null&&candidate.isActiveAndEnabled&&candidate.CanSpawn)
+                if(candidate!=null&&!candidate.IsDailyActivity&&candidate.isActiveAndEnabled&&candidate.CanSpawn)
                 {
                     available.Add(candidate);
                 }
@@ -120,6 +134,12 @@ namespace TapTapGameJam.MiniGame
             _tasks.Add(task);
             TaskAdded?.Invoke(task);
         }
+        private void EnsureDailyActivities()
+        {
+            foreach (var candidate in _candidatePool)
+                if (candidate != null && candidate.IsDailyActivity && candidate.isActiveAndEnabled && candidate.CanSpawn)
+                    AddTask(candidate.CreateTask());
+        }
         private void RemoveTask(MiniGameInstanceBasic task)
         {
             if (!_tasks.Remove(task)) return;
@@ -136,6 +156,7 @@ namespace TapTapGameJam.MiniGame
                 RemoveTask(task);
             }
         }
+        private void HandleGameOver(EventGameOver evt) { _isDayTime = false; CancelAll(); }
     }
 
 }

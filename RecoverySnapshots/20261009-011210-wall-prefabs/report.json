@@ -1,0 +1,24 @@
+{
+    "scene": "Assets/Scenes/GameScene.unity",
+    "scope": "Scene/Environment",
+    "backup": "RecoverySnapshots/20261009-011210-wall-prefabs/GameScene_live_before.unity",
+    "status": "verified-and-saved",
+    "scanned": 8242,
+    "fingerprinted": 457,
+    "converted": 190,
+    "existing": 8,
+    "skipped": 46,
+    "summary": [
+        "Wall1: 19 converted; 0 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall10: 0 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall2: 58 converted; 0 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall3: 0 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall4: 0 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall5: 45 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall6: 50 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall7: 1 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall8: 1 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "Wall9: 1 converted; 1 existing; 0 mesh overrides; 1 inherited BoxColliders",
+        "WallCornor: 15 converted; 0 existing; 0 mesh overrides; 1 inherited BoxColliders"
+    ]
+}

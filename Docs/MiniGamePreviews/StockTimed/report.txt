@@ -1,0 +1,64 @@
+PASS: panel/player/resources exist
+PASS: clean task generated
+PASS: clean UI active and accepts input
+PASS: clean image receives real UI raycast
+PASS: dragging erases 90 percent and finishes clean task
+PASS: clean reward matches task configuration
+PASS: stock daily availability created immediately
+PASS: stock guide points to existing chair entry
+PASS: six initial float prices are affordable
+PASS: opening consumes the sole daily attempt
+PASS: stock buy button receives real UI raycast
+PASS: one-share purchase uses float account without wallet rounding
+PASS: repeated buy-sell is permitted with at most one share and no same-price gain
+PASS: stock chart scrolls left inside masked six-point window
+PASS: stock chart renders grid, points and lines
+PASS: price label pool stays at six despite longer history
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: visible float label matches recent historical price
+PASS: exactly buy and sell actions are visible
+PASS: 18.5 seconds liquidates and commits integer net profit
+PASS: results freeze trades and show settled profit
+PASS: 20 seconds closes panel and removes exhausted daily guide
+PASS: same-day reentry is blocked
+PASS: new day restores exactly one attempt
+PASS: early exit settles float net profit once and consumes daily attempt
+PASS: day-end close settles once at current float price for either subscription order
+PASS: day-end close settles once at current float price for either subscription order
+PASS: coffee task generated
+PASS: coffee _beans receives UI raycast
+PASS: coffee bean UI drag advances recipe
+PASS: held grinder finishes grinding
+PASS: coffee _dripper receives UI raycast
+PASS: coffee _filter receives UI raycast
+PASS: coffee _grounds receives UI raycast
+PASS: 2D coffee awards exactly one coffee
+PASS: coffee reward matches task configuration
+PASS: completed panel releases UI raycasts
+PASS: coffee early exit retains task for retry
+PASS: coffee retry starts fresh recipe
+PASS: task cancellation closes its panel
+PASS: coffee cancellation gives no extra coffee
+PASS: printer task enters manager and guide follows actual printer point
+PASS: printer guide origin matches visible model rather than FBX export offset
+PASS: printer QTE opens in shared 2D panel
+PASS: printer pointer moves in actual Update
+PASS: yellow UI anchors match QTE success interval
+PASS: space outside yellow does not count or finish task
+PASS: space inside yellow counts one hit
+PASS: holding space does not auto-repeat hits
+PASS: printer early exit preserves task without reward
+PASS: printer retry resets progress
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: fifth printer hit completes task and removes guide and interaction
+PASS: printer awards configured coins and talent once
+PASS: printer stale input and repeat close cannot double-reward
+PASS: day end cancels printer task and stops QTE input
+PASS: printer phase cancellation gives no reward

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1450" viewBox="0 0 1920 1450">
+<rect width="100%" height="100%" fill="#f4f7fb"/>
+<text x="80" y="45" font-family="Microsoft YaHei, sans-serif" font-size="46" font-weight="700" fill="#23344b" dominant-baseline="text-before-edge">当前任务系统结构</text>
+<text x="80" y="108" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="400" fill="#64748b" dominant-baseline="text-before-edge">先看职责，再看一次任务怎样走完。实线表示调用；虚线表示通知或结果回传。</text>
+<rect x="80" y="167" width="1235" height="158" rx="18" fill="#e8effd" stroke="#b4c8f2" stroke-width="2"/>
+<text x="108" y="191" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="700" fill="#25477d" dominant-baseline="text-before-edge">任务总管 · MiniGameManager</text>
+<text x="108" y="237" font-family="Microsoft YaHei, sans-serif" font-size="26" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">接收白天 / 商店 / 夜晚事件，维护候选池与当前任务列表</text>
+<text x="108" y="278" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">普通任务：白天随机生成     每日活动：进入白天立即开放     阶段结束：取消任务</text>
+<rect x="1400" y="167" width="440" height="158" rx="18" fill="#f1ecff" stroke="#cfc0ee" stroke-width="2"/>
+<text x="1425" y="191" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="700" fill="#644394" dominant-baseline="text-before-edge">位置指引</text>
+<text x="1425" y="236" font-family="Microsoft YaHei, sans-serif" font-size="26" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">TaskIndicatorUI + Arrow</text>
+<text x="1425" y="279" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">每帧读取任务 TargetPosition</text>
+<polyline points="1315,217 1400,217" fill="none" stroke="#8964b3" stroke-width="3" stroke-dasharray="10 7"/>
+<polygon points="1400,217 1386.0,210.0 1386.0,224.0" fill="#8964b3"/>
+<text x="1298.0" y="176" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="400" fill="#775596" dominant-baseline="text-before-edge">任务增删</text>
+<rect x="80" y="404" width="328" height="195" rx="18" fill="#e8effd" stroke="#d3dfe9" stroke-width="2"/>
+<text x="99" y="422" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#3766ac" dominant-baseline="text-before-edge">01  生成规则</text>
+<text x="99" y="466" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="700" fill="#3766ac" dominant-baseline="text-before-edge">MiniGameCandidate</text>
+<text x="99" y="502" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#50647e" dominant-baseline="text-before-edge">具体实现：XXXQuest</text>
+<text x="99" y="536" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">判断 CanSpawn，配置奖励</text>
+<text x="99" y="566" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">CreateTask 创建任务实例</text>
+<rect x="438" y="404" width="328" height="195" rx="18" fill="#e6f5ef" stroke="#d3dfe9" stroke-width="2"/>
+<text x="457" y="422" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#238064" dominant-baseline="text-before-edge">02  本次任务</text>
+<text x="457" y="466" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="700" fill="#238064" dominant-baseline="text-before-edge">MiniGameInstanceBasic</text>
+<text x="457" y="502" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#50647e" dominant-baseline="text-before-edge">具体实现：XXXInstance</text>
+<text x="457" y="536" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">保存状态、目标位置和奖励</text>
+<text x="457" y="566" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">成功 / 取消，只结束一次</text>
+<rect x="796" y="404" width="328" height="195" rx="18" fill="#fff2dd" stroke="#d3dfe9" stroke-width="2"/>
+<text x="815" y="422" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#a97619" dominant-baseline="text-before-edge">03  场景入口</text>
+<text x="815" y="466" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="700" fill="#a97619" dominant-baseline="text-before-edge">PanelTaskPoint</text>
+<text x="815" y="502" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#50647e" dominant-baseline="text-before-edge">具体实现：XXXPoint</text>
+<text x="815" y="536" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">检测交互、占用场景点位</text>
+<text x="815" y="566" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">玩家交互后请求打开面板</text>
+<rect x="1154" y="404" width="328" height="195" rx="18" fill="#e8f3fb" stroke="#d3dfe9" stroke-width="2"/>
+<text x="1173" y="422" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#277a9b" dominant-baseline="text-before-edge">04  面板总管</text>
+<text x="1173" y="466" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="700" fill="#277a9b" dominant-baseline="text-before-edge">MiniGamePanelUI</text>
+<text x="1173" y="502" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#50647e" dominant-baseline="text-before-edge">所有面板小游戏共用</text>
+<text x="1173" y="536" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">按 Index 选择内容和玩家</text>
+<text x="1173" y="566" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">处理打开、关闭与结果回调</text>
+<rect x="1512" y="404" width="328" height="195" rx="18" fill="#f1ecff" stroke="#d3dfe9" stroke-width="2"/>
+<text x="1531" y="422" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#7953a9" dominant-baseline="text-before-edge">05  具体玩法</text>
+<text x="1531" y="466" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="700" fill="#7953a9" dominant-baseline="text-before-edge">MiniGameContent</text>
+<text x="1531" y="502" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#50647e" dominant-baseline="text-before-edge">具体实现：XXXGame</text>
+<text x="1531" y="536" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">鼠标 / 空格输入与玩法反馈</text>
+<text x="1531" y="566" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">Begin / End / ResetView</text>
+<polyline points="408,480 438,480" fill="none" stroke="#708199" stroke-width="3"/>
+<polygon points="438,480 424.0,473.0 424.0,487.0" fill="#708199"/>
+<text x="406.0" y="449" font-family="Microsoft YaHei, sans-serif" font-size="17" font-weight="400" fill="#60738b" dominant-baseline="text-before-edge">创建</text>
+<polyline points="766,480 796,480" fill="none" stroke="#708199" stroke-width="3"/>
+<polygon points="796,480 782.0,473.0 782.0,487.0" fill="#708199"/>
+<text x="747.0" y="449" font-family="Microsoft YaHei, sans-serif" font-size="17" font-weight="400" fill="#60738b" dominant-baseline="text-before-edge">启用点位</text>
+<polyline points="1124,480 1154,480" fill="none" stroke="#708199" stroke-width="3"/>
+<polygon points="1154,480 1140.0,473.0 1140.0,487.0" fill="#708199"/>
+<text x="1105.0" y="449" font-family="Microsoft YaHei, sans-serif" font-size="17" font-weight="400" fill="#60738b" dominant-baseline="text-before-edge">打开事件</text>
+<polyline points="1482,480 1512,480" fill="none" stroke="#708199" stroke-width="3"/>
+<polygon points="1512,480 1498.0,473.0 1498.0,487.0" fill="#708199"/>
+<text x="1463.0" y="449" font-family="Microsoft YaHei, sans-serif" font-size="17" font-weight="400" fill="#60738b" dominant-baseline="text-before-edge">选择玩法</text>
+<polyline points="244,325 244,404" fill="none" stroke="#3766ac" stroke-width="3"/>
+<polygon points="244,404 251.0,390.0 237.0,390.0" fill="#3766ac"/>
+<text x="272" y="351" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#3766ac" dominant-baseline="text-before-edge">调用候选规则</text>
+<polyline points="602,325 602,404" fill="none" stroke="#238064" stroke-width="3"/>
+<polygon points="602,404 609.0,390.0 595.0,390.0" fill="#238064"/>
+<text x="630" y="351" font-family="Microsoft YaHei, sans-serif" font-size="19" font-weight="400" fill="#238064" dominant-baseline="text-before-edge">登记与管理实例</text>
+<polyline points="722,404 722,369 1619,369 1619,325" fill="none" stroke="#8964b3" stroke-width="3" stroke-dasharray="10 7"/>
+<polygon points="1619,325 1612.0,339.0 1626.0,339.0" fill="#8964b3"/>
+<text x="999.75" y="340" font-family="Microsoft YaHei, sans-serif" font-size="20" font-weight="400" fill="#775596" dominant-baseline="text-before-edge">目标 / 阶段改变时通知指引</text>
+<polyline points="1676,599 1676,656 602,656 602,599" fill="none" stroke="#238064" stroke-width="3" stroke-dasharray="10 7"/>
+<polygon points="602,599 595.0,613.0 609.0,613.0" fill="#238064"/>
+<rect x="860" y="636" width="675" height="39" rx="5" fill="#f4f7fb" stroke="#f4f7fb" stroke-width="2"/>
+<text x="966.0" y="640" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#238064" dominant-baseline="text-before-edge">成功结果经面板回调、交互点事件返回任务实例</text>
+<rect x="80" y="696" width="1235" height="147" rx="18" fill="#ffffff" stroke="#cbd9e6" stroke-width="2"/>
+<text x="107" y="716" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#238064" dominant-baseline="text-before-edge">统一完成与取消流程</text>
+<text x="107" y="758" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">成功：Complete → 释放点位与订阅 → PlayerResources 发奖 → EventFinished</text>
+<text x="107" y="799" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">取消：Cancel → 释放点位与订阅 → 不发任务奖励 → 移除任务与箭头</text>
+<polyline points="602,675 602,696" fill="none" stroke="#238064" stroke-width="3" stroke-dasharray="10 7"/>
+<polygon points="602,696 609.0,682.0 595.0,682.0" fill="#238064"/>
+<rect x="1400" y="696" width="440" height="147" rx="18" fill="#ffffff" stroke="#cbd9e6" stroke-width="2"/>
+<text x="1425" y="716" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="700" fill="#23344b" dominant-baseline="text-before-edge">当前普通面板任务</text>
+<text x="1425" y="759" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">清理垃圾 · 分拣文件 · 倒狗粮</text>
+<text x="1425" y="798" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">制作咖啡 · 修复打印机</text>
+<text x="80" y="884" font-family="Microsoft YaHei, sans-serif" font-size="31" font-weight="700" fill="#23344b" dominant-baseline="text-before-edge">可复用骨架与特殊流程</text>
+<rect x="80" y="937" width="550" height="235" rx="18" fill="#ffffff" stroke="#cbd9e6" stroke-width="2"/>
+<text x="105" y="957" font-family="Microsoft YaHei, sans-serif" font-size="27" font-weight="700" fill="#277a9b" dominant-baseline="text-before-edge">普通任务的共同骨架</text>
+<text x="105" y="1002" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">MiniGameCandidate → SinglePointQuest</text>
+<text x="105" y="1037" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">MiniGameInstanceBasic</text>
+<text x="129" y="1070" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">→ PanelMiniGameInstance</text>
+<text x="105" y="1116" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">配置、生命周期与结算复用；玩法各自实现</text>
+<rect x="660" y="937" width="580" height="235" rx="18" fill="#ffffff" stroke="#cbd9e6" stroke-width="2"/>
+<text x="685" y="957" font-family="Microsoft YaHei, sans-serif" font-size="27" font-weight="700" fill="#a97619" dominant-baseline="text-before-edge">炒股 · 每日活动</text>
+<text x="685" y="1002" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">StockQuest + StockInstance</text>
+<text x="685" y="1040" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">白天固定开放；每日 3 次，每局 5 个点</text>
+<text x="685" y="1078" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">单局结束保留入口，次数用尽关闭指引</text>
+<text x="685" y="1116" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">StockGame 直接交易；退出按当前价清仓</text>
+<rect x="1270" y="937" width="570" height="235" rx="18" fill="#ffffff" stroke="#cbd9e6" stroke-width="2"/>
+<text x="1295" y="957" font-family="Microsoft YaHei, sans-serif" font-size="27" font-weight="700" fill="#7953a9" dominant-baseline="text-before-edge">送文件 · 两阶段任务</text>
+<text x="1295" y="1002" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">DeliverFileQuest + DeliveryFileInsance</text>
+<text x="1295" y="1040" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">领取文件 → 送达文件</text>
+<text x="1295" y="1078" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">实例切换 TargetPosition，箭头跟着切换</text>
+<text x="1295" y="1116" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" fill="#23344b" dominant-baseline="text-before-edge">直接在场景交互；共享统一奖励结算</text>
+<rect x="80" y="1212" width="1760" height="164" rx="18" fill="#23344b" stroke="#23344b" stroke-width="2"/>
+<text x="109" y="1233" font-family="Microsoft YaHei, sans-serif" font-size="31" font-weight="700" fill="#ffffff" dominant-baseline="text-before-edge">设计上的称呼：事件驱动的任务框架</text>
+<text x="109" y="1280" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#dce7f4" dominant-baseline="text-before-edge">职责分离 + 抽象基类 / 多态     工厂方法：创建具体实例     模板方法：复用完成与释放流程</text>
+<text x="109" y="1324" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" fill="#dce7f4" dominant-baseline="text-before-edge">观察者 / 发布订阅：任务增删、阶段变化、箭头更新通过事件协作</text>
+<text x="80" y="1400" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" fill="#64748b" dominant-baseline="text-before-edge">读图示例：打印机 Quest 创建 Instance → Point 交互 → 面板打开 QTE → 成功 5 次 → 实例统一结算</text>
+</svg>

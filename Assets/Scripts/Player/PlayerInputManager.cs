@@ -28,12 +28,10 @@ namespace TapTapGameJam.Player
 
         private void OnEnable()
         {
-            EventPipeline.Subscribe<EventOpenMiniGamePanel>(OnOpenMiniGame);
             EventPipeline.Subscribe<EventCloseMiniGamePanel>(OnCloseMiniGame);
         }
         private void OnDisable()
         {
-            EventPipeline.UnSubscribe<EventOpenMiniGamePanel>(OnOpenMiniGame);
             EventPipeline.UnSubscribe<EventCloseMiniGamePanel>(OnCloseMiniGame);
         }
 
@@ -64,10 +62,6 @@ namespace TapTapGameJam.Player
                 EventOnCameraRotate?.Invoke(-1);
         }
         #region 打开和关闭MiniGame的时候切换ActionMap
-        private void OnOpenMiniGame(EventOpenMiniGamePanel evt)
-        {
-            SwitchActionMap("MiniGameInstanceBasic");
-        }
         private void OnCloseMiniGame(EventCloseMiniGamePanel evt)
         {
             SwitchActionMap("DayPlayer");
@@ -198,9 +192,10 @@ namespace TapTapGameJam.Player
                         _playerInput.SwitchCurrentActionMap("DayPlayer");
                         break;
                     }
+                case "MiniGame":
                 case "MiniGameInstanceBasic":
                     {
-                        _playerInput.SwitchCurrentActionMap("MiniGameInstanceBasic");
+                        _playerInput.SwitchCurrentActionMap("MiniGame");
                         break;
                     }
                 case "ESCMenu":

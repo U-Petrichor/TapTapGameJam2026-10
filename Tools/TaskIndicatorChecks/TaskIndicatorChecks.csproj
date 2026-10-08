@@ -13,8 +13,8 @@
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameInstanceBasic.cs" Link="MiniGameInstanceBasic.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" Link="MiniGameManager.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameCandidate.cs" Link="MiniGameCandidate.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/DeliverFileQuest/DeliveryFileInstance.cs" Link="DeliveryFileInstance.cs" />
-    <Compile Include="../../Assets/Scripts/UI/HUDCanvas/TaskIndicatorGeometry.cs" Link="TaskIndicatorGeometry.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/DeliverFileGame/DeliveryFileInstance.cs" Link="DeliveryFileInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/TaskGuidance/TaskIndicatorGeometry.cs" Link="TaskIndicatorGeometry.cs" />
     <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" Link="EventPipeline.cs" />
     <Compile Include="../../Assets/Scripts/Core/Types.cs" Link="Types.cs" />
     <Compile Include="Program.cs" />

@@ -85,7 +85,7 @@ internal static class Program
             {
                 var f = new Fixture(managerFirst);
                 Check(f.Spawn());
-                Call(f.Manager, "AddTask", new MiniGameTask(new Transform()));
+                Call(f.Manager, "AddTask", new ProbeTask(new Transform()));
                 EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
                 Check(f.Manager.Tasks.Count == 0 && f.Quest.CanSpawn && !f.Detector.enabled);
             }
@@ -93,23 +93,23 @@ internal static class Program
         Run("生成失败返回null时不加入任务列表", () =>
         {
             var f = new Fixture();
-            Set(f.Manager, "_candidatePool", new List<MiniGameTaskCandidate> { new EmptyCandidate() });
+            Set(f.Manager, "_candidatePool", new List<MiniGameCandidate> { new EmptyCandidate() });
             Check(!f.Spawn() && f.Manager.Tasks.Count == 0);
         });
         Console.WriteLine("Passed 7 quest lifecycle checks (managed callbacks; no Unity physics/UI).");
     }
 
-    private sealed class EmptyCandidate : MiniGameTaskCandidate
+    private sealed class EmptyCandidate : MiniGameCandidate
     {
         public override bool CanSpawn => true;
-        public override MiniGameTask CreateTask() => null;
+        public override MiniGameInstanceBasic CreateTask() => null;
     }
 
     private sealed class Fixture
     {
         public readonly PourDogFood Point = new PourDogFood();
         public readonly PourDogFoodQuest Quest = new PourDogFoodQuest();
-        public readonly MiniGameTaskManager Manager = new MiniGameTaskManager();
+        public readonly MiniGameManager Manager = new MiniGameManager();
         public readonly Collider Detector = new Collider();
         public readonly PlayerBasic Player = new PlayerBasic();
         public Action<bool> Callback;
@@ -120,27 +120,25 @@ internal static class Program
         public Fixture(bool managerFirst = true)
         {
             EventPipeline.ClearAll();
+            Call(Point, "Reset");
             Set(Point, "_detectCollider", Detector);
             Call(Point, "Awake");
             Set(Quest, "_pourDogFood", Point);
             Call(Quest, "Awake");
-            Set(Manager, "_candidatePool", new List<MiniGameTaskCandidate> { Quest });
+            Set(Manager, "_candidatePool", new List<MiniGameCandidate> { Quest });
             if (managerFirst) Call(Manager, "OnEnable");
             Call(Quest, "OnEnable");
             if (!managerFirst) Call(Manager, "OnEnable");
-            EventPipeline.Subscribe<EventSwitchMiniGamePanel>(evt =>
+            EventPipeline.Subscribe<EventOpenMiniGamePanel>(evt =>
             {
-                if (evt.IsStart)
-                {
-                    OpenCount++;
-                    Callback = evt.OnFinished;
-                    if (RejectOpen) Callback(false);
-                }
-                else
-                {
-                    CloseCount++;
-                    Callback?.Invoke(false);
-                }
+                OpenCount++;
+                Callback = evt.OnFinished;
+                if (RejectOpen) Callback(false);
+            });
+            EventPipeline.Subscribe<EventRequestCloseMiniGamePanel>(evt =>
+            {
+                CloseCount++;
+                Callback?.Invoke(false);
             });
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
         }
@@ -148,10 +146,29 @@ internal static class Program
         public bool Spawn() => (bool)Call(Manager, "TrySpawnTask");
     }
 
-    private static object Call(object target, string name, params object[] args) =>
-        target.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, args);
-    private static void Set(object target, string name, object value) =>
-        target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+    private sealed class ProbeTask : MiniGameInstanceBasic
+    {
+        public ProbeTask(Transform target) : base(target) { }
+        protected override void Release() { }
+    }
+    private static object Call(object target, string name, params object[] args)
+    {
+        for (Type type = target.GetType(); type != null; type = type.BaseType)
+        {
+            var method = type.GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            if (method != null) return method.Invoke(target, args);
+        }
+        throw new MissingMethodException(name);
+    }
+    private static void Set(object target, string name, object value)
+    {
+        for (Type type = target.GetType(); type != null; type = type.BaseType)
+        {
+            var field = type.GetField(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            if (field != null) { field.SetValue(target, value); return; }
+        }
+        throw new MissingFieldException(name);
+    }
     private static void Check(bool condition)
     {
         if (!condition) throw new Exception("Check failed.");

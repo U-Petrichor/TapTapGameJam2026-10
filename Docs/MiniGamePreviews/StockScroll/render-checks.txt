@@ -1,0 +1,12 @@
+PASS: thirteen time positions and five horizontal ticks render in the actual Canvas
+PASS: all six known prices render with six readable labels
+PASS: existing point moves left at constant speed before any quote refresh
+PASS: old point does not jump across a refresh and the six known prices stay visible
+PASS: future slots have no price labels and chart labels do not intercept input
+PASS: new quote appears to the right of history without changing a stable scale
+PASS: inclusive eighth boundaries preserve the actual UI axis
+PASS: quote twenty switches the actual UI axis to zero through forty
+PASS: new ticks update once to the requested fixed scale
+PASS: out-of-range history retains true geometry inside a clipped plot rather than flattening
+PASS: result stage freezes the rendered curve and ticks for the final one and a half seconds
+PASS: closing clears every historical point and label

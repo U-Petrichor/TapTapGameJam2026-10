@@ -1,0 +1,75 @@
+PASS: panel/player/resources exist
+PASS: clean task generated
+PASS: clean UI active and accepts input
+PASS: clean image receives real UI raycast
+PASS: dragging erases 90 percent and finishes clean task
+PASS: clean reward matches task configuration
+PASS: stock daily availability created immediately
+PASS: stock guide points to existing chair entry
+PASS: first stock point random in inclusive range
+PASS: stock buy button receives real UI raycast
+PASS: stock button debits real wallet
+PASS: stock chart renders grid, points and connecting lines
+PASS: only revealed stock points have price labels
+PASS: stock point label matches historical price
+PASS: stock labels sit below points without blocking input
+PASS: stock point label matches historical price
+PASS: stock labels sit below points without blocking input
+PASS: stock point label matches historical price
+PASS: stock labels sit below points without blocking input
+PASS: current price removed from upper status row
+PASS: fifth stock point force-sells holdings
+PASS: terminal stock trading buttons disabled
+PASS: completed round preserves stock entry and guide
+PASS: reentry creates fresh five-point round
+PASS: early exit liquidates and permits immediate reentry
+PASS: repeated stock close cannot double-credit
+PASS: normal completion and early exit each consume one attempt
+PASS: third attempt exhausts daily quota without regenerating activity
+PASS: fourth attempt cannot open stock panel
+PASS: sell-one and range-marker objects removed from saved scene
+PASS: exactly four stock action buttons
+PASS: night removes stock entry and guide
+PASS: closing after price change liquidates at current price
+PASS: next day restores three attempts, chair entry and guide
+PASS: day ends while holding shares before fifth point
+PASS: day end credits all holdings at current price regardless of event order
+PASS: day-end settlement does not draw another price and closes panel
+PASS: repeated close after day end cannot double-credit holdings
+PASS: day ends while holding shares before fifth point
+PASS: day end credits all holdings at current price regardless of event order
+PASS: day-end settlement does not draw another price and closes panel
+PASS: repeated close after day end cannot double-credit holdings
+PASS: coffee task generated
+PASS: coffee _beans receives UI raycast
+PASS: coffee bean UI drag advances recipe
+PASS: held grinder finishes grinding
+PASS: coffee _dripper receives UI raycast
+PASS: coffee _filter receives UI raycast
+PASS: coffee _grounds receives UI raycast
+PASS: 2D coffee awards exactly one coffee
+PASS: coffee reward matches task configuration
+PASS: completed panel releases UI raycasts
+PASS: coffee early exit retains task for retry
+PASS: coffee retry starts fresh recipe
+PASS: task cancellation closes its panel
+PASS: coffee cancellation gives no extra coffee
+PASS: printer task enters manager and guide follows actual printer point
+PASS: printer guide origin matches visible model rather than FBX export offset
+PASS: printer QTE opens in shared 2D panel
+PASS: printer pointer moves in actual Update
+PASS: yellow UI anchors match QTE success interval
+PASS: space outside yellow does not count or finish task
+PASS: space inside yellow counts one hit
+PASS: holding space does not auto-repeat hits
+PASS: printer early exit preserves task without reward
+PASS: printer retry resets progress
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: space inside yellow counts one hit
+PASS: fifth printer hit completes task and removes guide and interaction
+PASS: printer awards configured coins and talent once
+PASS: printer stale input and repeat close cannot double-reward
+PASS: day end cancels printer task and stops QTE input
+PASS: printer phase cancellation gives no reward

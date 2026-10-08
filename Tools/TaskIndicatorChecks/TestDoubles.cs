@@ -34,6 +34,7 @@ namespace TapTapGameJam.Player
 namespace TapTapGameJam.Events
 {
     public interface IEvent { }
+    public readonly struct EventGameOver : IEvent { }
     public readonly struct GamePhaseChangedEvent : IEvent
     {
         public GamePhase NewPhase { get; }

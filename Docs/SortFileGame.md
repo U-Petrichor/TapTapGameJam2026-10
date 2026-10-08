@@ -2,10 +2,10 @@
 
 实现文件：
 
-- `Assets/Scripts/UI/MiniGameContents/SortFileGame.cs`：UI 生命周期、生成文件堆、接收区域判断、归位动画及完成回调。
+- `Assets/Scripts/MiniGame/SortFileGame/SortFileGame.cs`：UI 生命周期、生成文件堆、接收区域判断、归位动画及完成回调。
 - `SortFileCard.cs`：文件拖动、归位和部门文字。
 - `SortFileRound.cs`：四部门枚举和不依赖 Unity 的栈顶分类规则。
-- `Assets/Scripts/MiniGame/SortFileQuest/SortFile.cs`：固定工作台交互，使用 `EventOpenMiniGamePanel(2, callback)` 打开，使用 `EventCloseMiniGamePanel` 取消窗口。
+- `Assets/Scripts/MiniGame/SortFileGame/SortFile.cs`：固定工作台交互，使用 `EventOpenMiniGamePanel(2, callback)` 打开，使用 `EventCloseMiniGamePanel` 取消窗口。
 - `SortFileQuest.cs`：单点任务候选，完成后通知管理器并结算奖励。
 
 ## 快速配置现有场景

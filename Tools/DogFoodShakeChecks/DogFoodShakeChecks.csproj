@@ -10,7 +10,7 @@
     <OutputPath>../../Temp/DogFoodShakeChecks/bin/</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/UI/MiniGameContents/DogFoodShakeProgress.cs" Link="DogFoodShakeProgress.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/DogFoodShakeProgress.cs" Link="DogFoodShakeProgress.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

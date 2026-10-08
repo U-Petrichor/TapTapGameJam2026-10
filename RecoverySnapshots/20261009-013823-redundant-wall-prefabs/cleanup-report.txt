@@ -1,0 +1,6 @@
+Deleted unused duplicate assets: Wall4.prefab and Wall6.prefab (with their original meta files).
+Canonical asset retained: Assets/Prefabs/Environment/Wall/Wall3.prefab
+Unity dependency check: no other project assets reference the deleted prefabs.
+Live scene check: no remaining instances of Wall4/Wall6.
+GameScene file unchanged by this cleanup.
+Backup copies verified against original SHA256 hashes.

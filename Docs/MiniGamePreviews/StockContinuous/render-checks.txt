@@ -1,0 +1,12 @@
+PASS: twelve completed dots initialize with two unpublished precomputed prices
+PASS: thirteen-position grid and tessellated cubic history render in the actual Canvas
+PASS: labels show only completed samples and do not reveal target one hundred twenty
+PASS: known points move left while a partial curve grows without a new quotation dot
+PASS: visible curve tip progresses on every frame within the half-second interval
+PASS: buy and sell while drawing twelve-to-thirteen execute at target quote one hundred twenty
+PASS: completed quote is labeled while next target and following price advance
+PASS: reserved future shock neither draws a dot nor moves the buffered axis
+PASS: the reusable twelve-label pool and clipped curve layer remain bounded
+PASS: final quote freezes curve and both animated axis bounds through the result phase
+PASS: normal settlement ignores the unused fiftieth price
+PASS: closing clears the completed dots, partial stroke and labels
