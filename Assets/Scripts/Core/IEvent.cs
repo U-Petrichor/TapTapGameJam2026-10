@@ -113,10 +113,10 @@ namespace TapTapGameJam.Events
     /// </summary>
     public readonly struct EventNutritionChange : IEvent
     {
-        public int RemainingNutrition { get; }
+        public float RemainingNutrition { get; }
         // TODO 这个变化值后续可以做动画
-        public int ChangeValue { get; }
-        public EventNutritionChange(int remainingNutrition, int changeValue)
+        public float ChangeValue { get; }
+        public EventNutritionChange(float remainingNutrition, float changeValue)
         {
             RemainingNutrition = remainingNutrition;
             ChangeValue = changeValue;

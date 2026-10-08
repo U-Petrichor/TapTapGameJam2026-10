@@ -108,6 +108,14 @@ namespace TapTapGameJam.Cockroach
         /// <summary>食物被吃空时，清空这一半径内的觅食信息素</summary>
         [Tooltip("吃空清除半径")] public float EmptyClearRadius = 3f;
 
+        // ---- 孵化 ----
+
+        /// <summary>巢内每只蟑螂每秒为孵化吃掉的营养。巢内越多，孵化越快</summary>
+        [Tooltip("巢内每只蟑螂每秒为孵化消耗的营养")] public float HatchNutritionPerSecond = 1.0f;
+
+        /// <summary>累计吃掉这么多营养就孵出一只新蟑螂</summary>
+        [Tooltip("孵化一只蟑螂需要的营养总量")] public float HatchNutritionCost = 80f;
+
         // ---- 信息素衰减（由 GridManager.Update 每帧使用） ----
 
         /// <summary>信息素线性衰减速率 /s</summary>
