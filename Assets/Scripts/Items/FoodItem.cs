@@ -58,14 +58,25 @@ namespace TapTapGameJam.Items
 
         public override bool UseInBag(PlayerBasic player)
         {
-            if (player == null)
+            PlayerBag bag = player != null ? player.PlayerBag : null;
+            if (bag == null)
             {
+                Debug.LogWarning($"[{name}]：玩家身上没有 PlayerBag，无法把食物放回地图");
                 return false;
             }
 
-            // TODO: 在player所在地创建该FoodItem实例（保留剩余营养），也就是掉落回地图
-            // 大致流程：ItemManager.TryDropToMap(this, player.transform.position)
-            return false;
+            if (!HasNutrition)
+            {
+                // 已经被吃空了，没必要再放回地图，直接让它消失
+                return true;
+            }
+
+            // 食物不做"使用即吃掉"：从背包拿出来放回地图，营养值原样保留
+            // （本体从没被销毁过，所以 remainingNutrition 不需要额外搬运）。
+            // 先从网格摘掉再回地图，否则会留下指向同一件物品的旧占格记录。
+            bag.TakeFromGrid(this);
+            bag.ReturnToWorld(this, bag.EvaluateDropPosition());
+            return false; // 东西还在，不消耗
         }
 
         public override string HoverPrompt => $"剩余营养 {remainingNutrition:F1}";

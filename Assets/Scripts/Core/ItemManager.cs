@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TapTapGameJam.Cockroach;
 using TapTapGameJam.Items;
 using UnityEngine;
 
@@ -8,6 +7,10 @@ namespace TapTapGameJam.Core
     /// <summary>
     /// 物品登记处：谁存在、放在哪、还剩多少。
     /// 只提供只读查询，把"怎么用这些信息做决策"留给调用方（例如蟑螂的 decide）。
+    ///
+    /// 注意：背包的格子容量、摆放规则、装备槽都在 <see cref="TapTapGameJam.Items.PlayerBag"/> 上，
+    /// 这里只管"场景里存在哪些物品"。物品进背包时不会被注销（只是 GameObject 被隐藏），
+    /// 真正被销毁时才会走 Unregister。
     /// </summary>
     public class ItemManager : MonoBehaviour
     {
@@ -15,7 +18,7 @@ namespace TapTapGameJam.Core
 
         /// <summary>
         /// 全局唯一入口。
-        /// 物品在 OnEnable 里就要注册自己，而 OnEnable 的执行顺序不保证晚于 ItemManager.Awake，
+        /// 物品在 Start 里就要注册自己，而 Start 的执行顺序不保证晚于 ItemManager.Awake，
         /// 所以这里做一个惰性查找兜底，避免出现"第一个物品注册不进去"的偶发问题。
         /// </summary>
         public static ItemManager Instance
@@ -31,16 +34,8 @@ namespace TapTapGameJam.Core
             }
         }
 
-        /// <summary>
-        /// 背包的格子容量，先留出来，具体摆放算法未实现
-        /// </summary>
-        [Header("背包配置")]
-        public int bagWidth = 6;
-        public int bagHeight = 4;
-
-        // 场上所有还活着的物品（含已进背包的）
-        public List<PickableItem> PickableItemList { get; private set; }  = new List<PickableItem>();
-        
+        // 场上所有还活着的物品（含已进背包、已装备的）
+        public List<PickableItem> PickableItemList { get; private set; } = new List<PickableItem>();
 
         private void Awake()
         {
@@ -65,7 +60,6 @@ namespace TapTapGameJam.Core
             }
 
             PickableItemList.Add(item);
-            Debug.Log("Registered PickableItem: " + item.name);
             // TODO: 后续背包 UI / 蟑螂 AI 需要知道物品列表变了，可以在这里发事件广播
         }
 
@@ -82,13 +76,13 @@ namespace TapTapGameJam.Core
         #endregion
 
         #region 拾取
-        // TODO: 拾取整块都交给背包来做，而不是ItemManager
 
         /// <summary>
-        /// 尝试把地图上的物品收进背包。
-        /// 摆放算法（俄罗斯方块式装箱）按你的要求没有实现，这里只负责状态切换。
+        /// 【已废弃】把地图上的物品粗略收进背包。
+        /// 摆放算法现在归 PlayerBag 管，正常路径请调用 <see cref="TapTapGameJam.Items.PlayerBag.PickUp"/>。
+        /// 这里只作为"场景里没有 PlayerBag"时的兜底，不做任何格子检查。
         /// </summary>
-        /// <returns>是否成功放进背包</returns>
+        [System.Obsolete("拾取请走 PlayerBag.PickUp，本方法只作无 PlayerBag 场景的兜底")]
         public bool TryAddToBag(PickableItem item)
         {
             if (item == null || !item.IsOnMap)
@@ -96,16 +90,16 @@ namespace TapTapGameJam.Core
                 return false;
             }
 
-            // TODO: 检查 _bagWidth x _bagHeight 里能不能摆下 item.itemShape，摆不下返回 false
-
             item.SetLocation(PickableItem.ItemLocation.InBag);
             item.gameObject.SetActive(false); // 进背包后不再出现在世界里
             return true;
         }
 
         /// <summary>
-        /// 把物品从背包放回地图（使用时消耗、或玩家丢弃）
+        /// 把物品从背包放回地图（丢弃）。真正的实现在 PlayerBag.ReturnToWorld，
+        /// 这里保留一个入口是为了兼容还没改完的调用方。
         /// </summary>
+        [System.Obsolete("请使用 PlayerBag.ReturnToWorld")]
         public bool TryDropToMap(PickableItem item, Vector3 worldPos)
         {
             if (item == null || item.IsOnMap)
@@ -130,6 +124,25 @@ namespace TapTapGameJam.Core
             foreach (PickableItem item in PickableItemList)
             {
                 if (item != null && item.IsOnMap)
+                {
+                    result.Add(item);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 取所有已经属于玩家背包的物品（包含"手上正拿着"的那件）。
+        /// 具体的格子归属由 PlayerBag 决定。
+        /// </summary>
+        public IReadOnlyList<PickableItem> GetItemsInBag()
+        {
+            List<PickableItem> result = new List<PickableItem>();
+
+            foreach (PickableItem item in PickableItemList)
+            {
+                if (item != null && item.Location == PickableItem.ItemLocation.InBag)
                 {
                     result.Add(item);
                 }

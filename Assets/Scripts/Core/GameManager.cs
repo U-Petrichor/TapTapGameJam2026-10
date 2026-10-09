@@ -1,10 +1,9 @@
-using System;
 using TapTapGameJam.Events;
+using TapTapGameJam.Items;
 using TapTapGameJam.Player;
-using TapTapGameJam.UI;
 using TapTapGameJam.Types;
+using TapTapGameJam.UI;
 using UnityEngine;
-using System.ComponentModel.Design.Serialization;
 
 namespace TapTapGameJam.Core
 {
@@ -16,6 +15,8 @@ namespace TapTapGameJam.Core
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private ShopMenu _shopMenu;
         [SerializeField] private GamePhaseManager _gamePhaseManager;
+        [Tooltip("背包界面（HUDCanvas 下的 BagPanel）")]
+        [SerializeField] private BagPanelUI _bagPanel;
         private int _dayCount=0 ;
 
         private void Awake()
@@ -29,6 +30,11 @@ namespace TapTapGameJam.Core
                 _instance = this;
                 DontDestroyOnLoad(this.gameObject);
             }
+
+            if (_bagPanel == null)
+            {
+                Debug.LogError("[GameManager]：没有配置 BagPanel，按 B 打开背包会没有反应", this);
+            }
         }
         private void OnEnable()
         {
@@ -41,6 +47,14 @@ namespace TapTapGameJam.Core
         void Start()
         {
             Debug.Log($"游戏要开始了");
+
+            // 背包界面开局先收起来，等 BackpackEvent 再打开
+            // （PlayerBag 引用由 BagPanelUI 在 Inspector 里直接拖好，这里不做运行时接线）
+            if (_bagPanel != null)
+            {
+                _bagPanel.SetVisible(false);
+            }
+
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
         }
 

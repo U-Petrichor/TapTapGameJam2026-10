@@ -1,3 +1,4 @@
+using TapTapGameJam.Items;
 using TapTapGameJam.Player;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ namespace TapTapGameJam.Player
         [field: SerializeField] public PlayerInteractionManager PlayerInteractionManager { get; private set; }
         [field: SerializeField] public PlayerResources PlayerResources { get; private set; }
 
+        [Tooltip("玩家的背包（网格 + 手 + 装备槽）。物品拾取/使用都走它")]
+        [field: SerializeField] public PlayerBag PlayerBag { get; private set; }
+
 
         public IdleState Idle { get; private set; }
         public HappyIdleState HappyIdle { get; private set; }
@@ -19,6 +23,14 @@ namespace TapTapGameJam.Player
         public DeathState Death { get; private set; }
         private void Awake()
         {
+            // 序列化字段没接全时自动兜底，避免"忘了拖引用"导致一堆空引用
+            if (InputManager == null) InputManager = GetComponent<PlayerInputManager>();
+            if (PlayerMovement == null) PlayerMovement = GetComponent<PlayerMovement>();
+            if (AnimationManager == null) AnimationManager = GetComponent<PlayerAnimationManager>();
+            if (PlayerInteractionManager == null) PlayerInteractionManager = GetComponent<PlayerInteractionManager>();
+            if (PlayerResources == null) PlayerResources = GetComponent<PlayerResources>();
+            if (PlayerBag == null) PlayerBag = GetComponent<PlayerBag>();
+
             // 初始化玩家拥有的状态机与状态实例
             StateMachine = new PlayerStateMachine();
             Idle = new IdleState(this);
