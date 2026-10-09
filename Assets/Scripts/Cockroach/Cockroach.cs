@@ -615,12 +615,18 @@ namespace TapTapGameJam.Cockroach
                 
                 if (distance2 < reachDistance * reachDistance)
                 {
-                    // 得吃
+                    // 先记下这是什么，再 Consume —— 它可能已经把自己 Destroy 了
+                    bool isDrug = food is CleanerDrugFoodItem;
                     float take = food.Consume(_settings.CarryCapacity);
-                    if (take <= 0f)
+
+                    // 吃到了药：立刻暴毙。危险信号由 Die() 释放，不用再谈营养和折返
+                    if (isDrug)
                     {
-                        continue;
+                        Die();
+                        return;
                     }
+
+                    if (take <= 0f) continue;
 
                     // 吃空了：把这一带的觅食信息素抹掉，别再把同伴引过来
                     _lastLoad = !food.HasNutrition;

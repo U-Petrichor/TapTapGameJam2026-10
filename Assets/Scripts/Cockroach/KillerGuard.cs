@@ -1,59 +1,49 @@
 using UnityEngine;
 
-// 见 Guard.cs 顶部说明：Cockroach 在本命名空间里既是命名空间又是实体类型，必须走别名
+// Cockroach 在本命名空间里既是命名空间又是实体类型，直接写会被当成命名空间（CS0118），统一走别名
 using CockroachAgent = TapTapGameJam.Cockroach.Cockroach;
 
 namespace TapTapGameJam.Cockroach
 {
     /// <summary>
-    /// 守卫变体：猎杀者。
-    ///
-    /// 行为：平时和基类一样慢速巡逻 + 左右扫视；一旦视野（扇形 trigger）里出现蟑螂，
-    /// 就盯住它、冷却好了立刻起冲（<see cref="GuardSettings.DashSpeed"/>），
-    /// 身体 trigger 碰到蟑螂就扑杀，杀完进入 <see cref="GuardSettings.DashCooldown"/> 冷却。
-    ///
-    /// 只覆写 <see cref="Decide"/> 与两个速度钩子，移动/避障/转向全部复用基类。
+    /// 守卫变体：猎杀者。看见蟑螂就盯住并冲刺，靠近就扑杀，杀完进冷却。
+    /// 只覆写 <see cref="Decide"/> 和速度钩子。
     /// </summary>
     public class KillerGuard : Guard
     {
-        /// <summary>&gt; 0 表示正在冲刺</summary>
+        /// <summary>距离兜底时的宽容度，盖住蟑螂自身的碰撞半径</summary>
+        const float KillReach = 0.35f;
+
+        /// <summary>&gt; 0 表示冲刺中</summary>
         float _dashTimer;
 
-        /// <summary>冲刺冷却，冷却中不追杀</summary>
+        /// <summary>冲刺冷却</summary>
         float _dashCd;
 
-        /// <summary>冲刺中锁定的目标。跟丢（死了/进巢了）就收冲</summary>
+        /// <summary>冲刺锁定的目标，跟丢就收冲</summary>
         CockroachAgent _chaseTarget;
 
-        /// <summary>正在冲刺</summary>
         public bool IsDashing => _dashTimer > 0f;
-
-        /// <summary>冲刺冷却剩余秒数</summary>
-        public float DashCooldownRemaining => Mathf.Max(0f, _dashCd);
 
         protected override void TickTimers(float dt)
         {
-            base.TickTimers(dt);
-
             if (_dashCd > 0f) _dashCd -= dt;
         }
 
         protected override void Decide(float dt, CockroachAgent target)
         {
-            bool dashing = _dashTimer > 0f;
-
-            // 冲刺期间盯死一个目标：中途换目标会让冲刺方向来回甩，看起来像抽搐
-            if (dashing)
+            if (_dashTimer > 0f)
             {
                 if (_chaseTarget == null)
                 {
-                    _dashTimer = 0f;        // 目标跟丢了就收
-                    dashing = false;
+                    _dashTimer = 0f;                // 目标跟丢了就收
                 }
                 else
                 {
+                    // 冲刺期间盯死同一个目标：中途换目标会让方向来回甩
                     DesiredAngle = AngleTo(Position, _chaseTarget.Position);
                     _dashTimer -= dt;
+                    if (_dashCd <= 0f) TryKill();
                     return;
                 }
             }
@@ -63,12 +53,7 @@ namespace TapTapGameJam.Cockroach
                 _chaseTarget = target;
                 DesiredAngle = AngleTo(Position, target.Position);
 
-                // 冷却好了就起冲
-                if (_dashCd <= 0f)
-                {
-                    _dashTimer = settings.DashDuration;
-                    dashing = true;
-                }
+                if (_dashCd <= 0f) _dashTimer = settings.DashDuration;
             }
             else
             {
@@ -76,22 +61,20 @@ namespace TapTapGameJam.Cockroach
                 Scan(dt);
             }
 
-            // 贴脸了就杀（冲刺或在冷却中都不影响"撞上即死"）
-            if (!dashing && _dashCd <= 0f)
-            {
-                TryKill();
-            }
+            if (_dashCd <= 0f) TryKill();
         }
 
         protected override float CurrentSpeed => _dashTimer > 0f ? settings.DashSpeed : settings.PatrolSpeed;
 
         /// <summary>
-        /// 身体 trigger 里碰到蟑螂就杀，然后进冷却。
-        /// 杀完顺手把它从两份名单里摘掉，免得冷却期间一直对着尸体。
+        /// 扑杀。身体 trigger 的 overlap 和距离判定两条路都试，谁先命中算谁，
+        /// 免得因为物理事件时序问题出现"贴到脸上了还不死"。
         /// </summary>
         void TryKill()
         {
+            // 不能写 ?? ：Unity 的"已销毁"对象不等于 C# null，?? 不会兜底
             CockroachAgent victim = PickNearest(CockroachesTouching);
+            if (victim == null) victim = PickNearestInRange(settings.BodyRadius + KillReach);
             if (victim == null) return;
 
             victim.Die();       // 危险信息素爆发在 Die() 里做
@@ -102,13 +85,33 @@ namespace TapTapGameJam.Cockroach
             _dashCd = settings.DashCooldown;
         }
 
+        CockroachAgent PickNearestInRange(float range)
+        {
+            Vector2 pos = Position;
+            float bestSqr = range * range;
+            CockroachAgent best = null;
+
+            foreach (CockroachAgent c in CockroachesInSight)
+            {
+                if (c == null || c.IsInside) continue;
+
+                float d = (c.Position - pos).sqrMagnitude;
+                if (d < bestSqr)
+                {
+                    bestSqr = d;
+                    best = c;
+                }
+            }
+
+            return best;
+        }
+
         protected override void OnDrawGizmosSelected()
         {
             base.OnDrawGizmosSelected();
 
             if (!Application.isPlaying) return;
 
-            // 冲刺中把撞击判定球也画出来，方便调数值
             Gizmos.color = IsDashing ? new Color(1f, 0.15f, 0.15f, 0.8f) : new Color(0.8f, 0.8f, 0.8f, 0.35f);
             Gizmos.DrawWireSphere(transform.position, settings.BodyRadius);
         }
