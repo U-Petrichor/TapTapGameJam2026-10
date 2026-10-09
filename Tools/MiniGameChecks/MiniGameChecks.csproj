@@ -26,19 +26,19 @@
     <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeQuest.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeInstance.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MakeCoffeeGame/CoffeeRecipe.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockInstance.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockQuest.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockTradePoint.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockInstance.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockTradePoint.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairInstance.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairPoint.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairQuest.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/DeliverFileGame/DeliveryFileInstance.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/WipeMask.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockRound.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockPriceGenerator.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockChartView.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockCurve.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/StockAxisRange.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockRound.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockPriceGenerator.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/V1/StockChartView.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/V1/StockCurve.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockAxisRange.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairRound.cs" />
     <Compile Include="Program.cs" /><Compile Include="StockChecks.cs" /><Compile Include="StockChartChecks.cs" /><Compile Include="TestDoubles.cs" />
   </ItemGroup>

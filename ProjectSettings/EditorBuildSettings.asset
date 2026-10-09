@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: dcc651b5057511c4eb8307dbe4fce5dd
   - enabled: 1
-    path: Assets/Scenes/NoUseAnymore.unity
-    guid: c3892e35e57cf1d4a97956811bef379a
+    path: Assets/Scenes/GameScene.unity
+    guid: 80d24724790f3634e863988f7b286a4d
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: e00d53abf42178e45b28598ccc0ade67, type: 2}

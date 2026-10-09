@@ -7,7 +7,7 @@ namespace TapTapGameJam.MiniGame
     {
         [SerializeField] private StockTradePoint _stockPoint;
         private StockInstance _activity;
-        public const int DailyPlayLimit = 1;
+        public const int DailyPlayLimit = 999;
         private int _playsUsed;
         public int RemainingPlays => Mathf.Max(0, DailyPlayLimit - _playsUsed);
         public StockInstance Activity => _activity;

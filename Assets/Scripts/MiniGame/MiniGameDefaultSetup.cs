@@ -73,6 +73,7 @@ namespace TapTapGameJam.UI
         {
             var root = Root(parent, "TradeStocks");
             var game = root.GetComponent<StockGame>() ?? root.gameObject.AddComponent<StockGame>();
+            var pointGame = root.GetComponent<StockPointGame>();
             // 新旧布局都补齐两按钮和裁剪窗口；保留已有图表尺寸与场景位置。
             {
                 Label(root, "Title", "模拟炒股", new Vector2(800, 50), new Vector2(0, 250), font, 32);
@@ -88,6 +89,34 @@ namespace TapTapGameJam.UI
                 ((RectTransform)buy.transform).anchoredPosition = new Vector2(-120, -258);
                 ((RectTransform)sell.transform).anchoredPosition = new Vector2(120, -258);
                 game.Configure(chart, status, result, buy, sell);
+
+                // 点线版由编辑器菜单显式启用；未启用时保持原连续版。
+                var pointChart = root.GetComponentInChildren<StockPointChart>(true);
+                if (pointGame != null && pointChart != null && pointGame.enabled)
+                {
+                    game.enabled = false;
+                    chart.enabled = false;
+                    chart.gameObject.SetActive(false);
+                    pointChart.enabled = true;
+                    pointChart.gameObject.SetActive(true);
+                    pointChart.color = Accent;
+                    pointChart.raycastTarget = false;
+                    pointGame.Configure(pointChart, status, result, buy, sell);
+                    panel.RegisterContent(3, pointGame);
+                }
+                else
+                {
+                    game.enabled = true;
+                    chart.enabled = true;
+                    chart.gameObject.SetActive(true);
+                    if (pointChart != null)
+                    {
+                        pointChart.enabled = false;
+                        pointChart.gameObject.SetActive(false);
+                    }
+                    if (pointGame != null) pointGame.enabled = false;
+                    panel.RegisterContent(3, game);
+                }
             }
             // 兼容已经保存过旧布局的场景，不重建用户的面板。
             foreach (string obsolete in new[] { "UpperPrice", "LowerPrice", "SellOne", "BuyAll", "Wait" })
@@ -98,7 +127,6 @@ namespace TapTapGameJam.UI
             var renderedChart = root.GetComponentInChildren<StockChart>(true);
             if (renderedChart != null && renderedChart.GetComponent<CanvasRenderer>() == null)
                 renderedChart.gameObject.AddComponent<CanvasRenderer>();
-            panel.RegisterContent(3, game);
         }
 
         private static void SetupCoffee(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)

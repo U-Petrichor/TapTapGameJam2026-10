@@ -1,0 +1,42 @@
+[
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockRound.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockRound.cs",
+    "sha256": "C2EB2A1E4942993EA82D4DDE757449DCEE914B1D0061413AFB8D55099E129A11"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockGame.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockGame.cs",
+    "sha256": "F45B869644728A36F62E54E7DEC9207897F7C40E4E252CB056C36959C629AD68"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockChart.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockChart.cs",
+    "sha256": "E2662DFE722473497CE683E4CC769721A87EC9C675A4D8E5FE77661139285CB8"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockPlotGraphic.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockPlotGraphic.cs",
+    "sha256": "B99C46045A9C2583A8069400D11F38CA2191E0B163B25B622D4D0AFE5D424BD5"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockChartView.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockChartView.cs",
+    "sha256": "AB987DE8C328811BDD7566A28EFBA50CCD01C66A601F3E9594A013AEF0A6BC22"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockCurve.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockCurve.cs",
+    "sha256": "93240521B4B44C03E24652B599A8720C096AA0BB621BC20FCD17EF896CBE8197"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockAxisRange.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockAxisRange.cs",
+    "sha256": "5330C04BE65670E3EE60D0070D1E1854D3E4DD9544481D8960BE29D258855EF6"
+  },
+  {
+    "source": "Assets/Scripts/MiniGame/StockTradeGame/StockPriceGenerator.cs",
+    "snapshot": "RecoverySnapshots\\20261009-stock-core-before-pointline\\StockPriceGenerator.cs",
+    "sha256": "1BCD25E68E848A83BDAFD3504C841F0B07EFE32E3A478A55A1047635C6637E6C"
+  }
+]
