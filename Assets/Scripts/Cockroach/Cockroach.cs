@@ -60,8 +60,8 @@ namespace TapTapGameJam.Cockroach
         private CockroachState currentState = CockroachState.Inside;
 
         private CockroachSettings _settings;
-        
-        // 朝向。角度 0 = 世界 +x，π/2 = 世界 +z
+
+        // +Z朝向。角度 0 = 世界 +z，π/2 = 世界 +x
         private float _forwardAngle;
         private float _targetAngle;
 
@@ -577,6 +577,9 @@ namespace TapTapGameJam.Cockroach
 
                 Position = next;
 
+                /* ---- 模型转过去，面朝实际跑的方向 ---- */
+                FaceForward();
+
                 /* ---- 活动范围：超出所有巢穴范围视为撞墙 ---- */
                 ClampInsideRanges(dt);
             }
@@ -679,6 +682,11 @@ namespace TapTapGameJam.Cockroach
 
         #region 移动辅助
 
+        private void FaceForward()
+        {
+            transform.localEulerAngles = new Vector3(0f, _forwardAngle * Mathf.Rad2Deg - 90, 0f); // 因为模型实际朝+X
+        }
+
         /// <summary>
         /// 巢穴里待命时别飘出去：离巢心超过半径的 75% 就往回看
         /// </summary>
@@ -779,7 +787,7 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 角度 → 单位方向。角度 0 = +x，π/2 = +z
+        /// 角度 → 单位方向。角度是<b>弧度</b>；0 = 世界 +Z，+π/2 = 世界 +X。
         /// </summary>
         public static Vector2 DirOfAngle(float angle)
         {
@@ -787,7 +795,8 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 单位方向 → 角度
+        /// 单位方向 → 角度（<b>弧度</b>）。和 <see cref="DirOfAngle"/> 互为反函数，
+        /// 所以取的是 atan2(x, y) 而不是常见的 atan2(y, x)。
         /// </summary>
         public static float AngleOfDir(Vector2 dir)
         {
