@@ -16,6 +16,9 @@ namespace TapTapGameJam.Player
         [Tooltip("玩家的背包（网格 + 手 + 装备槽）。物品拾取/使用都走它")]
         [field: SerializeField] public PlayerBag PlayerBag { get; private set; }
 
+        [Tooltip("玩家体力：冲刺消耗、受伤/中毒/负重占据上限")]
+        [field: SerializeField] public PlayerHealth PlayerHealth { get; private set; }
+
 
         public IdleState Idle { get; private set; }
         public HappyIdleState HappyIdle { get; private set; }
@@ -30,6 +33,7 @@ namespace TapTapGameJam.Player
             if (PlayerInteractionManager == null) PlayerInteractionManager = GetComponent<PlayerInteractionManager>();
             if (PlayerResources == null) PlayerResources = GetComponent<PlayerResources>();
             if (PlayerBag == null) PlayerBag = GetComponent<PlayerBag>();
+            if (PlayerHealth == null) PlayerHealth = GetComponent<PlayerHealth>();
 
             // 初始化玩家拥有的状态机与状态实例
             StateMachine = new PlayerStateMachine();

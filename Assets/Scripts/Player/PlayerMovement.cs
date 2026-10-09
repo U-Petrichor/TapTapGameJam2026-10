@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using TapTapGameJam.Cockroach;
@@ -16,9 +16,18 @@ namespace TapTapGameJam.Player
         [SerializeField] private PlayerBasic _player;
         [SerializeField] private float _rotationSpeed = 360f;
         [SerializeField] private float _moveSpeed = 4.5f;
+        [Tooltip("冲刺时移动速度的倍率（Shift）。体力是否够由 PlayerHealth 决定")]
+        [SerializeField, Min(1f)] private float _sprintSpeedMultiplier = 1.8f;
 
         private Vector2 _moveInput;
         private Vector2 MoveDirection;
+
+        /// <summary>是否处于冲刺状态。由 PlayerHealth 每帧写入（它才知道体力够不够）</summary>
+        public bool IsSprinting { get; set; }
+
+        /// <summary>当前实际移动速度</summary>
+        public float CurrentMoveSpeed => IsSprinting ? _moveSpeed * _sprintSpeedMultiplier : _moveSpeed;
+
         // 由当前状态提交允许执行的移动方向。
         public void SetMoveInput(Vector2 input)
         {
@@ -56,10 +65,12 @@ namespace TapTapGameJam.Player
             );
             MoveDirection = Vector2.ClampMagnitude(MoveDirection, 1f);
 
+            // 冲刺只改速度，不改方向；体力够不够由 PlayerHealth 写入 IsSprinting
+            float speed = CurrentMoveSpeed;
             _rigidbody.linearVelocity = new Vector3(
-                MoveDirection.x * _moveSpeed,
+                MoveDirection.x * speed,
                 _rigidbody.linearVelocity.y,
-                MoveDirection.y * _moveSpeed
+                MoveDirection.y * speed
             );
             UpdateMoveAnimation();
         }

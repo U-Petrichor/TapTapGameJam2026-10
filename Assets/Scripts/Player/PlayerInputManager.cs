@@ -24,6 +24,10 @@ namespace TapTapGameJam.Player
 
         private InputAction _rotateCameraLeft;
         private InputAction _rotateCameraRight;
+        private InputAction _sprintAction;
+
+        /// <summary>冲刺键（Shift）按下/松开，参数 true = 按下</summary>
+        public event Action<bool> EventOnSprintChanged;
 
         private void OnEnable()
         {
@@ -44,7 +48,24 @@ namespace TapTapGameJam.Player
                 // 通过固定 ID 查找 CameraClockwise / CameraAntiClockwise，重命名动作不影响连接。
                 _rotateCameraLeft = _playerInput.actions.FindAction("9f97b44a-5cb2-4719-ba84-723d489da067");
                 _rotateCameraRight = _playerInput.actions.FindAction("fcb1663d-5bba-4b07-8639-fe019e2a7f76");
+                // 冲刺：按名字找。找不到说明 .inputactions 里没这个 action，ReadSprintHeld 会返回 null
+                _sprintAction = _playerInput.actions.FindAction("Sprint");
             }
+        }
+
+        /// <summary>
+        /// 冲刺键当前是否按住。
+        /// 返回 null 表示"这个 action 不存在"（或者还没初始化），调用方应该退回直接读键盘；
+        /// 返回 true/false 表示以 action 的状态为准，即使玩家没在 ActionEvents 里挂回调也能读。
+        /// </summary>
+        public bool? ReadSprintHeld()
+        {
+            if (_sprintAction == null)
+            {
+                return null;
+            }
+
+            return _sprintAction.IsPressed();
         }
 
         /// <summary>
@@ -128,6 +149,22 @@ namespace TapTapGameJam.Player
             if (!context.performed) return;
 
             EventOnInteractionSwitchPress?.Invoke();
+        }
+
+        /// <summary>
+        /// 冲刺键。需要在 Player 预制体的 PlayerInput → ActionEvents 里把 Sprint 挂到这个方法上；
+        /// 没挂也不影响，PlayerHealth 会退回直接读键盘。
+        /// </summary>
+        public void OnSprint(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                EventOnSprintChanged?.Invoke(true);
+            }
+            else if (context.canceled)
+            {
+                EventOnSprintChanged?.Invoke(false);
+            }
         }
         #endregion
         #region 控制背包

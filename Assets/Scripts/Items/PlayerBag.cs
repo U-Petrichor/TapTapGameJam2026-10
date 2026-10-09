@@ -230,6 +230,27 @@ namespace TapTapGameJam.Items
             return index >= 0 && index < _equipped.Length ? _equipped[index] : null;
         }
 
+        /// <summary>
+        /// 背包里被物品占了多少格（只算放进格子的，手上拿着的那件不算）。
+        /// 负重换算用这个值。
+        /// </summary>
+        public int OccupiedCellCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _placements.Count; i++)
+                {
+                    if (_placements[i].item != null && _placements[i].item.shape != null)
+                    {
+                        count += _placements[i].item.shape.Count;
+                    }
+                }
+
+                return count;
+            }
+        }
+
         #endregion
 
         #region 捡起 / 手
