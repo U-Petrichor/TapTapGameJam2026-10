@@ -8,7 +8,7 @@ namespace TapTapGameJam.Cockroach
         Guard _guard;
         bool _isVision;
 
-        public void Bind(Guard guard, bool isVision)
+        public void BindGuard(Guard guard, bool isVision)
         {
             _guard = guard;
             _isVision = isVision;

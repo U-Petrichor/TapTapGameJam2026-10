@@ -9710,11 +9710,52 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2519347922603489453, guid: c9ca3bc5685f48d4188b11b41556f62f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5161205564030046297, guid: c9ca3bc5685f48d4188b11b41556f62f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5158660136184451572}
   m_SourcePrefab: {fileID: 100100000, guid: c9ca3bc5685f48d4188b11b41556f62f, type: 3}
+--- !u!1 &5158660136184451570 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5161205564030046297, guid: c9ca3bc5685f48d4188b11b41556f62f, type: 3}
+  m_PrefabInstance: {fileID: 5158660136184451569}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5158660136184451571 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3208839939340034176, guid: c9ca3bc5685f48d4188b11b41556f62f, type: 3}
+  m_PrefabInstance: {fileID: 5158660136184451569}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5158660136184451572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5158660136184451570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc91a41621f44a5499ca6fef61b824bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Cockroach.KillerGuard
+  settings:
+    VisionRange: 6
+    VisionCone: 0.4
+    ScanSpeed: 0.5
+    ScanIntervalMin: 4
+    ScanIntervalMax: 8.5
+    PatrolSpeed: 1.5
+    DashSpeed: 8.8
+    TurnSpeed: 4.5
+    WallLook: 1.5
+    BodyRadius: 0.4
+    DashDuration: 3.2
+    DashCooldown: 6
+  vision: {fileID: 5158660136184451571}
+  _angle: 0
 --- !u!1001 &8830923686708275691
 PrefabInstance:
   m_ObjectHideFlags: 0

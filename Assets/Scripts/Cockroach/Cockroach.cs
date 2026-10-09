@@ -73,6 +73,9 @@ namespace TapTapGameJam.Cockroach
         /// <summary>是否取走了某堆食物的最后一份（返程就不再撒觅食信息素）</summary>
         private bool _lastLoad;
 
+        /// <summary>是否已经被击杀。Destroy 是延迟到帧末执行的，这面旗子让同一帧里的后续逻辑不要再去碰它</summary>
+        private bool _dead;
+
 
         /// <summary>
         /// 当前所在世界坐标（XZ 平面）。
@@ -94,6 +97,9 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>在巢里待命（守卫不理会这种）</summary>
         public bool IsInside => currentState == CockroachState.Inside;
+
+        /// <summary>已经被击杀（<see cref="Die"/> 调用过，物体正在等帧末销毁）</summary>
+        public bool IsDead => _dead;
 
         /// <summary>已经叼着的营养</summary>
         private float _carrying;
@@ -194,6 +200,9 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         public void Die()
         {
+            if (_dead) return;
+            _dead = true;
+
             GridManager grid = GridManager.Instance;
             if (grid != null && _settings != null)
             {
@@ -482,6 +491,10 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         private void UpdateLogic(float dt)
         {
+            // 同一帧内被击杀的话（例如咬了一口杀虫饵），后面的行为一律免谈：
+            // 物体是帧末才真正销毁的，不挡住的话它还会再撒一次信息素、甚至再切一次状态
+            if (_dead) return;
+
             GridManager grid = GridManager.Instance;
 
             _phaseClock += dt;

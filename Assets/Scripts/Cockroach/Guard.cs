@@ -1,8 +1,12 @@
 using System.Collections.Generic;
-using NUnit.Framework;
 using TapTapGameJam.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
+// 这个名字在本文件里是"实体"，而 TapTapGameJam.Cockroach 是命名空间 —— 直接写 Cockroach
+// 编译器一律优先当成命名空间（CS0118）。所以统一走这个别名。
+// 别名在同一个命名空间里跨文件可见，KillerGuard / CleanerGuard 也用它。
+using CockroachAgent = TapTapGameJam.Cockroach.Cockroach;
 
 namespace TapTapGameJam.Cockroach
 {
@@ -30,53 +34,111 @@ namespace TapTapGameJam.Cockroach
     }
 
     /// <summary>
-    /// 守卫：慢速巡逻 + 左右扫视，扇形视野里发现蟑螂就冲过去扑杀。
-    /// 视野是一个扇形 trigger，击杀是身体上另一个 trigger，两个都按 layer 过滤。
+    /// 守卫基类。搭好所有变体共用的那套"身体"：
+    ///
+    /// - 视野：一盏 Spot Light + 一个严格同形的扇形 trigger（<see cref="GuardTrigger"/> 转发碰撞事件）；
+    /// - 感知：<see cref="CockroachesInSight"/> / <see cref="CockroachesTouching"/> 两份名单；
+    /// - 基础行动：没目标时慢慢左右扫视（<see cref="Scan"/>）、撞墙前提前偏转（<see cref="ApplyAvoidance"/>）、
+    ///   按 <see cref="DesiredAngle"/> 平滑转向、贴着墙滑行地推进（<see cref="Move"/>）；
+    /// - 每帧在主循环里依次调用 <see cref="Decide"/> 与 <see cref="Move"/>。
+    ///
+    /// 变体只需要覆写这两个钩子：
+    /// <list type="bullet">
+    /// <item><see cref="Decide"/>：只负责写 <see cref="DesiredAngle"/>（我想朝哪边走），
+    /// 以及派生类自己的计时器/状态机。<see cref="KillerGuard"/>（追击扑杀）与
+    /// <see cref="CleanerGuard"/>（见蟑螂就逃）就是这么来的。</item>
+    /// <item><see cref="Move"/>：负责推进与避障，默认实现是"沿 <see cref="CurrentSpeed"/> 前进 +
+    /// 网格边界夹紧"，需要特殊移动方式（瞬移、绕圈）的子类再覆写。</item>
+    /// </list>
+    ///
+    /// 本类自己就是一套最朴素的变体：随机扫视 + 巡逻，看见蟑螂不做任何反应。
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
     public class Guard : MonoBehaviour
     {
-        public GuardSettings settings = new GuardSettings();
-
         /// <summary>
         /// 视野体的竖直厚度。灯是挂在守卫身上的（离地有一点高度），
         /// 厚度给足才盖得住贴地走的蟑螂碰撞体。
         /// </summary>
-        const float VisionThickness = 2.5f;
+        protected const float VisionThickness = 2.5f;
+
+        [Header("数值")]
+        public GuardSettings settings = new GuardSettings();
 
         [Header("视野object")]
+        [Tooltip("挂 Spot Light 和扇形 trigger 的那个子物体。留空则自动取身上第一盏灯")]
         public Transform vision;
-        
+
+        /// <summary>当前朝向，0 = 世界 +x</summary>
+        [Header("运行时状态（只读）")]
+        [SerializeField] protected float _angle;
+
+        /// <summary>
+        /// 扫视/当前想要达到的角度，由 <see cref="DesiredAngle"/> 的 setter 一直同步成最新值。
+        /// 单独留一个字段是因为 <see cref="FixedUpdate"/> 每帧开头要用它把"上帧意图"摆回
+        /// <see cref="_desiredAngle"/>，这样没目标时守卫才是保持朝向，而不是停转。
+        /// </summary>
+        protected float _targetAngle;
+
+        /// <summary>本帧决定的方向。<see cref="Decide"/> 写它，<see cref="ApplyAvoidance"/> 可能改写它</summary>
+        protected float _desiredAngle;
+
+        protected float _scanDir = 1f;
+        protected float _scanTimer;
+
+        /// <summary>避障让行冷却，避免同一堵墙每帧都触发一次转向</summary>
+        protected float _avoidCd;
+
+        protected Rigidbody _rb;
+
         private Light _visionLight;
         private GuardTrigger _visionTrigger;
-        
 
-        Rigidbody _rb;
-        float _angle;           // 当前朝向，0 = 世界 +x
-        float _targetAngle;
-        float _scanDir = 1f;
-        float _scanTimer;
-        float _avoidCd;
-        float _dashTimer;       // > 0 表示冲刺中
-        float _dashCd;          // 冲刺冷却
-        Cockroach _target;
-        
         private LayerMask _cockroachMask;
         private LayerMask _wallMask;
-        
-        // trigger 里当前的蟑螂。视野和身体各一份，靠 GuardTrigger 转发事件
-        readonly HashSet<Cockroach> _inVision = new HashSet<Cockroach>();
-        readonly HashSet<Cockroach> _inBody = new HashSet<Cockroach>();
+
+        /// <summary>视野 trigger 里当前的蟑螂</summary>
+        protected readonly HashSet<CockroachAgent> CockroachesInSight = new HashSet<CockroachAgent>();
+
+        /// <summary>身体 trigger 里当前的蟑螂（贴脸了）</summary>
+        protected readonly HashSet<CockroachAgent> CockroachesTouching = new HashSet<CockroachAgent>();
+
+        #region 对外状态
+
+        public Vector2 Position
+        {
+            get
+            {
+                Vector3 p = transform.position;
+                return new Vector2(p.x, p.z);
+            }
+            set
+            {
+                Vector3 p = transform.position;
+                transform.position = new Vector3(value.x, p.y, value.y);
+            }
+        }
+
+        /// <summary>世界 XZ 平面上的单位前向</summary>
+        public Vector2 Forward => new Vector2(Mathf.Cos(_angle), Mathf.Sin(_angle));
+
+        public float Angle => _angle;
+
+        protected LayerMask CockroachMask => _cockroachMask;
+
+        protected LayerMask WallMask => _wallMask;
+
+        #endregion
 
         #region 生命周期
 
-        void Awake()
+        protected virtual void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _rb.isKinematic = true;
             _rb.useGravity = false;
 
-            _angle = _targetAngle = RotationToAngle(transform.eulerAngles.y);
+            _angle = _targetAngle = _desiredAngle = RotationToAngle(transform.eulerAngles.y);
             _scanTimer = Random.Range(settings.ScanIntervalMin, settings.ScanIntervalMax);
 
             _cockroachMask = LayerMask.GetMask("Cockroach");
@@ -88,15 +150,18 @@ namespace TapTapGameJam.Cockroach
                 if (found != null) vision = found.transform;
             }
 
-            Assert.IsTrue(vision);
+            Debug.Assert(vision != null, "Guard 没找到视野物体：请在 vision 字段上挂那个 Spot Light（或给守卫加一盏灯）");
+            if (vision == null) return;
+
             _visionLight = vision.GetComponent<Light>();
             _visionTrigger = vision.GetComponent<GuardTrigger>();
 
-            Assert.IsTrue(_visionLight, "vision 上没有 Light 组件");
-            Assert.IsTrue(_visionLight.type == LightType.Spot, "vision 上的 Light 必须是 Spot");
-            Assert.IsTrue(_visionTrigger, "vision 上没有 GuardTrigger 组件，挂一个上去");
+            Debug.Assert(_visionLight != null, "vision 上没有 Light 组件");
+            Debug.Assert(_visionTrigger != null, "vision 上没有 GuardTrigger 组件，挂一个上去");
+            if (_visionLight == null || _visionTrigger == null) return;
 
             // 灯光锥必须和检测锥严格一致，否则玩家看到的光圈不等于守卫真正看得见的范围
+            _visionLight.type = LightType.Spot;
             _visionLight.range = settings.VisionRange;
             _visionLight.spotAngle = settings.VisionCone * 2f * Mathf.Rad2Deg;
 
@@ -104,7 +169,7 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>把视野扇形和身体两个 trigger 搭好，省去手搓锥体碰撞。</summary>
-        void EnsureRig()
+        protected virtual void EnsureRig()
         {
             // 检测锥沿守卫的 +Z 铺开，和那盏 Spot Light 的朝向一致
             MeshCollider cone = vision.GetComponent<MeshCollider>();
@@ -114,7 +179,7 @@ namespace TapTapGameJam.Cockroach
             cone.isTrigger = true;
 
             vision.gameObject.layer = gameObject.layer;
-            _visionTrigger.Bind(this, true);
+            _visionTrigger.BindGuard(this, true);
 
             Transform bodyT = transform.Find("Body");
             if (bodyT == null)
@@ -131,62 +196,41 @@ namespace TapTapGameJam.Cockroach
 
             GuardTrigger bodyTrigger = bodyT.GetComponent<GuardTrigger>();
             if (bodyTrigger == null) bodyTrigger = bodyT.gameObject.AddComponent<GuardTrigger>();
-            bodyTrigger.Bind(this, false);
+            bodyTrigger.BindGuard(this, false);
         }
 
-        void FixedUpdate()
+        protected virtual void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
 
-            if (_dashCd > 0f) _dashCd -= dt;
-            if (_avoidCd > 0f) _avoidCd -= dt;
+            TickTimers(dt);
 
-            // 只清掉被销毁的；IsInside 的在 PickTarget / TryKill 里过滤，
-            // 不在这里剔除 —— 否则蟑螂进巢再出来时不会再触发 OnTriggerEnter，就永远发现不了它了
-            _inVision.RemoveWhere(c => c == null);
-            _inBody.RemoveWhere(c => c == null);
-            _target = PickTarget();
+            // 只清掉被销毁的；还在 trigger 里但 IsInside 的由子类自己过滤。
+            // 不能在这里按 IsInside 剔除 —— 否则蟑螂进巢再出来时不会再触发 OnTriggerEnter，就永远发现不了它了
+            CockroachesInSight.RemoveWhere(c => c == null);
+            CockroachesTouching.RemoveWhere(c => c == null);
 
-            bool dashing = _dashTimer > 0f;
+            // 每帧先摆成"保持原样"（扫视目标角），再让 Decide 决定要不要改
+            _desiredAngle = _targetAngle;
 
-            if (dashing)
-            {
-                _dashTimer -= dt;
-                if (_target == null)
-                {
-                    _dashTimer = 0f;        // 目标跟丢了就收
-                    dashing = false;
-                }
-                else
-                {
-                    _targetAngle = AngleTo(Position, _target.Position);
-                }
-            }
+            // 1. 决策：我要朝哪个方向
+            Decide(dt, TargetInSight());
 
-            if (!dashing)
-            {
-                if (_target != null)
-                {
-                    // 盯住目标；冷却好了就起冲
-                    _targetAngle = AngleTo(Position, _target.Position);
-                    if (_dashCd <= 0f)
-                    {
-                        _dashTimer = settings.DashDuration;
-                        dashing = true;
-                    }
-                }
-                else
-                {
-                    Scan(dt);
-                }
-            }
-
+            // 2. 避障：往那个方向走会不会撞墙
             ApplyAvoidance();
-            _angle = RotateTowards(_angle, _targetAngle, settings.TurnSpeed * dt);
-            transform.rotation = AngleToRotation(_angle);
-            Move(dashing ? settings.DashSpeed : settings.PatrolSpeed, dt);
 
-            if (_dashCd <= 0f) TryKill();
+            // 3. 转向
+            _angle = RotateTowards(_angle, DesiredAngle, EffectiveTurnSpeed * dt);
+            transform.rotation = AngleToRotation(_angle);
+
+            // 4. 移动
+            Move(CurrentSpeed, dt);
+        }
+
+        /// <summary>每帧递减各类冷却。子类的计时器自己在 <see cref="Decide"/> 里走。</summary>
+        protected virtual void TickTimers(float dt)
+        {
+            if (_avoidCd > 0f) _avoidCd -= dt;
         }
 
         #endregion
@@ -195,77 +239,125 @@ namespace TapTapGameJam.Cockroach
 
         internal void OnPartEnter(Collider other, bool isVision)
         {
-            if (((1 << other.gameObject.layer) & _cockroachMask) == 0) return;
+            if (!IsCockroach(other)) return;
 
-            Cockroach c = other.GetComponentInParent<Cockroach>();
+            CockroachAgent c = other.GetComponentInParent<CockroachAgent>();
             if (c == null) return;
 
-            if (isVision) _inVision.Add(c);
-            else _inBody.Add(c);
+            if (isVision) CockroachesInSight.Add(c);
+            else CockroachesTouching.Add(c);
+
+            OnCockroachEnter(c, isVision);
         }
 
         internal void OnPartExit(Collider other, bool isVision)
         {
             if (other == null) return;
 
-            Cockroach c = other.GetComponentInParent<Cockroach>();
+            CockroachAgent c = other.GetComponentInParent<CockroachAgent>();
             if (c == null) return;
 
-            if (isVision) _inVision.Remove(c);
-            else _inBody.Remove(c);
+            if (isVision) CockroachesInSight.Remove(c);
+            else CockroachesTouching.Remove(c);
+
+            OnCockroachExit(c, isVision);
         }
 
-        /// <summary>身体 trigger 里碰到蟑螂就杀，然后进冷却。</summary>
-        void TryKill()
+        /// <summary>有蟑螂进出某个 trigger 时的回调，给子类挂表现/音效用</summary>
+        protected virtual void OnCockroachEnter(CockroachAgent cockroach, bool isVision) { }
+
+        protected virtual void OnCockroachExit(CockroachAgent cockroach, bool isVision) { }
+
+        protected bool IsCockroach(Collider other)
         {
-            Cockroach victim = null;
-            foreach (Cockroach c in _inBody)
-            {
-                if (c != null && !c.IsInside)
-                {
-                    victim = c;
-                    break;
-                }
-            }
-
-            if (victim == null) return;
-
-            victim.Die();       // 危险信息素爆发在 Die() 里做
-            _inBody.Remove(victim);
-            _inVision.Remove(victim);
-            _target = null;
-            _dashTimer = 0f;
-            _dashCd = settings.DashCooldown;
+            return other != null && ((1 << other.gameObject.layer) & _cockroachMask) != 0;
         }
 
         #endregion
 
-        #region 移动
+        #region 决策 / 移动（子类覆写点）
 
-        Vector2 Position
+        /// <summary>
+        /// 决策钩子，每帧执行一次。基类实现就是"没目标时左右扫视"。
+        /// 覆写时请只写 <see cref="DesiredAngle"/>（想朝哪边走）与子类自己的状态，
+        /// 不要直接改 transform —— 转向和位移由基类统一处理。
+        /// </summary>
+        /// <param name="dt">本帧步长</param>
+        /// <param name="target">视野里当前锁定的蟑螂，可能为 null</param>
+        protected virtual void Decide(float dt, CockroachAgent target)
         {
-            get
+            if (target == null)
             {
-                Vector3 p = transform.position;
-                return new Vector2(p.x, p.z);
+                Scan(dt);
             }
-            set
+            else
             {
-                Vector3 p = transform.position;
-                transform.position = new Vector3(value.x, p.y, value.y);
+                // 基类不追击，只是盯住它
+                DesiredAngle = AngleTo(Position, target.Position);
             }
         }
 
-        Cockroach PickTarget()
+        /// <summary>
+        /// 移动钩子，每帧执行一次。基类实现：沿当前朝向 <see cref="_angle"/> 前进，
+        /// 坐标夹在网格范围内（网格外一律当墙处理，蟑螂那边也是同一套规则）。
+        /// </summary>
+        protected virtual void Move(float speed, float dt)
         {
-            Cockroach best = null;
-            float bestSqr = float.MaxValue;
+            GridManager grid = GridManager.Instance;
+            if (grid == null) return;
 
-            foreach (Cockroach c in _inVision)
+            grid.EnsureFootprint();
+
+            Vector2 p = Position + DirOfAngle(_angle) * (speed * dt);
+
+            // 别走出网格
+            Vector2 o = grid.WorldOrigin;
+            Vector2 s = grid.WorldSpan;
+            p.x = Mathf.Clamp(p.x, o.x, o.x + s.x);
+            p.y = Mathf.Clamp(p.y, o.y, o.y + s.y);
+
+            Position = p;
+        }
+
+        /// <summary>本帧移动速度。子类用它切换巡逻 / 冲刺 / 逃跑。</summary>
+        protected virtual float CurrentSpeed => settings.PatrolSpeed;
+
+        /// <summary>本帧转向角速度（rad/s）</summary>
+        protected virtual float EffectiveTurnSpeed => settings.TurnSpeed;
+
+        /// <summary>
+        /// 子类覆写它来改变"本帧想朝哪边走"。
+        /// 赋值会同步 <see cref="_targetAngle"/>：不然子类（如追击中的 KillerGuard）改完方向后，
+        /// 下一帧 <see cref="FixedUpdate"/> 又把 <see cref="_desiredAngle"/> 摆回老角度，转向会先掉头再转回来。
+        /// </summary>
+        protected virtual float DesiredAngle
+        {
+            get => _desiredAngle;
+            set
+            {
+                _desiredAngle = NormAng(value);
+                _targetAngle = _desiredAngle;
+            }
+        }
+
+        /// <summary>当前锁定的目标：默认取视野里最近的一只。子类可换筛选规则。</summary>
+        protected virtual CockroachAgent TargetInSight()
+        {
+            return PickNearest(CockroachesInSight);
+        }
+
+        /// <summary>视野里最近的、不在巢里的蟑螂</summary>
+        protected CockroachAgent PickNearest(IEnumerable<CockroachAgent> candidates)
+        {
+            CockroachAgent best = null;
+            float bestSqr = float.MaxValue;
+            Vector2 pos = Position;
+
+            foreach (CockroachAgent c in candidates)
             {
                 if (c == null || c.IsInside) continue;
 
-                float d = (c.Position - Position).sqrMagnitude;
+                float d = (c.Position - pos).sqrMagnitude;
                 if (d < bestSqr)
                 {
                     bestSqr = d;
@@ -277,7 +369,7 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>没目标时：慢慢转着扫。</summary>
-        void Scan(float dt)
+        protected virtual void Scan(float dt)
         {
             _scanTimer -= dt;
             if (_scanTimer <= 0f)
@@ -286,83 +378,83 @@ namespace TapTapGameJam.Cockroach
                 _scanTimer = Random.Range(settings.ScanIntervalMin, settings.ScanIntervalMax);
             }
 
-            _targetAngle = NormAng(_targetAngle + _scanDir * settings.ScanSpeed * dt);
+            DesiredAngle = _targetAngle + _scanDir * settings.ScanSpeed * dt;
         }
 
-        /// <summary>前方有墙就往两侧偏，两边都堵就掉头。</summary>
-        void ApplyAvoidance()
+        #endregion
+
+        #region 避障
+
+        /// <summary>
+        /// 前方有墙就往两侧偏，两边都堵就掉头。
+        /// 探路方向写死成"当前方向 ±0.7rad"，想改探路方式（多探几条、按网格查）就覆写它。
+        /// </summary>
+        protected virtual void ApplyAvoidance()
         {
             if (_avoidCd > 0f) return;
 
-            Vector3 fwd = new Vector3(Mathf.Cos(_angle), 0f, Mathf.Sin(_angle));
+            Vector3 fwd = new Vector3(Mathf.Cos(DesiredAngle), 0f, Mathf.Sin(DesiredAngle));
+
             // Ignore：守卫自己的视野/身体都是 trigger，不排除的话会自己撞自己
-            if (!Physics.SphereCast(transform.position, settings.BodyRadius, fwd, out _, settings.WallLook, _wallMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.SphereCast(transform.position, WallProbeRadius, fwd, out _, settings.WallLook, _wallMask, QueryTriggerInteraction.Ignore))
             {
                 return;
             }
 
-            float left = _angle - 0.7f;
-            float right = _angle + 0.7f;
+            float left = DesiredAngle - 0.7f;
+            float right = DesiredAngle + 0.7f;
             bool lOk = !Blocked(left);
             bool rOk = !Blocked(right);
 
             float next;
             if (lOk && !rOk) next = left;
             else if (rOk && !lOk) next = right;
-            else if (lOk && rOk) next = _angle + (Random.value < 0.5f ? -1f : 1f) * Random.Range(0.6f, 1.1f);
-            else next = _angle + Mathf.PI * (Random.value < 0.5f ? -1f : 1f);
+            else if (lOk && rOk) next = DesiredAngle + (Random.value < 0.5f ? -1f : 1f) * Random.Range(0.6f, 1.1f);
+            else next = DesiredAngle + Mathf.PI * (Random.value < 0.5f ? -1f : 1f);
 
-            _targetAngle = NormAng(next);
+            DesiredAngle = next;
             _avoidCd = 0.45f;
             _scanTimer = Random.Range(0.8f, 2f);
+
+            OnAvoided();
         }
 
-        bool Blocked(float angle)
+        /// <summary>避障生效后的回调，给子类挂音效/表现</summary>
+        protected virtual void OnAvoided() { }
+
+        protected bool Blocked(float angle)
         {
             Vector3 d = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
-            return Physics.SphereCast(transform.position, settings.BodyRadius, d, out _, settings.WallLook * 0.6f, _wallMask, QueryTriggerInteraction.Ignore);
+            return Physics.SphereCast(transform.position, WallProbeRadius, d, out _, settings.WallLook * 0.6f, _wallMask, QueryTriggerInteraction.Ignore);
         }
 
-        void Move(float speed, float dt)
-        {
-            GridManager grid = GridManager.Instance;
-            if (grid == null) return;
-
-            grid.EnsureFootprint();
-
-            Vector2 p = Position + new Vector2(Mathf.Cos(_angle), Mathf.Sin(_angle)) * speed * dt;
-
-            // 别走出网格
-            Vector2 o = grid.WorldOrigin;
-            Vector2 s = grid.WorldSpan;
-            p.x = Mathf.Clamp(p.x, o.x, o.x + s.x);
-            p.y = Mathf.Clamp(p.y, o.y, o.y + s.y);
-
-            Position = p;
-        }
+        /// <summary>避障探测球半径。默认用身体半径，调大 = 提前更远开始绕。</summary>
+        protected virtual float WallProbeRadius => settings.BodyRadius;
 
         #endregion
 
         #region 工具
 
-        static float NormAng(float a) => Mathf.Repeat(a + Mathf.PI, Mathf.PI * 2f) - Mathf.PI;
+        protected static float NormAng(float a) => Mathf.Repeat(a + Mathf.PI, Mathf.PI * 2f) - Mathf.PI;
 
         // 内部角度沿用蟑螂那套：0 = 世界 +x，往 +z 为正。
         // 而 Unity 的 forward 是 +z，所以绕 Y 的旋转要补 90°。
-        static Quaternion AngleToRotation(float angle) => Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f);
+        public static Quaternion AngleToRotation(float angle) => Quaternion.Euler(0f, 90f - angle * Mathf.Rad2Deg, 0f);
 
-        static float RotationToAngle(float yawDegrees) => NormAng((90f - yawDegrees) * Mathf.Deg2Rad);
+        public static float RotationToAngle(float yawDegrees) => NormAng((90f - yawDegrees) * Mathf.Deg2Rad);
 
-        static float AngleTo(Vector2 from, Vector2 to) => Mathf.Atan2(to.y - from.y, to.x - from.x);
+        public static Vector2 DirOfAngle(float angle) => new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
-        static float RotateTowards(float cur, float target, float maxDelta)
+        protected static float AngleTo(Vector2 from, Vector2 to) => Mathf.Atan2(to.y - from.y, to.x - from.x);
+
+        protected static float RotateTowards(float cur, float target, float maxDelta)
             => NormAng(cur + Mathf.Clamp(NormAng(target - cur), -maxDelta, maxDelta));
 
         /// <summary>
         /// 生成一个薄楔形当视野体：沿 +Z 铺开、水平躺着，竖直方向有 thickness 厚。
         /// convex MeshCollider 只取顶点做凸包，所以厚度给足就行，不用管三角形绕序。
         /// </summary>
-        static Mesh BuildConeMesh(float range, float halfAngle, float thickness, int segments = 16)
+        protected static Mesh BuildConeMesh(float range, float halfAngle, float thickness, int segments = 16)
         {
             float h = thickness * 0.5f;
             var verts = new List<Vector3>(4 + segments * 2) { new Vector3(0f, -h, 0f), new Vector3(0f, h, 0f) };
@@ -397,7 +489,7 @@ namespace TapTapGameJam.Cockroach
             return mesh;
         }
 
-        void OnDrawGizmosSelected()
+        protected virtual void OnDrawGizmosSelected()
         {
             // 编辑模式下 _angle 是 0，用物体自己的 yaw 反推，免得 gizmo 和实际朝向对不上
             float angle = Application.isPlaying ? _angle : RotationToAngle(transform.eulerAngles.y);
@@ -420,6 +512,4 @@ namespace TapTapGameJam.Cockroach
 
         #endregion
     }
-
-
 }

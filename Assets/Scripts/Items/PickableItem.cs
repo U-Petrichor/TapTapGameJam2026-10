@@ -51,6 +51,14 @@ namespace TapTapGameJam.Items
 
         public bool IsOnMap => Location == ItemLocation.OnMap;
 
+        /// <summary>
+        /// 出生时的初始化钩子，给需要比 <see cref="Start"/> 更早一步做准备（例如生成子物体）的子类用。
+        /// 覆写请记得调 base.Awake()。
+        /// </summary>
+        protected virtual void Awake()
+        {
+        }
+
         protected virtual void Start()
         {
             // 物品出生（或从池里被重新启用）时登记自己
