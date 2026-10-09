@@ -1,8 +1,6 @@
 using UnityEngine;
 using TapTapGameJam.Types;
-using TMPro.EditorUtilities;
 using TapTapGameJam.Events;
-using System.Threading.Tasks.Sources;
 
 namespace TapTapGameJam.Core
 {
