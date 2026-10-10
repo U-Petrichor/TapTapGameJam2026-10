@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
 
 namespace TapTapGameJam.MiniGame
 {
     // 场景交互入口：维护点位占用，不负责奖励或小游戏玩法。
-    public abstract class PanelTaskPoint : MiniGameInteractable
+    public abstract class PanelTaskPoint : Interactable
     {
         [SerializeField] private Collider _detectCollider;
         [SerializeField, Min(0)] private int _miniGameIndex;

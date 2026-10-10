@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TapTapGameJam.Events;
+using TapTapGameJam.Interactables;
 using UnityEngine;
 using TapTapGameJam.Core;
 using TapTapGameJam.Types;
@@ -10,7 +11,7 @@ namespace TapTapGameJam.Cockroach
     /// <summary>
     /// 蟑螂巢穴。既是归巢目标，也是信息素归巢通道的起点。
     /// </summary>
-    public partial class CockNest : MonoBehaviour
+    public partial class CockNest : Interactable
     {
         
         /// <summary>巢穴距离场里"不可达"的哨兵值</summary>

@@ -1,15 +1,19 @@
 using System.Collections.Generic;
-using TapTapGameJam.Interactable;
 using TapTapGameJam.Player;
 using UnityEngine;
 
 
-namespace TapTapGameJam.Interactable
+namespace TapTapGameJam.Interactables
 {
 
-    public abstract class MiniGameInteractable : MonoBehaviour, IInteractable
+    public abstract class Interactable : MonoBehaviour
     {
         public abstract string InteractionPrompt { get; }
+
+        /// <summary>
+        /// 是否处于就绪状态（已被选中，准备交互），由 PlayerInteractionManager 维护，只有当前选中的对象为 true
+        /// </summary>
+        public bool IsPendingInteract { get; set; } = false;
 
         private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
 
@@ -37,7 +41,7 @@ namespace TapTapGameJam.Interactable
         /// <summary>
         /// 检测进入的单位Tag是否为Player，是则注册自身
         /// </summary>
-        public void OnTriggerEnter(Collider other)
+        public virtual void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {
@@ -56,7 +60,7 @@ namespace TapTapGameJam.Interactable
         /// <summary>
         /// 检测离开的单位Tag是否为Player，是则取消注册自身
         /// </summary>
-        public void OnTriggerExit(Collider other)
+        public virtual void OnTriggerExit(Collider other)
         {
             if (other.CompareTag("Player"))
             {

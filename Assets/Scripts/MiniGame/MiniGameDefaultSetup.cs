@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using TapTapGameJam.Coffee;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.MiniGame;
 using TMPro;
 using UnityEngine;

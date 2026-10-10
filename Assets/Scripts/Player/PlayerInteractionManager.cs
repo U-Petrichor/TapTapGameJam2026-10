@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 
 namespace TapTapGameJam.Player
 {
@@ -11,11 +11,11 @@ namespace TapTapGameJam.Player
     {
         [field: SerializeField] private PlayerBasic _player;
         [field: SerializeField] private PlayerInputManager _inputManager;
-        private readonly List<IInteractable> _candidates = new();
-        public IReadOnlyList<IInteractable> Candidates => _candidates;
+        private readonly List<Interactable> _candidates = new();
+        public IReadOnlyList<Interactable> Candidates => _candidates;
         public bool HasInteractionTargets => _candidates.Count > 0;
         public string CurrentInteractionPrompt => _currentTarget?.InteractionPrompt ?? string.Empty;
-        private IInteractable _currentTarget;
+        private Interactable _currentTarget;
         private int _currentTargetIndex = 0;
 
         // 新 UI 只接收显示、隐藏和文字通知，不维护交互对象列表。
@@ -24,9 +24,9 @@ namespace TapTapGameJam.Player
         public event Action<string> EventInteractionPromptChanged;
 
         // 保留旧事件以兼容仍使用旧选择 UI 的场景。
-        public event Action<IInteractable> EventTargetChanged;
-        public event Action<IInteractable> EventObjectAdded;
-        public event Action<IInteractable> EventObjectDeleted;
+        public event Action<Interactable> EventTargetChanged;
+        public event Action<Interactable> EventObjectAdded;
+        public event Action<Interactable> EventObjectDeleted;
 
         private void Awake()
         {
@@ -46,7 +46,7 @@ namespace TapTapGameJam.Player
             _inputManager.EventOnInteractPress -= HandleInteract;
             _inputManager.EventOnInteractionSwitchPress -= HandleSwitchInteraction;
         }
-        public void Register(IInteractable interactable)
+        public void Register(Interactable interactable)
         {
             if (interactable == null || _candidates.Contains(interactable)) return;
 
@@ -61,7 +61,7 @@ namespace TapTapGameJam.Player
                 EventShowInteractionUI?.Invoke();
             }
         }
-        public void Unregister(IInteractable interactable)
+        public void Unregister(Interactable interactable)
         {
             // 事先记录要删除的这个所处的索引位置
             int deletedIndex = _candidates.IndexOf(interactable);
@@ -95,14 +95,18 @@ namespace TapTapGameJam.Player
                 SetCurrentTarget(_candidates[_currentTargetIndex]);
             }
         }
-        private void SetCurrentTarget(IInteractable target)
+        private void SetCurrentTarget(Interactable target)
         {
             if (_currentTarget == target)
             {
                 return;
             }
 
+            // 只有当前选中的对象处于待交互状态
+            if (_currentTarget != null) _currentTarget.IsPendingInteract = false;
             _currentTarget = target;
+            if (_currentTarget != null) _currentTarget.IsPendingInteract = true;
+
             EventInteractionPromptChanged?.Invoke(CurrentInteractionPrompt);
             EventTargetChanged?.Invoke(_currentTarget);
         }
@@ -131,7 +135,7 @@ namespace TapTapGameJam.Player
         }
 
         /// <summary>让特殊交互流程（例如手持巢穴）立即成为当前 E 目标。</summary>
-        public bool SelectInteractionTarget(IInteractable interactable)
+        public bool SelectInteractionTarget(Interactable interactable)
         {
             int index = _candidates.IndexOf(interactable);
             if (index < 0)
@@ -145,4 +149,3 @@ namespace TapTapGameJam.Player
         }
     }
 }
-

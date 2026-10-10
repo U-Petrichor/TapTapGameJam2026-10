@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
 
 namespace TapTapGameJam.Cockroach
 {
     /// <summary>搬运同一个巢穴实例，保持蟑螂列表、数量、指令和孵化进度。</summary>
-    public partial class CockNest : IInteractable, IPlayerCarryObject
+    public partial class CockNest : IPlayerCarryObject
     {
         [Header("巢穴交互")]
         [SerializeField, Min(0.1f)] private float _interactionRadius = 2f;
@@ -32,7 +32,7 @@ namespace TapTapGameJam.Cockroach
         private readonly Dictionary<PlayerInteractionManager, HashSet<Collider>> _interactionPlayers = new();
 
         public bool IsCarried => _carrier != null;
-        public string InteractionPrompt => IsCarried ? "按 E 放下巢穴" : "按 E 搬运巢穴";
+        public override string InteractionPrompt => IsCarried ? "按 E 放下巢穴" : "按 E 搬运巢穴";
 
         private void InitializeInteraction()
         {
@@ -42,7 +42,7 @@ namespace TapTapGameJam.Cockroach
             detector.radius = _interactionRadius;
         }
 
-        public bool CanInteract(PlayerBasic player)
+        public override bool CanInteract(PlayerBasic player)
         {
             if (player == null || !isActiveAndEnabled) return false;
 
@@ -64,7 +64,7 @@ namespace TapTapGameJam.Cockroach
             return false;
         }
 
-        public void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player)
         {
             if (player == null) return;
 
@@ -200,7 +200,9 @@ namespace TapTapGameJam.Cockroach
             RefreshDistanceField();
         }
 
-        private void OnTriggerEnter(Collider other) => TrackInteractionPlayer(other);
+        // 巢穴的交互范围是运行时添加的触发器，并且要同时识别人形与 AI 蟑螂，
+        // 所以这里覆盖基类的注册逻辑，用自己的字典维护交互玩家。
+        public override void OnTriggerEnter(Collider other) => TrackInteractionPlayer(other);
         private void OnTriggerStay(Collider other) => TrackInteractionPlayer(other);
 
         private void TrackInteractionPlayer(Collider other)
@@ -220,7 +222,7 @@ namespace TapTapGameJam.Cockroach
             colliders.Add(other);
         }
 
-        private void OnTriggerExit(Collider other)
+        public override void OnTriggerExit(Collider other)
         {
             var interaction = other.GetComponentInParent<PlayerInteractionManager>();
             if (interaction == null || !_interactionPlayers.TryGetValue(interaction, out var colliders)) return;

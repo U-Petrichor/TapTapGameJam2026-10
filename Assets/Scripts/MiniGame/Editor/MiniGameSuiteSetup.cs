@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.UI;
 using UnityEditor;

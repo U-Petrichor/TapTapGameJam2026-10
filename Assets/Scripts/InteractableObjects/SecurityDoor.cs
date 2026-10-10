@@ -1,14 +1,13 @@
-using System.Collections.Generic;
+using System;
 using TapTapGameJam.Events;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using TapTapGameJam.MiniGame;
 using UnityEngine;
 
-public class SecurityDoor : MonoBehaviour, IInteractable, ITaskSpawnCondition
+public class SecurityDoor : Interactable, ITaskSpawnCondition
 {
-    public string InteractionPrompt => "开门";
-    private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
+    public override string InteractionPrompt => "开门";
     [SerializeField] private Collider _blockCollider;
     [SerializeField] private Collider _detectCollider;
     [SerializeField] private Animator _animator;
@@ -55,7 +54,7 @@ public class SecurityDoor : MonoBehaviour, IInteractable, ITaskSpawnCondition
             _canIOpen = false;
         }
     }
-    public bool CanInteract(PlayerBasic player)
+    public override bool CanInteract(PlayerBasic player)
     {
         if (_canIOpen)
         {
@@ -70,14 +69,10 @@ public class SecurityDoor : MonoBehaviour, IInteractable, ITaskSpawnCondition
         
     }
 
-    public void Interact(PlayerBasic player)
+    public override void Interact(PlayerBasic player)
     {
         // 先取消订阅
-        foreach(var x in _registered)
-        {
-            x.Key.Unregister(this);
-        }
-        _registered.Clear();
+        ClearAllRegister();
         _animator.Play(OpenSecurityDoorHash);
     }
     private void UnlockTheDoor()
@@ -94,40 +89,5 @@ public class SecurityDoor : MonoBehaviour, IInteractable, ITaskSpawnCondition
     {
         // 动画播放结束，关闭碰撞体允许玩家通行
         UnlockTheDoor();
-    }
-    public void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            // 玩家进入范围
-            PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
-            if (!_registered.TryGetValue(interactionManager, out var colliders))
-            {
-                // 尝试获取值失败→这是第一个collider
-                colliders = new HashSet<Collider>();
-                _registered.Add(interactionManager, colliders);
-                interactionManager.Register(this);
-            }
-            colliders.Add(other);
-        }
-    }
-
-    public void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            // 玩家离开范围
-            PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
-            if (_registered.TryGetValue(interactionManager, out var colliders))
-            {
-                colliders.Remove(other);
-                if (colliders.Count == 0)
-                {
-                    // 说明是最后一个，那么就取消注册并且删除这个键
-                    interactionManager.Unregister(this);
-                    _registered.Remove(interactionManager);
-                }
-            }
-        }
     }
 }

@@ -19,6 +19,9 @@ namespace TapTapGameJam.UI
         [Tooltip("圆圈填充图。留空则只刷新文本")]
         [SerializeField] private Image _fillImage;
 
+        [Tooltip("Bubble气泡图，控制其高亮与消失")] // TODO
+        [SerializeField] private Image _bubbleImage;
+        
         [Tooltip("数字文本")]
         [SerializeField] private TMP_Text _valueText;
 

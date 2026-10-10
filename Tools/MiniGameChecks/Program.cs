@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using TapTapGameJam.Coffee;
 using TapTapGameJam.Events;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.Player;
 using TapTapGameJam.Types;

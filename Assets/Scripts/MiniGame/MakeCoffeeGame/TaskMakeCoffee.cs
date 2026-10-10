@@ -1,6 +1,6 @@
 using TapTapGameJam.MiniGame;
 
-namespace TapTapGameJam.Interactable
+namespace TapTapGameJam.Interactables
 {
     public class TaskMakeCoffee : PanelTaskPoint
     {

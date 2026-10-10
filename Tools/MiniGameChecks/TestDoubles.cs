@@ -42,12 +42,13 @@ namespace TapTapGameJam.Player
         public bool TrySpendCoins(int amount) { if (amount <= 0 || Coins < amount) return false; Coins -= amount; return true; }
     }
 }
-namespace TapTapGameJam.Interactable
+namespace TapTapGameJam.Interactables
 {
-    public abstract class MiniGameInteractable : UnityEngine.MonoBehaviour
+    public abstract class Interactable : UnityEngine.MonoBehaviour
     {
         public int ClearCount;
         public abstract string InteractionPrompt { get; }
+        public bool IsPendingInteract { get; set; }
         public virtual bool CanInteract(TapTapGameJam.Player.PlayerBasic player) => true;
         public abstract void Interact(TapTapGameJam.Player.PlayerBasic player);
         protected void ClearAllRegister() => ClearCount++;

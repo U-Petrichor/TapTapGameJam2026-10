@@ -1,5 +1,5 @@
 using TapTapGameJam.Core;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,7 +17,7 @@ namespace TapTapGameJam.Items
     /// 进背包 / 装备时本体不销毁，只是被 PlayerBag 挪到暂存区隐藏（见 PlayerBag.MoveToBagRoot），
     /// 所以食物剩余营养之类的运行时状态都会被完整保留。
     /// </summary>
-    public class PickableItem : MonoBehaviour, IInteractable
+    public class PickableItem : Interactable
     {
         public enum ItemLocation
         {
@@ -78,12 +78,12 @@ namespace TapTapGameJam.Items
 
         #region 交互
 
-        public virtual bool CanInteract(PlayerBasic player)
+        public override bool CanInteract(PlayerBasic player)
         {
             return IsOnMap;
         }
 
-        public virtual void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player)
         {
             if (!CanInteract(player))
             {
@@ -98,12 +98,13 @@ namespace TapTapGameJam.Items
                 Debug.LogError($"[{name}]：玩家身上没有 PlayerBag，无法拾取。请在 Player 预制体上挂 PlayerBag 组件");
                 return;
             }
+            Debug.Log("Try pickup");
 
             // 捡起来交给背包：是否自动穿戴、是否打开摆放界面都由 PlayerBag 决定
             bag.PickUp(this);
         }
 
-        public virtual string InteractionPrompt => "按 E 拾取";
+        public override string InteractionPrompt => "按 E 拾取";
 
         /// <summary>
         /// 在背包中才能使用（右键），具体作用由子类实现。

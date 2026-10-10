@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using TapTapGameJam.Coffee;
 using TapTapGameJam.Events;
-using TapTapGameJam.Interactable;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.Player;
 using TapTapGameJam.UI;
