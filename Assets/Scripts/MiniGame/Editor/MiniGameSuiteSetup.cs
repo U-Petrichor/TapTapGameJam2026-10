@@ -35,17 +35,30 @@ public static class MiniGameSuiteSetup
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (go.scene == panel.gameObject.scene && !before.Contains(go.GetInstanceID()))
                 Undo.RegisterCreatedObjectUndo(go, "创建小游戏对象");
-        // 写入编辑器配置时补齐点位引用，Inspector 中可直接查看和调整。
-        foreach (var quest in Object.FindObjectsByType<MiniGameCandidate>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-        {
-            if (quest.gameObject.scene != panel.gameObject.scene) continue;
-            var data = new SerializedObject(quest);
-            if (quest is CleanQuest) data.FindProperty("_cleanPoint").objectReferenceValue = quest.GetComponent<CleanMopWater>();
-            if (quest is CoffeeQuest) data.FindProperty("_coffeePoint").objectReferenceValue = quest.GetComponent<TaskMakeCoffee>();
-            if (quest is StockQuest) data.FindProperty("_stockPoint").objectReferenceValue = quest.GetComponent<StockTradePoint>();
-            if (quest is PrinterRepairQuest) data.FindProperty("_printerPoint").objectReferenceValue = quest.GetComponent<PrinterRepairPoint>();
-            data.ApplyModifiedProperties();
-        }
+        // 写入编辑器配置时把同一种玩法的所有点位集中到一个 Quest。
+        var cleanPoints = new List<CleanMopWater>();
+        foreach (var point in Object.FindObjectsByType<CleanMopWater>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (point.gameObject.scene == panel.gameObject.scene) cleanPoints.Add(point);
+        foreach (var quest in Object.FindObjectsByType<CleanQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(cleanPoints);
+
+        var coffeePoints = new List<TaskMakeCoffee>();
+        foreach (var point in Object.FindObjectsByType<TaskMakeCoffee>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (point.gameObject.scene == panel.gameObject.scene) coffeePoints.Add(point);
+        foreach (var quest in Object.FindObjectsByType<CoffeeQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(coffeePoints);
+
+        var stockPoints = new List<StockTradePoint>();
+        foreach (var point in Object.FindObjectsByType<StockTradePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (point.gameObject.scene == panel.gameObject.scene) stockPoints.Add(point);
+        foreach (var quest in Object.FindObjectsByType<StockQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(stockPoints);
+
+        var printerPoints = new List<PrinterRepairPoint>();
+        foreach (var point in Object.FindObjectsByType<PrinterRepairPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (point.gameObject.scene == panel.gameObject.scene) printerPoints.Add(point);
+        foreach (var quest in Object.FindObjectsByType<PrinterRepairQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(printerPoints);
         foreach (var root in panel.gameObject.scene.GetRootGameObjects())
             foreach (var component in root.GetComponentsInChildren<Component>(true))
                 if (component != null) EditorUtility.SetDirty(component);
@@ -74,7 +87,7 @@ public static class MiniGameSuiteSetup
             AssetDatabase.SaveAssets();
         }
         foreach (var text in panel.GetComponentsInChildren<TMP_Text>(true))
-            if (text.GetComponentInParent<global::CleanGame>(true) != null || text.GetComponentInParent<StockGame>(true) != null || text.GetComponentInParent<CoffeeGame>(true) != null || text.GetComponentInParent<PrinterRepairGame>(true) != null)
+            if (text.GetComponentInParent<global::CleanGame>(true) != null || text.GetComponentInParent<StockPointGame>(true) != null || text.GetComponentInParent<CoffeeGame>(true) != null || text.GetComponentInParent<PrinterRepairGame>(true) != null)
             { Undo.RecordObject(text, "配置小游戏中文字库"); text.font = font; }
     }
 }

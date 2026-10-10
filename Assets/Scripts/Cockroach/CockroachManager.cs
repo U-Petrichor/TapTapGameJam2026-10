@@ -70,6 +70,7 @@ namespace TapTapGameJam.Cockroach
             // 全体决策
             for (int i = 0; i < CockNestList.Count; i++)
             {
+                if (!CockNestList[i].isActive) continue;
                 List<Cockroach> roaches = CockNestList[i].CockroachList;
                 for (int j = 0; j < roaches.Count; j++)
                 {

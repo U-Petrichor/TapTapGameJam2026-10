@@ -13,8 +13,15 @@ using UnityEngine;
 internal static class Program
 {
     private static int _checks;
-    private static void Main()
+    private static void Main(string[] args)
     {
+        if (Array.IndexOf(args, "--stock-only") >= 0)
+        {
+            StockChecks.Run(Run);
+            StockAxisChecks.Run(Run);
+            Console.WriteLine($"Passed {_checks} stock and axis scenarios.");
+            return;
+        }
         Run("Different instances store independent rewards; settlement and release happen once", () =>
         {
             var player = new PlayerResources();
@@ -78,6 +85,45 @@ internal static class Program
                 }
             });
         }
+        Run("点位池跳过受限点位并保留只读原因", () =>
+        {
+            EventPipeline.ClearAll();
+            var lockedPoint = new SortFile();
+            var openPoint = new SortFile();
+            var lockedDetector = new Collider();
+            var openDetector = new Collider();
+            Set(lockedPoint, "_detectCollider", lockedDetector);
+            Set(openPoint, "_detectCollider", openDetector);
+            Call(lockedPoint, "Awake");
+            Call(openPoint, "Awake");
+            var condition = new ConditionProbe(false, "办公室门尚未开放");
+            Set(lockedPoint, "_spawnConditionObjects", new List<MonoBehaviour> { condition });
+            Check(!lockedPoint.CanStartTask && lockedPoint.UnavailableReason == "办公室门尚未开放");
+
+            var quest = new SortFileQuest();
+            Set(quest, "_sortFilePoints", new List<SortFile> { lockedPoint, openPoint });
+            Check(quest.CanSpawn);
+            var task = quest.CreateTask();
+            Check(task != null && !lockedPoint.CanInteract(new PlayerBasic()) && openPoint.CanInteract(new PlayerBasic()));
+            task.Cancel();
+            Check(openPoint.CanStartTask && lockedPoint.UnavailableReason == "办公室门尚未开放");
+        });
+        Run("同一种任务可以按并发上限占用多个不同点位", () =>
+        {
+            EventPipeline.ClearAll();
+            var first = new SortFile(); var second = new SortFile();
+            var firstDetector = new Collider(); var secondDetector = new Collider();
+            Set(first, "_detectCollider", firstDetector); Set(second, "_detectCollider", secondDetector);
+            Call(first, "Awake"); Call(second, "Awake");
+            var quest = new SortFileQuest();
+            Set(quest, "_sortFilePoints", new List<SortFile> { first, second });
+            quest.MaxActiveTasks = 2;
+            var a = quest.CreateTask(); var b = quest.CreateTask();
+            Check(a != null && b != null && quest.ActiveTaskCount == 2 && !first.CanStartTask && !second.CanStartTask);
+            Check(quest.CreateTask() == null);
+            a.Cancel(); Check(first.CanStartTask && quest.ActiveTaskCount == 1);
+            b.Cancel(); Check(quest.ActiveTaskCount == 0 && first.CanStartTask && second.CanStartTask);
+        });
         Run("Stock opens immediately on day, is tracked for guidance and excluded from random refresh", () =>
         {
             var f = new StockFixture();
@@ -181,7 +227,7 @@ internal static class Program
             Check(new WipeMask(1, 1, new byte[] { 0 }).Progress == 1);
         });
         StockChecks.Run(Run);
-        StockChartChecks.Run(Run);
+        StockAxisChecks.Run(Run);
         Run("Coffee recipe enforces order and held progress; restart creates a fresh recipe", () =>
         {
             var recipe = new CoffeeRecipe(1,1,1,1,1);
@@ -233,10 +279,23 @@ internal static class Program
         public void Win(PlayerResources resources) => Complete(resources);
         protected override void Release() { Releases++; Cancel(); }
     }
+
+    private sealed class ConditionProbe : MonoBehaviour, ITaskSpawnCondition
+    {
+        private readonly bool _available;
+        public bool IsAvailable => _available;
+        public string UnavailableReason { get; }
+
+        public ConditionProbe(bool available, string reason)
+        {
+            _available = available;
+            UnavailableReason = reason;
+        }
+    }
     private sealed class Fixture
     {
         public readonly PanelTaskPoint Point;
-        public readonly SinglePointQuest Quest;
+        public readonly PanelMiniGameQuest Quest;
         public readonly MiniGameManager Manager = new();
         public readonly Collider Detector = new();
         public readonly PlayerBasic Player = new();
@@ -283,8 +342,8 @@ internal static class Program
             Set(Point, "_detectCollider", Detector); Call(Point, "Awake");
             Set(Quest, "_stockPoint", Point);
             Manager.RegisterCandidate(Quest);
-            Manager.TaskAdded += _ => Added++;
-            Manager.TaskRemoved += _ => Removed++;
+            Manager.EventTaskAdded += _ => Added++;
+            Manager.EventTaskRemoved += _ => Removed++;
             Call(Manager, "OnEnable");
             EventPipeline.Subscribe<EventOpenMiniGamePanel>(evt => { Callback = evt.OnFinished; Started = evt.OnStarted; if (AcceptOpen) Started?.Invoke(); });
             EventPipeline.Subscribe<EventRequestCloseMiniGamePanel>(evt => { Closed++; Callback?.Invoke(false); });

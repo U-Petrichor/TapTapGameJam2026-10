@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TapTapGameJam.MiniGame
@@ -5,6 +6,7 @@ namespace TapTapGameJam.MiniGame
     // 固定白天入口。管理器在白天创建一次活动实例，用于保持交互和位置指引。
     public class StockQuest : MiniGameCandidate
     {
+        [SerializeField] private List<StockTradePoint> _stockPoints = new();
         [SerializeField] private StockTradePoint _stockPoint;
         private StockInstance _activity;
         public const int DailyPlayLimit = 999;
@@ -12,16 +14,27 @@ namespace TapTapGameJam.MiniGame
         public int RemainingPlays => Mathf.Max(0, DailyPlayLimit - _playsUsed);
         public StockInstance Activity => _activity;
         public override bool IsDailyActivity => true;
-        public override bool CanSpawn => isActiveAndEnabled && RemainingPlays > 0 && _activity == null && _stockPoint != null && _stockPoint.CanStartTask;
+        public override bool CanSpawn => isActiveAndEnabled && RemainingPlays > 0 && _activity == null && FindAvailablePoint() != null;
         public override void BeginNewDay() => _playsUsed = 0;
-        private void Awake() { if (_stockPoint == null) _stockPoint = GetComponent<StockTradePoint>(); }
+
+        public void ConfigurePoints(IEnumerable<StockTradePoint> points)
+        {
+            _stockPoints.Clear();
+            if (points != null)
+                foreach (var point in points)
+                    if (point != null && !_stockPoints.Contains(point)) _stockPoints.Add(point);
+            _stockPoint = _stockPoints.Count > 0 ? _stockPoints[0] : null;
+        }
         public override MiniGameInstanceBasic CreateTask()
         {
-            if (!CanSpawn) return null;
-            var activity = new StockInstance(_stockPoint, () => RemainingPlays);
+            StockTradePoint point = FindAvailablePoint();
+            if (!isActiveAndEnabled || RemainingPlays <= 0 || _activity != null || point == null)
+                return null;
+
+            var activity = new StockInstance(point, () => RemainingPlays);
             _activity = activity;
-            _stockPoint.EventAttemptStarted += HandleAttemptStarted;
-            _stockPoint.EventAttemptFinished += HandleAttemptFinished;
+            point.EventAttemptStarted += HandleAttemptStarted;
+            point.EventAttemptFinished += HandleAttemptFinished;
             activity.EventFinished += HandleEnded;
             if (!activity.Begin()) return null;
             return activity;
@@ -29,8 +42,11 @@ namespace TapTapGameJam.MiniGame
         private void HandleEnded(MiniGameInstanceBasic activity)
         {
             activity.EventFinished -= HandleEnded;
-            _stockPoint.EventAttemptStarted -= HandleAttemptStarted;
-            _stockPoint.EventAttemptFinished -= HandleAttemptFinished;
+            if (activity is StockInstance stock && stock.Point != null)
+            {
+                stock.Point.EventAttemptStarted -= HandleAttemptStarted;
+                stock.Point.EventAttemptFinished -= HandleAttemptFinished;
+            }
             if (_activity == activity) _activity = null;
         }
         private void HandleAttemptStarted()
@@ -43,5 +59,16 @@ namespace TapTapGameJam.MiniGame
             if (RemainingPlays == 0) _activity?.Cancel();
         }
         private void OnDisable() => _activity?.Cancel();
+
+        private StockTradePoint FindAvailablePoint()
+        {
+            var seen = new HashSet<StockTradePoint>();
+            foreach (var point in _stockPoints)
+                if (point != null && seen.Add(point) && point.CanStartTask)
+                    return point;
+            if (_stockPoint != null && seen.Add(_stockPoint) && _stockPoint.CanStartTask)
+                return _stockPoint;
+            return null;
+        }
     }
 }

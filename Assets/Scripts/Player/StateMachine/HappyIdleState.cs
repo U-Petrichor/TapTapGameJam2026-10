@@ -15,6 +15,12 @@ namespace TapTapGameJam.Player
 
         public override void Update()
         {
+            if (Owner.IsCarry)
+            {
+                Owner.SyncCarryState();
+                return;
+            }
+
             if(AnimationManager.IsHappyIdleFinished)
             {
                 StateMachine.ChangeState(Owner.Idle);

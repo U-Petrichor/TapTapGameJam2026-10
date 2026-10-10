@@ -6,29 +6,29 @@ internal static class StockChecks
 {
     public static void Run(Action<string, Action> run)
     {
-        run("Stock opens with twelve completed quotes and two immutable affordable forecasts", () =>
+        run("Stock opens with one quotation and two immutable affordable internal forecasts", () =>
         {
             int wallet = 100;
             var generator = new SequencePrices(63.75f, 200, 200, 200);
             var round = Round(() => wallet, n => wallet -= n, n => wallet += n, generator);
-            Check(round.Prices.Count == 12 && round.CurvePrices.Count == 14);
+            Check(round.Prices.Count == 1 && round.CurvePrices.Count == 3);
             Check(round.ConfirmedPrice == 63.75f && round.Price == 100);
-            Check(round.CurvePrices[12] == 100 && round.CurvePrices[13] == 100);
+            Check(round.CurvePrices[1] == 100 && round.CurvePrices[2] == 100);
             int draws = generator.Draws;
             Check(round.Buy() && !round.Buy());
             Check(round.Price == 100 && generator.Draws == draws);
             round.Tick(0.5);
-            Check(round.ConfirmedPrice == 100 && round.Price == 100 && round.CurvePrices[14] == 200);
+            Check(round.ConfirmedPrice == 100 && round.Price == 100 && round.CurvePrices[3] == 200);
             round.Tick(0.5);
             Check(round.Price == 200 && !generator.LastCeiling.HasValue && wallet == 100);
         });
-        run("Buying and selling during twelve-to-thirteen drawing use quote thirteen with no instant spread", () =>
+        run("Buying and selling before the second quotation use the same target price with no instant spread", () =>
         {
             int wallet = 100;
             var round = Round(() => wallet, n => wallet -= n, n => wallet += n,
                 new SequencePrices(100, 80, 40, 90));
             Check(round.ConfirmedPrice == 100 && round.Price == 80);
-            round.Tick(0.25); Check(round.Prices.Count == 12 && round.Price == 80);
+            round.Tick(0.25); Check(round.Prices.Count == 1 && round.Price == 80);
             for (int i = 0; i < 10; i++)
             {
                 Check(round.Buy() && round.Balance == 20 && !round.Buy());
@@ -60,13 +60,13 @@ internal static class StockChecks
             var generator = new SequencePrices(50, prices);
             var round = Round(() => wallet, n => wallet -= n, n => { wallet += n; credits++; }, generator);
             Check(round.Buy());
-            round.Tick(0.499); Check(round.Prices.Count == 12 && round.Price == 50);
-            round.Tick(0.001); Check(round.Prices.Count == 13 && round.Price == 75);
+            round.Tick(0.499); Check(round.Prices.Count == 1 && round.Price == 50);
+            round.Tick(0.001); Check(round.Prices.Count == 2 && round.Price == 75);
             round.Tick(17.999);
-            Check(round.Prices.Count == 48 && !round.IsFinished && round.Price == 80 && wallet == 100);
+            Check(round.Prices.Count == 37 && !round.IsFinished && round.Price == 80 && wallet == 100);
             round.Tick(0.001);
-            Check(round.Prices.Count == 49 && round.CurvePrices.Count == 50 && round.IsFinished && !round.IsComplete);
-            Check(round.Price == 80 && round.CurvePrices[49] == 900 && wallet == 130 && credits == 1);
+            Check(round.Prices.Count == 38 && round.CurvePrices.Count == 39 && round.IsFinished && !round.IsComplete);
+            Check(round.Price == 80 && round.CurvePrices[38] == 900 && wallet == 130 && credits == 1);
             int draws = generator.Draws;
             round.Tick(1.499); Check(!round.IsComplete);
             round.Tick(0.001); Check(round.IsComplete && round.Elapsed == 20);
@@ -88,9 +88,9 @@ internal static class StockChecks
             int wallet = 100;
             var round = Round(() => wallet, n => wallet -= n, n => wallet += n, new SequencePrices(60, 80));
             round.Tick(double.NaN); round.Tick(double.PositiveInfinity); round.Tick(-1);
-            Check(round.Elapsed == 0 && round.Prices.Count == 12);
+            Check(round.Elapsed == 0 && round.Prices.Count == 1);
             round.Tick(100);
-            Check(round.Prices.Count == 49 && round.CurvePrices.Count == 50 && round.IsComplete && wallet == 100);
+            Check(round.Prices.Count == 38 && round.CurvePrices.Count == 39 && round.IsComplete && wallet == 100);
         });
         run("Settlement keeps external earnings and respects zero balance and integer wallet limits", () =>
         {
@@ -171,7 +171,7 @@ internal static class StockChecks
                     Check(Math.Abs(round.Profit - equity) < 0.00001 && round.Shares >= 0 && round.Shares <= 1);
                     round.Tick(0.5);
                 }
-                Check(round.Prices.Count == 49 && round.IsFinished && round.Shares == 0 && mutations <= 1);
+                Check(round.Prices.Count == 38 && round.IsFinished && round.Shares == 0 && mutations <= 1);
                 Check(wallet == start + round.SettledProfit && wallet >= 0);
                 int ending = wallet;
                 round.Tick(1.5); round.Close(); round.Close();
@@ -193,7 +193,7 @@ internal static class StockChecks
         public float NextPrice(float current, float? ceiling)
         {
             LastCeiling = ceiling;
-            int index = Draws++ - (StockRound.VisiblePoints - 1);
+            int index = Draws++;
             return index < 0 || _next.Length == 0 ? InitialPrice : _next[Math.Min(index, _next.Length - 1)];
         }
     }

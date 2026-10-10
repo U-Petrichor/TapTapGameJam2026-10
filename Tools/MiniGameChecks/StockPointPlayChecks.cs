@@ -32,6 +32,7 @@ public static class StockPointPlayChecks
     {
         if (!Application.isPlaying) throw new InvalidOperationException("Enter Play mode first.");
         if (_routine != null) throw new InvalidOperationException("Checks are already running.");
+        EditorApplication.isPaused = false;
         _panel = Object.FindFirstObjectByType<MiniGamePanelUI>();
         if (_panel == null || Current() != null)
             throw new InvalidOperationException("The minigame panel must exist and be closed.");
@@ -75,18 +76,11 @@ public static class StockPointPlayChecks
     private static IEnumerator Checks()
     {
         var point = _panel.GetComponentInChildren<StockPointGame>(true);
-        var continuous = _panel.GetComponentInChildren<StockGame>(true);
-        Check(point != null && continuous != null, "both stock versions exist");
+        Check(point != null, "point stock game exists");
         // Exercise the same default initializer used by MiniGamePanelUI.Awake.
-        point.enabled = false;
         MiniGameDefaultSetup.Ensure(_panel);
-        Check(Registered() == continuous && continuous.enabled, "continuous initialization registers its enabled game");
-        point.enabled = true;
-        MiniGameDefaultSetup.Ensure(_panel);
-        Check(Registered() == point && point.enabled && !continuous.enabled,
-            "point initialization keeps point game registered rather than overriding it");
+        Check(Registered() == point && point.enabled, "default initialization registers the enabled point game");
         var chart = _panel.GetComponentInChildren<StockPointChart>(true);
-        var oldChart = _panel.GetComponentInChildren<StockChart>(true);
 
         _playerObject = new GameObject("StockPointCheckPlayer");
         _playerObject.SetActive(false);
@@ -100,8 +94,7 @@ public static class StockPointPlayChecks
         Check(started && Current() == point && point.isActiveAndEnabled, "real panel opens the enabled point game");
         var round = (StockRound)typeof(StockPointGame).GetField("_round", Private).GetValue(point);
         Check(round.Prices.Count == 1 && chart.PriceCount == 1, "opening shows one confirmed quote");
-        Check(!oldChart.gameObject.activeInHierarchy && chart.gameObject.activeInHierarchy,
-            "only the selected chart hierarchy is visible");
+        Check(chart.gameObject.activeInHierarchy, "point chart hierarchy is visible");
         Canvas.ForceUpdateCanvases();
         var initialPlot = chart.GetComponentInChildren<StockPointPlotGraphic>();
         Check(initialPlot != null && initialPlot.canvasRenderer.GetMesh().vertexCount == 18,

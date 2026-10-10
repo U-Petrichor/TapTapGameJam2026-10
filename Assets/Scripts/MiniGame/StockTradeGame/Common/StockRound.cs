@@ -7,18 +7,18 @@ namespace TapTapGameJam.UI
     public sealed class StockRound
     {
         public const int VisiblePoints = 12;
+        public const int InitialPoints = 1;
         public const double Duration = 20;
         public const double ResultSeconds = 1.5;
         public const double TradingSeconds = Duration - ResultSeconds;
         public const double RefreshSeconds = 0.5;
         public const int RefreshedPoints = (int)(TradingSeconds / RefreshSeconds);
-        public const int MaxPoints = VisiblePoints + RefreshedPoints;
+        public const int MaxPoints = InitialPoints + RefreshedPoints;
         private readonly Func<int> _getBalance;
         private readonly Func<int, bool> _spend;
         private readonly Action<int> _credit;
         private readonly IStockPriceGenerator _generator;
         private readonly float _priceCeiling;
-        private readonly int _initialPointCount;
         private readonly List<float> _prices = new();
         private readonly List<float> _curvePrices = new();
         private bool _hasBought, _closed;
@@ -43,7 +43,7 @@ namespace TapTapGameJam.UI
         public bool CanSell => !IsFinished && Shares == 1;
 
         public StockRound(Func<int> getBalance, Func<int, bool> spend, Action<int> credit,
-            IStockPriceGenerator generator, int initialPointCount = VisiblePoints)
+            IStockPriceGenerator generator)
         {
             _getBalance = getBalance ?? throw new ArgumentNullException(nameof(getBalance));
             _spend = spend ?? throw new ArgumentNullException(nameof(spend));
@@ -51,12 +51,10 @@ namespace TapTapGameJam.UI
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             InitialBalance = Math.Max(0, getBalance());
             _priceCeiling = InitialBalance;
-            _initialPointCount = Math.Max(1, initialPointCount);
             if ((double)_priceCeiling > InitialBalance)
                 _priceCeiling = BitConverter.Int32BitsToSingle(BitConverter.SingleToInt32Bits(_priceCeiling) - 1);
             Balance = InitialBalance;
             _curvePrices.Add(ValidatePrice(generator.InitialPrice));
-            while (_curvePrices.Count < _initialPointCount) GeneratePrice();
             _prices.AddRange(_curvePrices);
             RefillLookahead();
         }
@@ -70,7 +68,7 @@ namespace TapTapGameJam.UI
             _curvePrices[_curvePrices.Count - 1], _hasBought ? (float?)null : _priceCeiling)));
         private void RefillLookahead()
         {
-            // 目标点与后续点一经生成便不再改变，保证相邻曲线段共用同一斜率。
+            // 已生成报价保持不变；交易和下一次确认使用同一个目标价。
             while (_curvePrices.Count < _prices.Count + 2) GeneratePrice();
         }
         public bool Buy()

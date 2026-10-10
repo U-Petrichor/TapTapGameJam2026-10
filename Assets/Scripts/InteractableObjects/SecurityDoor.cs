@@ -1,11 +1,11 @@
-using System;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactable;
 using TapTapGameJam.Player;
+using TapTapGameJam.MiniGame;
 using UnityEngine;
 
-public class SecurityDoor : MonoBehaviour,IInteractable
+public class SecurityDoor : MonoBehaviour, IInteractable, ITaskSpawnCondition
 {
     public string InteractionPrompt => "开门";
     private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
@@ -17,7 +17,8 @@ public class SecurityDoor : MonoBehaviour,IInteractable
     [SerializeField] private int _whichDayOpen=1;
     private bool _canIOpen = false;
     private static readonly int OpenSecurityDoorHash = Animator.StringToHash("Base Layer.OpenSecurityDoor");
-    public event Action EventIOpen;
+    public bool IsAvailable => _canIOpen;
+    public string UnavailableReason => _canIOpen ? string.Empty : "门尚未开放";
 
     private void Awake()
     {
@@ -44,12 +45,10 @@ public class SecurityDoor : MonoBehaviour,IInteractable
      }
     private void TimeToUnlock(EventNewDay evt)
     {
-        if (evt.DayCount >= _whichDayOpen)
+        if (_whichDayOpen >= 0 && evt.DayCount >= _whichDayOpen)
         {
             // 是时候开门了
             _canIOpen = true;
-            // 还要发送事件给被锁在里面的任务点，这样接收到消息之后就会开门了
-            EventIOpen?.Invoke();
         }
         else
         {

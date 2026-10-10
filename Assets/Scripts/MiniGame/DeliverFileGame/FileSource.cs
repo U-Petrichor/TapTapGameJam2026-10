@@ -3,7 +3,6 @@ using TapTapGameJam.Interactable;
 using TapTapGameJam.Player;
 using System;
 using UnityEngine;
-using TapTapGameJam.Events;
 
 namespace TapTapGameJam.MiniGame
 {
@@ -15,11 +14,18 @@ namespace TapTapGameJam.MiniGame
         private GameObject _spawnedFile;
         public bool IsFree = true;
 
-        [Header("对于一开始在空旷区域的生成点，要置为true")]
-        [SerializeField] public bool IsOpen = false;
-        [Header("如果被某个门锁住了，要拖入哪一个门锁住了这里")]
-        [SerializeField] private SecurityDoor _securityDoor;
-        public bool CanUse => IsFree && IsOpen;
+        [Tooltip("额外的任务生成条件组件。每个组件都需要实现 ITaskSpawnCondition。")]
+        [SerializeField] private List<MonoBehaviour> _spawnConditionObjects = new();
+        public bool IsAvailable => TaskSpawnConditionUtility.TryEvaluate(_spawnConditionObjects, out _);
+        public string UnavailableReason
+        {
+            get
+            {
+                TaskSpawnConditionUtility.TryEvaluate(_spawnConditionObjects, out var reason);
+                return reason;
+            }
+        }
+        public bool CanUse => IsFree && IsAvailable;
         public event Action EventFileSourceFinish;
 
         private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
@@ -27,24 +33,6 @@ namespace TapTapGameJam.MiniGame
         private void Awake()
         {
             _detectCollider.enabled = false;
-        }
-        private void OnEnable()
-        {
-            if (_securityDoor != null)
-            {
-                _securityDoor.EventIOpen += TimeToUnlock;
-            }
-        }
-        private void OnDisable()
-        {
-            if (_securityDoor != null)
-            {
-                _securityDoor.EventIOpen -= TimeToUnlock;
-            }
-        }
-        private void TimeToUnlock()
-        {
-            IsOpen = true;
         }
         public void StartTask()
         {

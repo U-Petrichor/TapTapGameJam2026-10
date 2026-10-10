@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace TapTapGameJam.UI
 {
-    // 炒股点线版：玩法与 StockGame 相同，只把开局历史点和图表表现替换掉。
+    // 开局一个开盘点，每半秒显示新报价，所有历史点通过横向压缩保留。
     public sealed class StockPointGame : MiniGameContent
     {
         [SerializeField] private StockPointChart _chart;
@@ -52,8 +52,7 @@ namespace TapTapGameJam.UI
             var wallet = Resources;
             if (_chart != null && _statusText != null) _chart.SetPriceFont(_statusText.font);
             var generator = new StockPriceGenerator(wallet.Coins, () => UnityEngine.Random.value, _priceSettings);
-            _round = new StockRound(() => wallet.Coins, wallet.TrySpendCoins, wallet.AddCoins,
-                generator, initialPointCount: 1);
+            _round = new StockRound(() => wallet.Coins, wallet.TrySpendCoins, wallet.AddCoins, generator);
             _onCompleted = onCompleted;
             _running = true;
             Refresh();

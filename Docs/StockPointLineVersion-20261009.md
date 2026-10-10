@@ -4,9 +4,8 @@
 
 ## 与原版的关系
 
-- 原版 `StockGame`、`StockChart` 保留，仍然使用开局 12 个历史报价和连续绘制。
-- 新版复用 `StockPriceGenerator`、`StockRound` 的价格生成、买卖、单股持仓、结算和每日次数规则。
-- `StockRound` 新增可选的初始点数量，默认仍为 12；点线版传入 1，不影响原版和原有验证。
+- 当前只保留点线版；它复用 `StockPriceGenerator`、`StockRound` 的价格生成、买卖、单股持仓、结算和每日次数规则。
+- `StockRound` 当前从一个开盘报价开始，后续报价每 0.5 秒确认一次。
 - 新版不显示连续插值线头。点确认时显示新点，并把它与上一个已确认点连接；待吐报价只在内部预计算，不在图像上显示位置、圆点或文字。
 - 新版只绘制水平方向网格线，删除竖直网格线。
 
@@ -14,8 +13,7 @@
 
 打开 `GameScene`，等待编译完成，在菜单选择：
 
-- **Tools → MiniGames → 使用炒股点线版**：在现有 `TradeStocks` 面板上添加并启用点线版组件。
-- **Tools → MiniGames → 恢复炒股连续版**：关闭点线版，恢复原 `StockGame` / `StockChart`。
+- **Tools → MiniGames → 配置炒股小游戏**：在现有 `TradeStocks` 面板上补齐并启用点线版组件。
 
 切换命令只修改当前场景中的组件启用状态和面板注册，不会自动保存场景。确认策划试玩版本后再保存 `GameScene`。
 
@@ -38,6 +36,6 @@
 
 ## 当前目录
 
-- V1 连续绘制版位于 `Assets/Scripts/MiniGame/StockTradeGame/V1/`。
-- V2 点线版位于 `Assets/Scripts/MiniGame/StockTradeGame/V2/`。
+- 点线版位于 `Assets/Scripts/MiniGame/StockTradeGame/V2/`。
 - 共用交易与任务代码位于 `Assets/Scripts/MiniGame/StockTradeGame/Common/`。
+- 旧连续绘制版已从 Assets 和 GameScene 移除；删除前的恢复备份位于 `RecoverySnapshots/20261010-stock-v1-removal/`。

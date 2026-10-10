@@ -60,11 +60,9 @@ public static class PrinterRepairSetup
         var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/MiniGameUI SDF.asset");
         if (font == null) font = TMP_Settings.defaultFontAsset;
         MiniGameDefaultSetup.EnsurePrinter(panel, font);
-        foreach (var point in points)
-        {
-            var data = new SerializedObject(point.GetComponent<PrinterRepairQuest>());
-            data.FindProperty("_printerPoint").objectReferenceValue = point; data.ApplyModifiedProperties();
-        }
+        var quest = points[0].GetComponent<PrinterRepairQuest>() ??
+            Undo.AddComponent<PrinterRepairQuest>(points[0].gameObject);
+        quest.ConfigurePoints(points);
         foreach (var go in Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (go.scene == panel.gameObject.scene && !before.Contains(go.GetInstanceID())) Undo.RegisterCreatedObjectUndo(go, "创建打印机小游戏对象");
         EditorSceneManager.MarkSceneDirty(panel.gameObject.scene);

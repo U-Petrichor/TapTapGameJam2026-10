@@ -13,7 +13,6 @@
 | `MiniGame/SortFileGame/` | 分拣文件任务；迁入 `SortFileGame.cs`、`SortFileCard.cs`、`SortFileRound.cs`；配置工具迁入 `Editor/SortFileGameSetup.cs` |
 | `MiniGame/FixPrinterGame/` | 修理打印机任务；迁入 `PrinterRepairGame.cs`、`PrinterRepairRound.cs`；配置工具迁入 `Editor/PrinterRepairSetup.cs` |
 | `MiniGame/StockTradeGame/Common/` | 两个版本共用的交易、任务入口、价格生成和动态坐标轴：`StockRound.cs`、`StockPriceGenerator.cs`、`StockAxisRange.cs`、`StockQuest.cs`、`StockInstance.cs`、`StockTradePoint.cs` |
-| `MiniGame/StockTradeGame/V1/` | 旧连续绘制版：`StockGame.cs`、`StockChart.cs`、`StockPlotGraphic.cs`、`StockChartView.cs`、`StockCurve.cs` |
 | `MiniGame/StockTradeGame/V2/` | 新点线版：`StockPointGame.cs`、`StockPointChart.cs`、`StockPointPlotGraphic.cs` |
 | `MiniGame/StockTradeGame/Common/Editor/` | 两个版本的切换配置：`StockPointVersionSetup.cs` |
 | `MiniGame/DeliverFileGame/` | 送文件任务、取件与送达交互；沿用已有目录 |
@@ -24,7 +23,7 @@
 
 ## 迁移约定
 
-本次只整理目录，其中炒股脚本进一步按 V1、V2 和 Common 拆分。原有 28 个小游戏脚本迁移记录保持不变；本次炒股目录移动 15 个脚本。每个脚本随原 `.meta` 一起迁移，保留 GUID、类名、命名空间与序列化字段。迁入脚本仍使用原有的 `TapTapGameJam.UI` 等命名空间；已有场景和预制体继续使用原脚本引用。
+小游戏脚本按 V2 和 Common 归类。旧连续绘制版已经从 Assets 和场景中移除；当前炒股场景只使用点线版。每个保留脚本随原 `.meta` 一起迁移，保留 GUID、类名、命名空间与序列化字段。
 
 新增小游戏沿用现有 `XxxGame` 目录命名，公共代码放在根目录或按共用职责分组。所有编辑器代码都放在名为 `Editor` 的目录中，保持与运行时代码的编译边界。
 

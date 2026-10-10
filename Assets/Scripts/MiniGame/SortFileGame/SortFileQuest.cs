@@ -1,18 +1,31 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TapTapGameJam.MiniGame
 {
-    public class SortFileQuest : SinglePointQuest
+    public class SortFileQuest : PanelMiniGameQuest
     {
+        [SerializeField] private List<SortFile> _sortFilePoints = new();
         [SerializeField] private SortFile _sortFile;
-        protected override PanelTaskPoint Point => _sortFile;
-        private void Awake()
+
+        private void Awake() { }
+
+        public void ConfigurePoints(IEnumerable<SortFile> points)
         {
-            if (_sortFile == null)
-            {
-                _sortFile = GetComponent<SortFile>();
-            }
+            _sortFilePoints.Clear();
+            if (points != null)
+                foreach (var point in points)
+                    if (point != null && !_sortFilePoints.Contains(point)) _sortFilePoints.Add(point);
+            _sortFile = _sortFilePoints.Count > 0 ? _sortFilePoints[0] : null;
         }
-        protected override PanelMiniGameInstance CreateInstance() => new SortFileInstance(_sortFile, _rewardCoins, _rewardTalentPoints);
+
+        protected override IEnumerable<PanelTaskPoint> GetPoints()
+        {
+            foreach (var point in _sortFilePoints) yield return point;
+            if (_sortFile != null) yield return _sortFile;
+        }
+
+        protected override PanelMiniGameInstance CreateInstance(PanelTaskPoint point) =>
+            new SortFileInstance((SortFile)point, _rewardCoins, _rewardTalentPoints);
     }
 }

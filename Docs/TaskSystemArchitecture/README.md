@@ -7,7 +7,7 @@
 | 角色 | 基类或组件 | 职责 |
 | --- | --- | --- |
 | 总管 | MiniGameManager | 维护候选池、当前实例列表；白天随机生成普通任务；立即开放每日活动；结束阶段时取消任务。 |
-| 生成规则 | MiniGameCandidate / SinglePointQuest | 具体 Quest 判断 CanSpawn、配置奖励、创建实例；Quest 是可重复使用的场景组件。 |
+| 生成规则 | MiniGameCandidate / PanelMiniGameQuest | 具体 Quest 维护候选点位池、并发上限、奖励并创建实例；Quest 不再假定只有一个点位。 |
 | 一次任务 | MiniGameInstanceBasic / PanelMiniGameInstance | 记录 Id、状态、目标、奖励；协调点位；统一完成和取消。实例是普通 C# 对象，不是面板或场景预制体。 |
 | 场景入口 | PanelTaskPoint | Collider 检测、玩家交互、点位占用和回调版本；具体 Point 设置交互文字与小游戏编号。 |
 | 面板总管 | MiniGamePanelUI | 接收打开事件；绑定本次玩家；按 Index 打开内容；处理关闭、输入模式、结果回调。 |
@@ -26,10 +26,14 @@
 | 倒狗粮 | PourDogFoodQuest | PourDogFoodInstance | PourDogFood | PourDogFoodGame |
 | 制作咖啡 | CoffeeQuest | CoffeeInstance | TaskMakeCoffee | CoffeeGame |
 | 修复打印机 | PrinterRepairQuest | PrinterRepairInstance | PrinterRepairPoint | PrinterRepairGame |
-| 模拟炒股 | StockQuest | StockInstance | StockTradePoint | StockGame |
+| 模拟炒股 | StockQuest | StockInstance | StockTradePoint | StockPointGame |
 | 送文件 | DeliverFileQuest | DeliveryFileInsance | FileSource + FileDestination | 直接在场景交互 |
 
-前五项共用 SinglePointQuest 和 PanelMiniGameInstance。送文件实例类名保留了项目已有的 DeliveryFileInsance 拼写。
+前五项共用 PanelMiniGameQuest 和 PanelMiniGameInstance。每种 Quest 可以配置多个同类型点位，每个实例只占用最终选中的点位。送文件实例类名保留了项目已有的 DeliveryFileInsance 拼写。
+
+任务点位的生成前提通过 `ITaskSpawnCondition` 提供。接口只有 `IsAvailable` 和只读的 `UnavailableReason`，条件对象自己维护门、日期或前置任务状态；Unity Inspector 保存 `MonoBehaviour` 引用，运行时验证其是否实现该接口。点位先检查所有条件，再由任务实例占用；条件变化只影响新任务生成，阶段切换和游戏结束才会取消已有任务。
+
+旧场景中的单点字段会在迁移配置时复制到新的点位列表；保留这些字段只是为了读取尚未重新保存的场景，新的配置入口是同类型点位列表和并发上限。
 
 ## 一次打印机任务的流程
 
@@ -55,7 +59,7 @@
 
 整体可以描述为“职责分离、基于抽象基类与事件驱动的任务框架”。这是项目架构的描述，内部使用以下模式：
 
-- 工厂方法（Factory Method）：管理器调用 MiniGameCandidate.CreateTask，由具体 Quest 决定创建哪种实例；SinglePointQuest.CreateInstance 也是这个扩展点。
+- 工厂方法（Factory Method）：管理器调用 MiniGameCandidate.CreateTask，由具体 Quest 决定创建哪种实例；PanelMiniGameQuest.CreateInstance 负责把选中的点位转成具体实例。
 - 模板方法（Template Method）：基类规定创建、完成、取消和结算的流程，通过 CreateInstance、Release、OnSuccess 等抽象方法或钩子扩展任务差异。
 - 观察者 / 发布订阅（Observer / Pub-Sub）：TaskAdded、TaskRemoved、EventFinished、目标变化以及 EventPipeline 阶段事件让各组件通过通知协作。
 

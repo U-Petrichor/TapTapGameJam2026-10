@@ -7,6 +7,7 @@ namespace TapTapGameJam.MiniGame
     {
         // 由候选任务决定现在能不能刷。
         public abstract bool CanSpawn { get; }
+
         // 白天固定入口单独创建，不参与随机刷新。
         public virtual bool IsDailyActivity => false;
         public virtual void BeginNewDay() { }

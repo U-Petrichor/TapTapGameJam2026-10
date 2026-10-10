@@ -15,6 +15,12 @@ namespace TapTapGameJam.Player
 
         public override void Update()
         {
+            if (Owner.IsCarry)
+            {
+                Owner.SyncCarryState();
+                return;
+            }
+
             Owner.PlayerMovement.SetMoveInput(InputManager.MoveInput);
             if (InputManager.HasMoveInput == false)
             {

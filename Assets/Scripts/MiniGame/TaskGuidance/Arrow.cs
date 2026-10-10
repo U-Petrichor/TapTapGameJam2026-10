@@ -18,7 +18,6 @@ namespace TapTapGameJam.UI
         private RectTransform _rect;
         private CanvasGroup _group;
         private Canvas _canvas;
-        private bool _visible;
         private static Sprite _defaultArrowSprite;
 
         private void Awake()
@@ -88,14 +87,6 @@ namespace TapTapGameJam.UI
 
             Vector3 world = _instance.TargetPosition.position;
             Vector3 viewport = camera.WorldToViewportPoint(world);
-            // 箭头已经显示时，目标进入画面内侧一点才隐藏，减少边界闪烁。
-            float inset = _visible ? 0.015f : 0f;
-            if (viewport.z > 0f && viewport.x >= inset && viewport.x <= 1f - inset &&
-                viewport.y >= inset && viewport.y <= 1f - inset)
-            {
-                SetVisible(false);
-                return;
-            }
 
             Vector2 direction;
             if (viewport.z > 0f)
@@ -137,7 +128,6 @@ namespace TapTapGameJam.UI
 
         private void SetVisible(bool visible)
         {
-            _visible = visible;
             _group.alpha = visible ? 1f : 0f;
         }
 

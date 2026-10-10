@@ -15,13 +15,19 @@ namespace TapTapGameJam.MiniGame
         [SerializeField]private List<MiniGameCandidate> _candidatePool = new();
         private readonly List<MiniGameInstanceBasic> _tasks = new(); // 记录当前已经生成的任务
         public IReadOnlyList<MiniGameInstanceBasic> Tasks => _tasks;
-        public event Action<MiniGameInstanceBasic> TaskAdded;
-        public event Action<MiniGameInstanceBasic> TaskRemoved;
+        public event Action<MiniGameInstanceBasic> EventTaskAdded;
+        public event Action<MiniGameInstanceBasic> EventTaskRemoved;
         public void RegisterCandidate(MiniGameCandidate candidate)
         {
-            _candidatePool.RemoveAll(item => item == null);
-            if (candidate != null && !_candidatePool.Contains(candidate)) _candidatePool.Add(candidate);
-            if (_isDayTime) EnsureDailyActivities();
+            _candidatePool.RemoveAll(item => item == null); // 删除所有为null的项
+            if (candidate != null && !_candidatePool.Contains(candidate))
+            {
+                _candidatePool.Add(candidate);
+            }
+            if (_isDayTime)
+            {
+                EnsureDailyActivities();
+            }
         }
 
         // 小游戏目前只在白天刷新，所以需要_isDayTime去控制，游戏阶段为其他时间段时停止
@@ -132,7 +138,7 @@ namespace TapTapGameJam.MiniGame
             task.EventFinished += RemoveTask;
 
             _tasks.Add(task);
-            TaskAdded?.Invoke(task);
+            EventTaskAdded?.Invoke(task);
         }
         private void EnsureDailyActivities()
         {
@@ -144,7 +150,7 @@ namespace TapTapGameJam.MiniGame
         {
             if (!_tasks.Remove(task)) return;
             task.EventFinished -= RemoveTask;
-            TaskRemoved?.Invoke(task);
+            EventTaskRemoved?.Invoke(task);
         }
 
         private void CancelAll()

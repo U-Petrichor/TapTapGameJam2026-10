@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.UI;
@@ -134,14 +135,18 @@ public static class SortFileGameSetup
         mapping.FindPropertyRelative("Content").objectReferenceValue = game;
         panelData.ApplyModifiedProperties();
 
-        int pointCount = 0;
+        var points = new List<SortFileInteraction>();
         foreach (var point in UnityEngine.Object.FindObjectsByType<SortFileInteraction>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (point.gameObject.scene == root.gameObject.scene) points.Add(point);
+
+        SortFileQuestCandidate quest = null;
+        foreach (var candidate in UnityEngine.Object.FindObjectsByType<SortFileQuestCandidate>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (candidate.gameObject.scene == root.gameObject.scene) { quest = candidate; break; }
+        if (quest == null && points.Count > 0)
+            quest = Undo.AddComponent<SortFileQuestCandidate>(points[0].gameObject);
+        if (quest != null)
         {
-            if (point.gameObject.scene != root.gameObject.scene) continue;
-            var quest = point.GetComponent<SortFileQuestCandidate>() ?? Undo.AddComponent<SortFileQuestCandidate>(point.gameObject);
-            var questData = new SerializedObject(quest);
-            questData.FindProperty("_sortFile").objectReferenceValue = point;
-            questData.ApplyModifiedProperties();
+            quest.ConfigurePoints(points);
             foreach (var manager in UnityEngine.Object.FindObjectsByType<MiniGameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 if (manager.gameObject.scene != root.gameObject.scene) continue;
@@ -153,8 +158,8 @@ public static class SortFileGameSetup
                 if (!found) { pool.arraySize++; pool.GetArrayElementAtIndex(pool.arraySize - 1).objectReferenceValue = quest; }
                 managerData.ApplyModifiedProperties();
             }
-            pointCount++;
         }
+        int pointCount = points.Count;
         EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
         Undo.CollapseUndoOperations(undoGroup);
         Selection.activeGameObject = root.gameObject;

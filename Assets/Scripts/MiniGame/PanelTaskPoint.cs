@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactable;
 using TapTapGameJam.Player;
@@ -11,16 +12,27 @@ namespace TapTapGameJam.MiniGame
     {
         [SerializeField] private Collider _detectCollider;
         [SerializeField, Min(0)] private int _miniGameIndex;
+        [Tooltip("生成任务前必须满足的条件组件。组件本身只需实现 ITaskSpawnCondition。")]
+        [SerializeField] private List<MonoBehaviour> _spawnConditionObjects = new();
         private bool _hasTask;
         private bool _isPlaying;
         private int _version;
         private PlayerBasic _player;
+        private object _taskOwner;
         private bool _attemptStarted;
 
         protected abstract int DefaultGameIndex { get; }
         protected virtual bool FinishOnClose => false;
         protected virtual bool KeepAvailableAfterAttempt => false;
-        public bool CanStartTask => isActiveAndEnabled && _detectCollider != null && !_hasTask;
+        public bool CanStartTask => TryGetUnavailableReason(out _);
+        public string UnavailableReason
+        {
+            get
+            {
+                TryGetUnavailableReason(out var reason);
+                return reason;
+            }
+        }
         public event Action<PlayerBasic> EventCompleted;
         public event Action EventTaskCancelled;
         public event Action EventAttemptStarted;
@@ -45,11 +57,14 @@ namespace TapTapGameJam.MiniGame
             else Debug.LogError($"[{GetType().Name}] 请配置检测 Collider。", this);
         }
 
-        public bool StartTask()
+        public bool StartTask() => StartTask(null);
+
+        public bool StartTask(object owner)
         {
-            if (!CanStartTask) return false;
+            if (!TryGetUnavailableReason(out _)) return false;
             _version++;
             _hasTask = true;
+            _taskOwner = owner;
             _detectCollider.enabled = true;
             return true;
         }
@@ -92,13 +107,45 @@ namespace TapTapGameJam.MiniGame
             if (started) EventAttemptFinished?.Invoke(success);
         }
 
-        public void CancelTask()
+        public void CancelTask() => CancelTaskInternal(null, true);
+
+        public void CancelTask(object owner)
         {
+            if (owner != null && _taskOwner != null && !ReferenceEquals(owner, _taskOwner))
+                return;
+            CancelTaskInternal(owner, false);
+        }
+
+        private void CancelTaskInternal(object owner, bool force)
+        {
+            if (!force && owner != null && _taskOwner != null && !ReferenceEquals(owner, _taskOwner))
+                return;
             bool hadTask = _hasTask;
             bool wasPlaying = _isPlaying;
             ClosePoint();
             if (wasPlaying) EventPipeline.Publish(new EventRequestCloseMiniGamePanel(this));
             if (hadTask) EventTaskCancelled?.Invoke();
+        }
+
+        private bool TryGetUnavailableReason(out string reason)
+        {
+            if (!isActiveAndEnabled)
+            {
+                reason = "任务点位未启用";
+                return false;
+            }
+            if (_detectCollider == null)
+            {
+                reason = "任务点位没有配置检测 Collider";
+                return false;
+            }
+            if (_hasTask)
+            {
+                reason = "任务点位已被占用";
+                return false;
+            }
+
+            return TaskSpawnConditionUtility.TryEvaluate(_spawnConditionObjects, out reason);
         }
 
         private void ClosePoint()
@@ -107,6 +154,7 @@ namespace TapTapGameJam.MiniGame
             _hasTask = false;
             _isPlaying = false;
             _player = null;
+            _taskOwner = null;
             ClearAllRegister();
             if (_detectCollider != null) _detectCollider.enabled = false;
         }

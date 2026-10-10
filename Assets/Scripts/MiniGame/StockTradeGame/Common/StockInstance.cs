@@ -2,7 +2,7 @@ using TapTapGameJam.Player;
 
 namespace TapTapGameJam.MiniGame
 {
-    // 当天次数耗尽或离开白天时关闭入口；每局资金由 StockGame 结算。
+    // 当天次数耗尽或离开白天时关闭入口；每局资金由 StockPointGame 结算。
     public sealed class StockInstance : MiniGameInstanceBasic
     {
         private readonly StockTradePoint _point;
@@ -10,6 +10,7 @@ namespace TapTapGameJam.MiniGame
         private readonly System.Func<int> _remainingPlays;
         public override bool IsDailyActivity => true;
         public override string AvailabilityText => $"白天开放 · 今日剩余 {_remainingPlays?.Invoke() ?? StockQuest.DailyPlayLimit} 次";
+        public StockTradePoint Point => _point;
         public StockInstance(StockTradePoint point, System.Func<int> remainingPlays = null) : base(point.transform)
         {
             _point = point;
@@ -22,7 +23,7 @@ namespace TapTapGameJam.MiniGame
             _begun = true;
             _point.EventCompleted += HandleRoundCompleted;
             _point.EventTaskCancelled += Cancel;
-            if (_point.StartTask()) return true;
+            if (_point.StartTask(this)) return true;
             _begun = false;
             Cancel();
             return false;
@@ -34,7 +35,7 @@ namespace TapTapGameJam.MiniGame
             if (_point == null) return;
             _point.EventCompleted -= HandleRoundCompleted;
             _point.EventTaskCancelled -= Cancel;
-            if (_begun) _point.CancelTask();
+            if (_begun) _point.CancelTask(this);
         }
     }
 }

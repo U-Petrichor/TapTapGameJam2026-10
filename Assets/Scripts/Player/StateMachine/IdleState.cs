@@ -16,6 +16,12 @@ namespace TapTapGameJam.Player
 
         public override void Update()
         {
+            if (Owner.IsCarry)
+            {
+                Owner.SyncCarryState();
+                return;
+            }
+
             // 一直计时，当玩家长时间不操作，就播放额外的Idle动作
             _idleTimer += Time.deltaTime;
             if (InputManager.HasMoveInput == true)

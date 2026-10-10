@@ -10,7 +10,20 @@ namespace TapTapGameJam.MiniGame
     {
         public string InteractionPrompt => "交出文件";
         [SerializeField] private Collider _detectCollider;
+        [Tooltip("任务生成前必须满足的条件组件。每个组件都需要实现 ITaskSpawnCondition。")]
+        [SerializeField] private List<MonoBehaviour> _spawnConditionObjects = new();
         public bool IsFree = true;
+
+        public bool IsAvailable => TaskSpawnConditionUtility.TryEvaluate(_spawnConditionObjects, out _);
+        public string UnavailableReason
+        {
+            get
+            {
+                TaskSpawnConditionUtility.TryEvaluate(_spawnConditionObjects, out var reason);
+                return reason;
+            }
+        }
+        public bool CanUse => IsFree && IsAvailable;
 
         public event Action<PlayerBasic> EventFileDestinationFinish;
 

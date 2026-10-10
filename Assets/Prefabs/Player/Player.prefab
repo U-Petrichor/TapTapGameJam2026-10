@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 4682673842131442124}
   - component: {fileID: 8733193615808389570}
   - component: {fileID: 1851755165833570048}
+  - component: {fileID: 202610100000001}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -391,6 +392,20 @@ MonoBehaviour:
   <PlayerResources>k__BackingField: {fileID: 0}
   <PlayerBag>k__BackingField: {fileID: 8733193615808389570}
   <PlayerHealth>k__BackingField: {fileID: 0}
+  <CarryController>k__BackingField: {fileID: 202610100000001}
+--- !u!114 &202610100000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7966909714225381019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d4f8c0b5e8a4a2e9d7f4c1b6a3e2f10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Player.PlayerCarryController
+  CurrentType: 0
 --- !u!114 &3136187452460036554
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -20,7 +20,7 @@ namespace TapTapGameJam.MiniGame
             _begun = true;
             _point.EventCompleted += HandleCompleted;
             _point.EventTaskCancelled += Cancel;
-            if (_point.StartTask()) return true;
+            if (_point.StartTask(this)) return true;
             // 未取得点位时不能取消别的实例拥有的点位。
             _begun = false;
             Cancel();
@@ -38,7 +38,7 @@ namespace TapTapGameJam.MiniGame
             if (_point == null) return;
             _point.EventCompleted -= HandleCompleted;
             _point.EventTaskCancelled -= Cancel;
-            if (_begun) _point.CancelTask();
+            if (_begun) _point.CancelTask(this);
         }
     }
 }

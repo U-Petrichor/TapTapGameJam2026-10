@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TapTapGameJam.Coffee;
 using TapTapGameJam.Interactable;
 using TapTapGameJam.MiniGame;
@@ -72,61 +73,44 @@ namespace TapTapGameJam.UI
         private static void SetupStock(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)
         {
             var root = Root(parent, "TradeStocks");
-            var game = root.GetComponent<StockGame>() ?? root.gameObject.AddComponent<StockGame>();
-            var pointGame = root.GetComponent<StockPointGame>();
-            // 新旧布局都补齐两按钮和裁剪窗口；保留已有图表尺寸与场景位置。
-            {
-                Label(root, "Title", "模拟炒股", new Vector2(800, 50), new Vector2(0, 250), font, 32);
-                var status = Label(root, "Status", "价格 / 金币 / 持仓", new Vector2(1050, 40), new Vector2(0, 200), font, 21);
-                var chartRect = Rect(root, "PriceChart", new Vector2(900, 310), new Vector2(20, 15));
-                var chart = chartRect.GetComponent<StockChart>() ?? chartRect.gameObject.AddComponent<StockChart>();
-                chart.color = Accent;
-                chart.raycastTarget = false;
-                if (chartRect.GetComponent<RectMask2D>() == null) chartRect.gameObject.AddComponent<RectMask2D>();
-                var result = Label(root, "Result", "每天 1 次 · 每局 20 秒 · 最后 1.5 秒展示结果", new Vector2(1020, 70), new Vector2(0, -180), font, 19);
-                var buy = Button(root, "BuyOne", "买入下一报价", new Vector2(-120, -258), font);
-                var sell = Button(root, "SellAll", "卖出下一报价", new Vector2(120, -258), font);
-                ((RectTransform)buy.transform).anchoredPosition = new Vector2(-120, -258);
-                ((RectTransform)sell.transform).anchoredPosition = new Vector2(120, -258);
-                game.Configure(chart, status, result, buy, sell);
-
-                // 点线版由编辑器菜单显式启用；未启用时保持原连续版。
-                var pointChart = root.GetComponentInChildren<StockPointChart>(true);
-                if (pointGame != null && pointChart != null && pointGame.enabled)
-                {
-                    game.enabled = false;
-                    chart.enabled = false;
-                    chart.gameObject.SetActive(false);
-                    pointChart.enabled = true;
-                    pointChart.gameObject.SetActive(true);
-                    pointChart.color = Accent;
-                    pointChart.raycastTarget = false;
-                    pointGame.Configure(pointChart, status, result, buy, sell);
-                    panel.RegisterContent(3, pointGame);
-                }
-                else
-                {
-                    game.enabled = true;
-                    chart.enabled = true;
-                    chart.gameObject.SetActive(true);
-                    if (pointChart != null)
-                    {
-                        pointChart.enabled = false;
-                        pointChart.gameObject.SetActive(false);
-                    }
-                    if (pointGame != null) pointGame.enabled = false;
-                    panel.RegisterContent(3, game);
-                }
-            }
+            var game = root.GetComponent<StockPointGame>() ?? root.gameObject.AddComponent<StockPointGame>();
+            Label(root, "Title", "模拟炒股", new Vector2(800, 50), new Vector2(0, 250), font, 32);
+            var status = Label(root, "Status", "价格 / 金币 / 持仓", new Vector2(1050, 40), new Vector2(0, 200), font, 21);
+            var chartRect = FindChild(root, "PointLineChart") ?? Rect(root, "PointLineChart", new Vector2(900, 310), new Vector2(20, 15));
+            var chart = chartRect.GetComponent<StockPointChart>() ?? chartRect.gameObject.AddComponent<StockPointChart>();
+            chart.enabled = true;
+            chart.color = Accent;
+            chart.raycastTarget = false;
+            if (chartRect.GetComponent<RectMask2D>() == null) chartRect.gameObject.AddComponent<RectMask2D>();
+            chartRect.gameObject.SetActive(true);
+            var result = Label(root, "Result", "每天 1 次 · 每局 20 秒 · 最后 1.5 秒展示结果", new Vector2(1020, 70), new Vector2(0, -180), font, 19);
+            var buy = Button(root, "BuyOne", "买入下一报价", new Vector2(-120, -258), font);
+            var sell = Button(root, "SellAll", "卖出下一报价", new Vector2(120, -258), font);
+            ((RectTransform)buy.transform).anchoredPosition = new Vector2(-120, -258);
+            ((RectTransform)sell.transform).anchoredPosition = new Vector2(120, -258);
+            game.Configure(chart, status, result, buy, sell);
+            game.enabled = true;
+            panel.RegisterContent(3, game);
             // 兼容已经保存过旧布局的场景，不重建用户的面板。
             foreach (string obsolete in new[] { "UpperPrice", "LowerPrice", "SellOne", "BuyAll", "Wait" })
             {
                 var child = root.Find(obsolete);
                 if (child != null) child.gameObject.SetActive(false);
             }
-            var renderedChart = root.GetComponentInChildren<StockChart>(true);
-            if (renderedChart != null && renderedChart.GetComponent<CanvasRenderer>() == null)
-                renderedChart.gameObject.AddComponent<CanvasRenderer>();
+        }
+
+        public static void EnsureStock(MiniGamePanelUI panel, TMP_FontAsset font)
+        {
+            var parent = FindChild(panel.transform, "ContentRoot") as RectTransform;
+            if (parent == null) parent = panel.transform as RectTransform;
+            SetupStock(panel, parent, font);
+        }
+
+        private static Transform FindChild(Transform root, string name)
+        {
+            foreach (var child in root.GetComponentsInChildren<Transform>(true))
+                if (child.name == name) return child;
+            return null;
         }
 
         private static void SetupCoffee(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)
@@ -216,13 +200,18 @@ namespace TapTapGameJam.UI
         private static void RegisterPrinterPoints(MiniGamePanelUI panel)
         {
             var managers = Object.FindObjectsByType<MiniGameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var points = new List<PrinterRepairPoint>();
             foreach (var point in Object.FindObjectsByType<PrinterRepairPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (point.gameObject.scene == panel.gameObject.scene)
                 {
                     point.ConfigureGameIndex(5);
-                    var quest = point.GetComponent<PrinterRepairQuest>() ?? point.gameObject.AddComponent<PrinterRepairQuest>();
-                    Register(managers, quest);
+                    points.Add(point);
                 }
+            if (points.Count == 0) return;
+            var quest = FindQuest<PrinterRepairQuest>(panel);
+            if (quest == null) quest = points[0].gameObject.AddComponent<PrinterRepairQuest>();
+            quest.ConfigurePoints(points);
+            Register(managers, quest);
         }
 
         private static void SetupPoints(MiniGamePanelUI panel)
@@ -230,29 +219,35 @@ namespace TapTapGameJam.UI
             var scene = panel.gameObject.scene;
             RegisterPrinterPoints(panel);
             var managers = Object.FindObjectsByType<MiniGameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var cleanPoints = new List<CleanMopWater>();
             foreach (var point in Object.FindObjectsByType<CleanMopWater>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (point.gameObject.scene == scene)
-                {
-                    point.ConfigureGameIndex(0);
-                    var quest = point.GetComponent<CleanQuest>() ?? point.gameObject.AddComponent<CleanQuest>();
-                    Register(managers, quest);
-                }
-            TaskMakeCoffee coffee = null;
+                if (point.gameObject.scene == scene) { point.ConfigureGameIndex(0); cleanPoints.Add(point); }
+            var cleanQuest = FindQuest<CleanQuest>(panel);
+            if (cleanPoints.Count > 0)
+            {
+                if (cleanQuest == null) cleanQuest = cleanPoints[0].gameObject.AddComponent<CleanQuest>();
+                cleanQuest.ConfigurePoints(cleanPoints);
+                Register(managers, cleanQuest);
+            }
+
+            var coffeePoints = new List<TaskMakeCoffee>();
             foreach (var point in Object.FindObjectsByType<TaskMakeCoffee>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (point.gameObject.scene == scene)
-                {
-                    coffee = point;
-                    point.ConfigureGameIndex(4);
-                    var quest = point.GetComponent<CoffeeQuest>() ?? point.gameObject.AddComponent<CoffeeQuest>();
-                    Register(managers, quest);
-                }
+                if (point.gameObject.scene == scene) { point.ConfigureGameIndex(4); coffeePoints.Add(point); }
+            TaskMakeCoffee coffee = coffeePoints.Count > 0 ? coffeePoints[0] : null;
+            var coffeeQuest = FindQuest<CoffeeQuest>(panel);
+            if (coffeePoints.Count > 0)
+            {
+                if (coffeeQuest == null) coffeeQuest = coffeePoints[0].gameObject.AddComponent<CoffeeQuest>();
+                coffeeQuest.ConfigurePoints(coffeePoints);
+                Register(managers, coffeeQuest);
+            }
             foreach (var legacy in Object.FindObjectsByType<CoffeeMinigameManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (legacy.gameObject.scene == scene) { legacy.HideLegacyView(); legacy.enabled = false; }
             foreach (var legacy in Object.FindObjectsByType<CoffeeDeskInteractor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (legacy.gameObject.scene == scene) legacy.enabled = false;
-            var stockPoints = Object.FindObjectsByType<StockTradePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var existingStockPoints = Object.FindObjectsByType<StockTradePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             bool hasStock = false;
-            foreach (var point in stockPoints) if (point.gameObject.scene == scene) hasStock = true;
+            foreach (var point in existingStockPoints) if (point.gameObject.scene == scene) hasStock = true;
             if (!hasStock && coffee != null)
             {
                 var go = new GameObject("StockTradePoint");
@@ -269,14 +264,25 @@ namespace TapTapGameJam.UI
                 var solid = terminal.GetComponent<Collider>();
                 if (Application.isPlaying) Object.Destroy(solid); else Object.DestroyImmediate(solid);
             }
+            var stockPoints = new List<StockTradePoint>();
             foreach (var point in Object.FindObjectsByType<StockTradePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (point.gameObject.scene == scene)
-                {
-                    point.ConfigureGameIndex(3);
-                    var quest = point.GetComponent<StockQuest>();
-                    if (quest == null) quest = point.gameObject.AddComponent<StockQuest>();
-                    Register(managers, quest);
-                }
+                if (point.gameObject.scene == scene) { point.ConfigureGameIndex(3); stockPoints.Add(point); }
+            var stockQuest = FindQuest<StockQuest>(panel);
+            if (stockPoints.Count > 0)
+            {
+                if (stockQuest == null) stockQuest = stockPoints[0].gameObject.AddComponent<StockQuest>();
+                stockQuest.ConfigurePoints(stockPoints);
+                Register(managers, stockQuest);
+            }
+        }
+
+        private static TQuest FindQuest<TQuest>(MiniGamePanelUI panel)
+            where TQuest : MiniGameCandidate
+        {
+            foreach (var quest in Object.FindObjectsByType<TQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (quest.gameObject.scene == panel.gameObject.scene)
+                    return quest;
+            return null;
         }
         private static void Register(MiniGameManager[] managers, MiniGameCandidate quest)
         {

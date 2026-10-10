@@ -129,6 +129,20 @@ namespace TapTapGameJam.Player
             _currentTargetIndex = (_currentTargetIndex + 1) % _candidates.Count;
             SetCurrentTarget(_candidates[_currentTargetIndex]);
         }
+
+        /// <summary>让特殊交互流程（例如手持巢穴）立即成为当前 E 目标。</summary>
+        public bool SelectInteractionTarget(IInteractable interactable)
+        {
+            int index = _candidates.IndexOf(interactable);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            _currentTargetIndex = index;
+            SetCurrentTarget(interactable);
+            return true;
+        }
     }
 }
 

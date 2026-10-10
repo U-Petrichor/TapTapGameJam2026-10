@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using TapTapGameJam.Events;
 using UnityEngine;
 using TapTapGameJam.Core;
+using TapTapGameJam.Types;
 
 namespace TapTapGameJam.Cockroach
 {
@@ -8,7 +10,7 @@ namespace TapTapGameJam.Cockroach
     /// <summary>
     /// 蟑螂巢穴。既是归巢目标，也是信息素归巢通道的起点。
     /// </summary>
-    public class CockNest : MonoBehaviour
+    public partial class CockNest : MonoBehaviour
     {
         
         /// <summary>巢穴距离场里"不可达"的哨兵值</summary>
@@ -80,15 +82,19 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>上一次套用到环上的指令，用来判断颜色需不需要刷新</summary>
         private CockroachCommand _ringCommand = CockroachCommand.Hatch;
+        private bool _isNight;
 
         private void Awake()
         {
             // TODO: 假设游戏里半径不会变动，所以只生成一次
             BuildRangeRing();
+            InitializeInteraction();
+            ApplyPhasePresentation();
         }
 
         private void Update()
         {
+            if (IsCarried || !isActive) return;
             float dt = Time.deltaTime;
 
             UpdateHatch(dt);
@@ -167,6 +173,7 @@ namespace TapTapGameJam.Cockroach
 
         private void OnEnable()
         {
+            EventPipeline.Subscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
             // 和 PickableItem 一样由自己登记，CockroachManager 不主动遍历场景
             CockroachManager.Instance.CockNestList.Add(this);
             Debug.Log("Nest created.");
@@ -174,6 +181,8 @@ namespace TapTapGameJam.Cockroach
 
         private void OnDisable()
         {
+            EventPipeline.UnSubscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
+            UnregisterInteractionTargets();
             if(CockroachManager.Instance)
                 CockroachManager.Instance.CockNestList.Remove(this);
 
@@ -184,6 +193,30 @@ namespace TapTapGameJam.Cockroach
             _hatchNutrition = 0f;
 
             // TODO: 移除List中所有蟑螂（删除实例）
+        }
+
+        private void HandlePhaseChanged(GamePhaseChangedEvent evt)
+        {
+            _isNight = evt.NewPhase == GamePhase.Night;
+            ApplyPhasePresentation();
+        }
+
+        /// <summary>
+        /// 白天仍保留拾取触发器，但只在夜晚显示蟑螂活动范围和巢穴世界 UI。
+        /// </summary>
+        private void ApplyPhasePresentation()
+        {
+            bool visible = _isNight && !IsCarried && isActive;
+            if (_ringRoot != null)
+            {
+                _ringRoot.gameObject.SetActive(visible);
+            }
+
+            Canvas[] canvases = GetComponentsInChildren<Canvas>(true);
+            for (int i = 0; i < canvases.Length; i++)
+            {
+                canvases[i].enabled = visible;
+            }
         }
 
         // 不含生成/销毁语义，仅记录 & 注册一只蟑螂
@@ -309,6 +342,7 @@ namespace TapTapGameJam.Cockroach
         public void RefreshDistanceField()
         {
             GridManager grid = GridManager.Instance;
+            if (grid == null || grid.MapState == null) return;
 
             int width = grid.width;
             int height = grid.height;

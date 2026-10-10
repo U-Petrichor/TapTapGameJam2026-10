@@ -10,7 +10,14 @@ namespace TapTapGameJam.MiniGame
     {
         [SerializeField, Min(0)] private int _rewardCoins = 1;
         [SerializeField, Min(0)] private int _rewardTalentPoints = 5;
+        [SerializeField, Min(1)] private int _maxActiveTasks = 1;
         private readonly List<MiniGameInstanceBasic> _instances = new();
+
+        public int MaxActiveTasks
+        {
+            get => Mathf.Max(1, _maxActiveTasks);
+            set => _maxActiveTasks = Mathf.Max(1, value);
+        }
 
         private void OnEnable()
         {
@@ -28,7 +35,7 @@ namespace TapTapGameJam.MiniGame
         private void HandlePhase(TapTapGameJam.Events.GamePhaseChangedEvent evt) => CancelAll();
         private void HandleGameOver(TapTapGameJam.Events.EventGameOver evt) => CancelAll();
         
-        public override bool CanSpawn => CanSpawnNewTask();
+        public override bool CanSpawn => _instances.Count < MaxActiveTasks && CanSpawnNewTask();
 
         [Tooltip("可以生成拿文件的地方")]
         [SerializeField] private List<FileSource> _sourcePool = new();
@@ -61,7 +68,7 @@ namespace TapTapGameJam.MiniGame
 
             foreach (var fileDestination in _destinationPool)
             {
-                if (fileDestination != null && fileDestination.isActiveAndEnabled && fileDestination.IsFree)
+                if (fileDestination != null && fileDestination.isActiveAndEnabled && fileDestination.CanUse)
                 {
                     availableDestination.Add(fileDestination);
                 }
@@ -77,6 +84,7 @@ namespace TapTapGameJam.MiniGame
         }
         public override MiniGameInstanceBasic CreateTask()
         {
+            if (_instances.Count >= MaxActiveTasks) return null;
             var availableSource = new List<FileSource>();
 
             foreach (var fileSource in _sourcePool)
@@ -92,7 +100,7 @@ namespace TapTapGameJam.MiniGame
 
             foreach (var fileDestination in _destinationPool)
             {
-                if (fileDestination != null && fileDestination.isActiveAndEnabled && fileDestination.IsFree)
+                if (fileDestination != null && fileDestination.isActiveAndEnabled && fileDestination.CanUse)
                 {
                     availableDestination.Add(fileDestination);
                 }

@@ -36,7 +36,7 @@ public static class MiniGameSuiteSmokeChecks
     private static int _lastFrame = -1;
     private static bool _savedBackground;
     private static string Output => Path.GetFullPath(SessionState.GetBool(StockOnlyKey, false)
-        ? "Temp/StockGameSmokeChecks" : "Temp/MiniGameSmokeChecks");
+        ? "Temp/StockPointGameSmokeChecks" : "Temp/MiniGameSmokeChecks");
     static MiniGameSuiteSmokeChecks() { EditorApplication.playModeStateChanged += StateChanged; }
 
     [MenuItem("Tools/MiniGames/运行小游戏Play模式检查")]
@@ -172,10 +172,10 @@ public static class MiniGameSuiteSmokeChecks
         Assert(arrows.ContainsKey(stockTask.Id) && stockTask.TargetPosition == stockPoint.transform,
             "stock guide points to existing chair entry");
         stockPoint.Interact(_player);
-        var stock = _panel.GetComponentInChildren<StockGame>(true);
+        var stock = _panel.GetComponentInChildren<StockPointGame>(true);
         var round = Field<StockRound>(stock, "_round");
-        Assert(round.Prices.Count == 12 && round.CurvePrices.Count == 14 && round.Prices[0] >= 250 && round.Prices[0] <= 450
-            && round.CurvePrices.All(p => p >= 0 && p <= 500), "twelve initial prices and two forecasts are affordable");
+        Assert(round.Prices.Count == 1 && round.CurvePrices.Count == 3 && round.Prices[0] >= 250 && round.Prices[0] <= 450
+            && round.CurvePrices.All(p => p >= 0 && p <= 500), "opening price and internal forecasts are affordable");
         Assert(stockQuest.RemainingPlays == 0, "opening consumes the sole daily attempt");
 
         float stockDeadline = Time.realtimeSinceStartup + 5;
@@ -195,53 +195,38 @@ public static class MiniGameSuiteSmokeChecks
         sell.onClick.Invoke(); sell.onClick.Invoke(); buy.onClick.Invoke();
         Assert(round.Shares == 1 && Math.Abs(round.Profit) < 0.00001,
             "repeated buy-sell is permitted with at most one share and no same-price gain");
-        var chart = Field<StockChart>(stock, "_chart");
+        var chart = Field<StockPointChart>(stock, "_chart");
 
         stockDeadline = Time.realtimeSinceStartup + 5;
-        while (round.Prices.Count < 14)
+        while (round.Prices.Count < 3)
         { Assert(Time.realtimeSinceStartup < stockDeadline, "stock automatic refresh timeout"); yield return null; }
 
-        float scrollDeadline = Time.realtimeSinceStartup + 0.8f;
-        int continuousSamples = 0;
-        while (Time.realtimeSinceStartup < scrollDeadline)
-        {
-            int count = round.Prices.Count;
-            double elapsed = round.Elapsed, progress = chart.DrawingProgress;
-            float start = chart.DisplayStart;
-            yield return null;
-            if (round.Prices.Count != count || round.Elapsed <= elapsed) continue;
-            Assert(chart.DisplayStart > start && chart.DrawingProgress > progress
-                && Math.Abs(chart.DisplayStart - round.Elapsed * 2) < 0.00001,
-                "stock continuous scroll and partial drawing timeout");
-            continuousSamples++;
-        }
-        Assert(continuousSamples > 0, "curve grows continuously between completed half-second quotes");
+        stockDeadline = Time.realtimeSinceStartup + 10;
+        while (chart.PriceCount < 14)
+        { Assert(Time.realtimeSinceStartup < stockDeadline, "stock compression timeout"); yield return null; }
         Canvas.ForceUpdateCanvases();
-        Assert(chart.DisplayStart > 0 && chart.VisiblePriceLabelCount > 0 && chart.VisiblePriceLabelCount <= 12
-            && chart.GetComponent<RectMask2D>() != null, "thirteen-slot window scrolls revealed prices left without future prices");
-        var mesh = chart.GetComponentInChildren<StockPlotGraphic>().canvasRenderer.GetMesh();
-        Assert(mesh != null && mesh.vertexCount > 300 && chart.canvasRenderer.GetMesh().vertexCount == 72,
-            "stock chart renders smooth cubic segments in thirteen positions with twelve completed samples");
-        var labels = chart.GetComponentsInChildren<TMPro.TMP_Text>(true)
-            .Where(label => label.name.StartsWith("PriceLabel_")).OrderBy(label => int.Parse(label.name.Substring(11))).ToArray();
-        Assert(labels.Length == 12, "only completed samples receive twelve price labels");
-        for (int i = 0; i < labels.Length; i++)
-            Assert((!labels[i].gameObject.activeSelf || labels[i].text == round.Prices[round.Prices.Count - 12 + i].ToString("0.00"))
-                && !labels[i].raycastTarget, "visible float label matches recent historical price");
+        Assert(chart.PriceCount == round.Prices.Count
+            && Enumerable.Range(0, chart.PriceCount).All(i => chart.HorizontalPosition(i) >= 0 && chart.HorizontalPosition(i) <= 1),
+            "all confirmed quotes remain visible after X compression");
+        var mesh = chart.GetComponentInChildren<StockPointPlotGraphic>().canvasRenderer.GetMesh();
+        Assert(mesh != null && mesh.vertexCount > 0 && chart.canvasRenderer.GetMesh().vertexCount == 20,
+            "stock chart renders confirmed dots, straight connections and only horizontal grid lines");
+        Assert(!chart.GetComponentsInChildren<TMPro.TMP_Text>(true).Any(label => label.name == "UpcomingLabel"),
+            "future quotation position is not shown");
         Assert(stock.GetComponentsInChildren<Button>().Length == 2
             && buy.GetComponentInChildren<TMPro.TMP_Text>().text == "买入下一报价"
-            && sell.GetComponentInChildren<TMPro.TMP_Text>().text == "卖出下一报价", "buy and sell clearly use the drawing target quote");
+            && sell.GetComponentInChildren<TMPro.TMP_Text>().text == "卖出下一报价", "buy and sell use the target quotation");
         Capture("stocks.png");
         yield return null;
         round.Tick(StockRound.TradingSeconds - round.Elapsed);
-        typeof(StockGame).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic)
+        typeof(StockPointGame).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic)
             .Invoke(stock, null);
         int settledBalance = 500 + round.SettledProfit;
-        Assert(round.IsFinished && !round.IsComplete && round.Prices.Count == 49 && round.Shares == 0
+        Assert(round.IsFinished && !round.IsComplete && round.Prices.Count == 38 && round.Shares == 0
             && _player.PlayerResources.Coins == settledBalance, "18.5 seconds liquidates and commits integer net profit");
         Assert(!buy.interactable && !sell.interactable
             && Field<TMPro.TMP_Text>(stock, "_resultText").text.Contains("结算"), "results freeze trades and show settled profit");
-        float fixedStart = chart.DisplayStart;
+        double fixedStart = chart.HorizontalPosition(5);
         double fixedAxis = chart.AxisMaximum;
         double fixedAxisMin = chart.AxisMinimum;
         Capture("stocks-result.png");
@@ -249,7 +234,7 @@ public static class MiniGameSuiteSmokeChecks
         stockDeadline = Time.realtimeSinceStartup + 5;
         while (stock.gameObject.activeInHierarchy)
         {
-            Assert(round.Prices.Count == 49 && chart.DisplayStart == fixedStart && chart.AxisMaximum == fixedAxis && chart.AxisMinimum == fixedAxisMin,
+            Assert(round.Prices.Count == 38 && chart.HorizontalPosition(5) == fixedStart && chart.AxisMaximum == fixedAxis && chart.AxisMinimum == fixedAxisMin,
                 "stock frozen results timeout");
             Assert(Time.realtimeSinceStartup < stockDeadline, "stock results timeout");
             yield return null;
@@ -287,7 +272,7 @@ public static class MiniGameSuiteSmokeChecks
             if (!panelFirst) EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Shopping));
             dayRound.Close(); _panel.OnEscKeyPressed();
             Assert(dayRound.IsFinished && dayRound.Shares == 0 && dayRound.Price == lastPrice
-                && dayRound.Prices.Count == 13 && _player.PlayerResources.Coins == dayBalance
+                && dayRound.Prices.Count == 2 && _player.PlayerResources.Coins == dayBalance
                 && activity.IsFinished && !stock.gameObject.activeInHierarchy,
                 "day-end close settles once at current float price for either subscription order");
     

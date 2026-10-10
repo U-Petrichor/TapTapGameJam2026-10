@@ -32,8 +32,8 @@ namespace TapTapGameJam.UI
                 Debug.LogError("[TaskIndicatorUI] 请配置任务管理器和 Arrow 预制体。", this);
                 return;
             }
-            _manager.TaskAdded += AddIndicator;
-            _manager.TaskRemoved += RemoveIndicator;
+            _manager.EventTaskAdded += AddIndicator;
+            _manager.EventTaskRemoved += RemoveIndicator;
 
             foreach (var instance in _manager.Tasks)
             {
@@ -45,8 +45,8 @@ namespace TapTapGameJam.UI
         {
             if (_manager != null)
             {
-                _manager.TaskAdded -= AddIndicator;
-                _manager.TaskRemoved -= RemoveIndicator;
+                _manager.EventTaskAdded -= AddIndicator;
+                _manager.EventTaskRemoved -= RemoveIndicator;
             }
             foreach (var arrow in _arrows.Values)
                 DestroyView(arrow);

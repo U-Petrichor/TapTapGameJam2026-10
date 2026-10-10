@@ -9,7 +9,9 @@
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameInstanceBasic.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameCandidate.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/SinglePointQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/ITaskSpawnCondition.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/TaskSpawnConditionUtility.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameQuest.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
     <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" />

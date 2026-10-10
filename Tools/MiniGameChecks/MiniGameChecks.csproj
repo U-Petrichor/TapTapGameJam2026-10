@@ -11,7 +11,9 @@
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/SinglePointQuest.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/ITaskSpawnCondition.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/TaskSpawnConditionUtility.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameQuest.cs" />
     <!-- List logic dependencies explicitly: game folders also contain Unity UI components. -->
     <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/PourDogFood.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/PourDogFoodInstance.cs" />
@@ -36,11 +38,9 @@
     <Compile Include="../../Assets/Scripts/MiniGame/CleanGame/WipeMask.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockRound.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockPriceGenerator.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/V1/StockChartView.cs" />
-    <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/V1/StockCurve.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockAxisRange.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairRound.cs" />
-    <Compile Include="Program.cs" /><Compile Include="StockChecks.cs" /><Compile Include="StockChartChecks.cs" /><Compile Include="TestDoubles.cs" />
+    <Compile Include="Program.cs" /><Compile Include="StockChecks.cs" /><Compile Include="StockAxisChecks.cs" /><Compile Include="TestDoubles.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
