@@ -1,4 +1,5 @@
 using TapTapGameJam.Core;
+using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
@@ -85,6 +86,8 @@ namespace TapTapGameJam.Items
 
         public override void Interact(PlayerBasic player)
         {
+            Debug.Log("Try pickup");
+            
             if (!CanInteract(player))
             {
                 return;
@@ -98,9 +101,9 @@ namespace TapTapGameJam.Items
                 Debug.LogError($"[{name}]：玩家身上没有 PlayerBag，无法拾取。请在 Player 预制体上挂 PlayerBag 组件");
                 return;
             }
-            Debug.Log("Try pickup");
 
             // 捡起来交给背包：是否自动穿戴、是否打开摆放界面都由 PlayerBag 决定
+            EventPipeline.Publish(new BackpackEvent(true));
             bag.PickUp(this);
         }
 

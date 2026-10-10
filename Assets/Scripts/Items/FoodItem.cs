@@ -33,9 +33,8 @@ namespace TapTapGameJam.Items
 
         /// <summary>
         /// 被蟑螂啃掉 amount 份营养，返回实际吃到的量（0 表示没吃到）。
-        /// 子类可以覆写它来换掉"吃"的后果（例如 <see cref="CleanerDrugFoodItem"/>：吃了就死）。
         /// </summary>
-        public virtual float Consume(float amount)
+        public float Consume(float amount)
         {
             if (amount <= 0f || !HasNutrition)
             {
