@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Items;
@@ -45,7 +46,7 @@ namespace TapTapGameJam.UI
         [SerializeField] private string _lowColor = "#E05A5A";
 
         [Tooltip("低于这个比例就换成低营养颜色")]
-        [SerializeField, Range(0f, 1f)] private float _lowThreshold = 0.3f;
+        [SerializeField, UnityEngine.Range(0f, 1f)] private float _lowThreshold = 0.3f;
 
         private void Awake()
         {
@@ -105,11 +106,18 @@ namespace TapTapGameJam.UI
         /// </summary>
         private void RefreshBubble(bool pending)
         {
-            _bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : Color.white;
+            // 这个脚本也用于毒饵，不一定有这两ui
+            if (_bubbleImage != null)
+            {
+                _bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : Color.white;
+            }
 
-            Vector3 scale = _bubbleHintButton.localScale;
-            scale.x = Mathf.MoveTowards(scale.x, pending ? 1f : 0f, _bubbleScaleSpeed * Time.deltaTime);
-            _bubbleHintButton.localScale = scale;
+            if (_bubbleHintButton != null)
+            {
+                Vector3 scale = _bubbleHintButton.localScale;
+                scale.x = Mathf.MoveTowards(scale.x, pending ? 1f : 0f, _bubbleScaleSpeed * Time.deltaTime);
+                _bubbleHintButton.localScale = scale;   
+            }
         }
 
         private static float ProcessedRatio(float remaining, float total)
