@@ -23,15 +23,6 @@ namespace TapTapGameJam.UI
         [Tooltip("圆圈填充图。留空则只刷新文本")]
         [SerializeField] private Image _fillImage;
 
-        [Tooltip("Bubble气泡图，被玩家选中时高亮为蓝色")]
-        [SerializeField] private Image _bubbleImage;
-
-        [Tooltip("Bubble提示按钮，被玩家选中时 scale.x 弹出到 1，平时缩回 0")]
-        [SerializeField] private Transform _bubbleHintButton;
-
-        [Tooltip("Bubble提示弹出/缩回的速度")]
-        [SerializeField] private float _bubbleScaleSpeed = 10f;
-
         [Tooltip("数字文本")]
         [SerializeField] private TMP_Text _valueText;
 
@@ -65,13 +56,6 @@ namespace TapTapGameJam.UI
                 Debug.LogError($"[FoodNutritionUI:{name}]：没有配置文本");
             }
 
-            // 平时不显示提示按钮，弹出交给 Update
-            if (_bubbleHintButton != null)
-            {
-                Vector3 scale = _bubbleHintButton.localScale;
-                scale.x = 0f;
-                _bubbleHintButton.localScale = scale;
-            }
         }
 
         private void Update()
@@ -80,8 +64,6 @@ namespace TapTapGameJam.UI
             {
                 return;
             }
-
-            RefreshBubble(_food.InteractState == InteractState.InteractPending);
 
             float remaining = _food.remainingNutrition;
             float total = _food.totalNutrition;
@@ -100,26 +82,6 @@ namespace TapTapGameJam.UI
                 _valueText.text = $"<color={color}>{Mathf.CeilToInt(remaining)}</color> / {total}";
             }
         }
-
-        /// <summary>
-        /// 被玩家选中时气泡高亮、提示按钮弹出；取消选中时颜色复原、按钮快速缩回。
-        /// </summary>
-        private void RefreshBubble(bool pending)
-        {
-            // 这个脚本也用于毒饵，不一定有这两ui
-            if (_bubbleImage != null)
-            {
-                _bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : Color.white;
-            }
-
-            if (_bubbleHintButton != null)
-            {
-                Vector3 scale = _bubbleHintButton.localScale;
-                scale.x = Mathf.MoveTowards(scale.x, pending ? 1f : 0f, _bubbleScaleSpeed * Time.deltaTime);
-                _bubbleHintButton.localScale = scale;   
-            }
-        }
-
         private static float ProcessedRatio(float remaining, float total)
         {
             return total > 0f ? Mathf.Clamp01(remaining / total) : 0f;

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8927086985921228284}
   - component: {fileID: 8350118376936573391}
   - component: {fileID: 3014336715021597838}
-  m_Layer: 11
+  m_Layer: 9
   m_Name: button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 2169502391986267357}
   - component: {fileID: 6480429415275181929}
   - component: {fileID: 3158756471429915821}
-  m_Layer: 11
+  m_Layer: 9
   m_Name: BubbleChooseUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 8124906157586471715}
   - component: {fileID: 3208215347009141471}
   - component: {fileID: 4786591172404552290}
-  m_Layer: 11
+  m_Layer: 9
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

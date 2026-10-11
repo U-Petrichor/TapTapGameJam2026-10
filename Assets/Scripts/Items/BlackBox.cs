@@ -15,9 +15,6 @@ namespace TapTapGameJam.Items
         [Tooltip("黑盒内部道具")]
         public PickableItem hidedItem;
 
-        [Tooltip("气泡UI")]
-        public Image bubbleImage;
-        
         [Tooltip("扫描进度UI（整体）")]
         public Image scanUI;
         
@@ -28,8 +25,6 @@ namespace TapTapGameJam.Items
         public float scannedTime;
         public float ScannedRate => scannedTime / scanReqTime;
 
-        private bool _isScanning = false;
-        
         public override string InteractionPrompt => "按E扫描";
 
         public override void Interact(PlayerBasic player, InteractKey key)
@@ -39,9 +34,7 @@ namespace TapTapGameJam.Items
 
         protected void OnEnable()
         {
-            _isScanning = false;
             scanUI.gameObject.SetActive(false);
-            bubbleImage.enabled = true;
             scannedTime = 0;
         }
 
@@ -49,12 +42,8 @@ namespace TapTapGameJam.Items
         {
             if (InteractState == InteractState.Interacting)
             {
-                if (!_isScanning)
-                {
-                    scanUI.gameObject.SetActive(true);
-                    bubbleImage.enabled = false;
-                    _isScanning = true;
-                }
+                if (!scanUI.IsActive()) scanUI.gameObject.SetActive(true);
+                
                 scanUIProcess.transform.localScale = new Vector3(ScannedRate, 1, 1);
                 
                 scannedTime += Time.deltaTime;
@@ -66,16 +55,11 @@ namespace TapTapGameJam.Items
             }
             else
             {
-                if (_isScanning)
+                if (scanUI.IsActive())
                 {
                     scanUI.gameObject.SetActive(false);
-                    bubbleImage.enabled = true;
                     scannedTime = 0;
-                    _isScanning = false;
                 }
-
-                bool pending = (InteractState == InteractState.InteractPending); 
-                bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : Color.white;
             }
         }
     }
