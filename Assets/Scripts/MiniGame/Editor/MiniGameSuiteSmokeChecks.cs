@@ -132,7 +132,7 @@ public static class MiniGameSuiteSmokeChecks
         int before = _player.PlayerResources.Coins;
         var cleanTask = cleanQuest.CreateTask();
         Assert(cleanTask != null, "clean task generated");
-        cleanPoint.Interact(_player);
+        cleanPoint.Interact(_player, InteractKey.E);
         Canvas.ForceUpdateCanvases();
         yield return null;
         var clean = _panel.GetComponentInChildren<global::CleanGame>(true);
@@ -171,7 +171,7 @@ public static class MiniGameSuiteSmokeChecks
         var arrows = Field<System.Collections.Generic.Dictionary<string, Arrow>>(indicator, "_arrows");
         Assert(arrows.ContainsKey(stockTask.Id) && stockTask.TargetPosition == stockPoint.transform,
             "stock guide points to existing chair entry");
-        stockPoint.Interact(_player);
+        stockPoint.Interact(_player, InteractKey.E);
         var stock = _panel.GetComponentInChildren<StockPointGame>(true);
         var round = Field<StockRound>(stock, "_round");
         Assert(round.Prices.Count == 1 && round.CurvePrices.Count == 3 && round.Prices[0] >= 250 && round.Prices[0] <= 450
@@ -241,14 +241,14 @@ public static class MiniGameSuiteSmokeChecks
         }
         Assert(round.IsComplete && stockTask.IsFinished && !stockPoint.CanInteract(_player)
             && !arrows.ContainsKey(stockTask.Id), "20 seconds closes panel and removes exhausted daily guide");
-        stockPoint.Interact(_player);
+        stockPoint.Interact(_player, InteractKey.E);
         Assert(!stock.gameObject.activeInHierarchy, "same-day reentry is blocked");
         changePhase(GamePhase.Night); changePhase(GamePhase.Day);
         Assert(stockQuest.RemainingPlays == 1 && stockPoint.CanInteract(_player),
             "new day restores exactly one attempt");
         // 提前退出也消耗一次；既有资金和本局净盈亏只结算一次。
         _player.PlayerResources.AddCoins(500 - _player.PlayerResources.Coins);
-        stockPoint.Interact(_player); stock.Buy();
+        stockPoint.Interact(_player, InteractKey.E); stock.Buy();
         var closingRound = Field<StockRound>(stock, "_round");
         closingRound.Tick(0.5);
         int expectedClose = 500 + (int)Math.Round(closingRound.Profit, MidpointRounding.AwayFromZero);
@@ -262,7 +262,7 @@ public static class MiniGameSuiteSmokeChecks
             changePhase(GamePhase.Night); changePhase(GamePhase.Day);
             _player.PlayerResources.AddCoins(500 - _player.PlayerResources.Coins);
             var activity = stockQuest.Activity;
-            stockPoint.Interact(_player); stock.Buy();
+            stockPoint.Interact(_player, InteractKey.E); stock.Buy();
             var dayRound = Field<StockRound>(stock, "_round");
             dayRound.Tick(0.5);
             float lastPrice = dayRound.Price;
@@ -290,7 +290,7 @@ public static class MiniGameSuiteSmokeChecks
         int coffeeBefore = _player.PlayerResources.CoffeeCount;
         var coffeeTask = coffeeQuest.CreateTask();
         Assert(coffeeTask != null, "coffee task generated");
-        coffeePoint.Interact(_player);
+        coffeePoint.Interact(_player, InteractKey.E);
         float deadline = Time.realtimeSinceStartup + 5;
         while (!_panel.GetComponent<CanvasGroup>().interactable)
         { Assert(Time.realtimeSinceStartup < deadline, "coffee popup timeout"); yield return null; }
@@ -346,10 +346,10 @@ public static class MiniGameSuiteSmokeChecks
         Assert(coffeeTask.WasSuccessful && _player.PlayerResources.CoffeeCount == coffeeBefore + 1, "2D coffee awards exactly one coffee");
         Assert(_player.PlayerResources.Coins == before + coffeeTask.RewardCoins, "coffee reward matches task configuration");
         Assert(!_panel.GetComponent<CanvasGroup>().blocksRaycasts, "completed panel releases UI raycasts");
-        coffeeTask = coffeeQuest.CreateTask(); coffeePoint.Interact(_player);
+        coffeeTask = coffeeQuest.CreateTask(); coffeePoint.Interact(_player, InteractKey.E);
         _panel.OnEscKeyPressed();
         Assert(!coffeeTask.IsFinished && coffeePoint.CanInteract(_player), "coffee early exit retains task for retry");
-        coffeePoint.Interact(_player);
+        coffeePoint.Interact(_player, InteractKey.E);
         Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.HeatWater, "coffee retry starts fresh recipe");
         coffeeTask.Cancel();
         Assert(coffeeTask.IsFinished && !_panel.GetComponent<CanvasGroup>().blocksRaycasts, "task cancellation closes its panel");
@@ -376,7 +376,7 @@ public static class MiniGameSuiteSmokeChecks
             new Vector2(point.transform.position.x, point.transform.position.z)) < 0.01f,
             "printer guide origin matches visible model rather than FBX export offset");
         int coins = _player.PlayerResources.Coins, talent = _player.PlayerResources.TalentPoint;
-        point.Interact(_player); Canvas.ForceUpdateCanvases();
+        point.Interact(_player, InteractKey.E); Canvas.ForceUpdateCanvases();
         yield return null;
         Assert(game.gameObject.activeInHierarchy && _panel.GetComponent<CanvasGroup>().interactable,
             "printer QTE opens in shared 2D panel");
@@ -416,7 +416,7 @@ public static class MiniGameSuiteSmokeChecks
                 Assert(!task.IsFinished && point.CanInteract(_player) && _player.PlayerResources.Coins == coins,
                     "printer early exit preserves task without reward");
                 InputSystem.QueueStateEvent(_keyboard, new KeyboardState()); yield return null;
-                point.Interact(_player); round = Field<PrinterRepairRound>(game, "_round");
+                point.Interact(_player, InteractKey.E); round = Field<PrinterRepairRound>(game, "_round");
                 Assert(round.Successes == 0, "printer retry resets progress");
                 MovePrinterTo(game, round, round.ZoneStart + round.ZoneWidth * 0.5);
                 InputSystem.QueueStateEvent(_keyboard, new KeyboardState(Key.Space));
@@ -432,7 +432,7 @@ public static class MiniGameSuiteSmokeChecks
             "printer awards configured coins and talent once");
         game.Hit(); _panel.OnEscKeyPressed();
         Assert(_player.PlayerResources.Coins == coins + task.RewardCoins, "printer stale input and repeat close cannot double-reward");
-        var next = quest.CreateTask(); point.Interact(_player);
+        var next = quest.CreateTask(); point.Interact(_player, InteractKey.E);
         var cancelledRound = Field<PrinterRepairRound>(game, "_round");
         EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Shopping));
         Assert(next.IsFinished && !next.WasSuccessful && !game.gameObject.activeInHierarchy && !cancelledRound.IsRunning,

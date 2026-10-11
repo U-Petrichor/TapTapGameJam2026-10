@@ -5,6 +5,7 @@ using TapTapGameJam.Events;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.Player;
 using TapTapGameJam.Types;
+using TapTapGameJam.Interactables;
 using UnityEngine;
 
 internal static class Program
@@ -23,13 +24,13 @@ internal static class Program
         {
             var f = new Fixture();
             Check(f.Spawn());
-            f.Point.Interact(f.Player);
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
+            f.Point.Interact(f.Player, InteractKey.E);
             Check(f.OpenCount == 1);
             f.Callback(false);
             Check(f.Manager.Tasks.Count == 1 && f.Point.CanInteract(f.Player));
             Check(f.Player.PlayerResources.Coins == 0);
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
             Action<bool> completed = f.Callback;
             completed(true);
             completed(true);
@@ -41,14 +42,14 @@ internal static class Program
         {
             var f = new Fixture();
             Check(f.Spawn());
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
             Action<bool> old = f.Callback;
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Night));
             Check(f.CloseCount == 1 && f.Manager.Tasks.Count == 0 && !f.Detector.enabled);
             Check(f.Player.PlayerResources.Coins == 0);
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
             Check(f.Spawn());
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
             old(true);
             Check(f.Manager.Tasks.Count == 1 && f.Player.PlayerResources.Coins == 0);
             f.Callback(true);
@@ -60,7 +61,7 @@ internal static class Program
             {
                 var f = new Fixture();
                 Check(f.Spawn());
-                f.Point.Interact(f.Player);
+                f.Point.Interact(f.Player, InteractKey.E);
                 Call(disablePoint ? (object)f.Point : f.Quest, "OnDisable");
                 Check(f.Manager.Tasks.Count == 0 && !f.Detector.enabled && f.CloseCount == 1);
                 Check(f.Player.PlayerResources.Coins == 0);
@@ -71,10 +72,10 @@ internal static class Program
             var f = new Fixture();
             Check(f.Spawn());
             f.RejectOpen = true;
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
             Check(f.Point.CanInteract(f.Player) && f.Manager.Tasks.Count == 1);
             f.RejectOpen = false;
-            f.Point.Interact(f.Player);
+            f.Point.Interact(f.Player, InteractKey.E);
             Check(!f.Point.CanInteract(f.Player));
             f.Callback(true);
             Check(f.Manager.Tasks.Count == 0);

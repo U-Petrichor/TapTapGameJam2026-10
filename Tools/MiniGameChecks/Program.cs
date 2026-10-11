@@ -42,14 +42,14 @@ internal static class Program
                 Check(!f.Point.CanInteract(f.Player));
                 f.Spawn();
                 Check(!f.Quest.CanSpawn && f.Quest.CreateTask() == null && f.Point.CanInteract(f.Player));
-                f.Point.Interact(f.Player); f.Point.Interact(f.Player);
+                f.Point.Interact(f.Player, InteractKey.E); f.Point.Interact(f.Player, InteractKey.E);
                 Check(f.OpenCount == 1 && f.OpenPlayer == f.Player);
                 var old = f.Callback;
                 old(true); old(true); f.Task.Cancel();
                 Check(f.Manager.Tasks.Count == 0 && f.Quest.CanSpawn && f.Task.WasSuccessful);
                 Check(f.Player.PlayerResources.Coins == 17 && f.Player.PlayerResources.TalentPoint == 2);
                 Check(f.Player.PlayerResources.CoffeeCount == (kind == "coffee" ? 1 : 0));
-                f.Spawn(); f.Point.Interact(f.Player); old(true);
+                f.Spawn(); f.Point.Interact(f.Player, InteractKey.E); old(true);
                 Check(f.Manager.Tasks.Count == 1 && f.Player.PlayerResources.Coins == 17);
                 f.Callback(true);
                 Check(f.Player.PlayerResources.Coins == 34);
@@ -57,17 +57,17 @@ internal static class Program
             Run(kind + ": close policy, phase cancellation, stale callback and no cancellation rewards", () =>
             {
                 var f = new Fixture(kind);
-                f.Spawn(); f.Point.Interact(f.Player);
+                f.Spawn(); f.Point.Interact(f.Player, InteractKey.E);
                 var old = f.Callback;
                 old(false);
                 Check(f.Manager.Tasks.Count == 1);
                 Check(f.Player.PlayerResources.Coins == 0);
-                f.Point.Interact(f.Player);
+                f.Point.Interact(f.Player, InteractKey.E);
                 old = f.Callback;
                 EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Night));
                 Check(f.Manager.Tasks.Count == 0 && !f.Detector.enabled && f.CloseCount == 1);
                 EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
-                f.Spawn(); f.Point.Interact(f.Player); old(true);
+                f.Spawn(); f.Point.Interact(f.Player, InteractKey.E); old(true);
                 Check(f.Manager.Tasks.Count == 1 && f.Player.PlayerResources.Coins == 0);
                 f.Callback(true);
                 Check(f.Player.PlayerResources.Coins == 17);
@@ -77,7 +77,7 @@ internal static class Program
                 foreach (bool pointDisable in new[] { false, true })
                 {
                     var f = new Fixture(kind);
-                    f.Spawn(); f.Point.Interact(f.Player);
+                    f.Spawn(); f.Point.Interact(f.Player, InteractKey.E);
                     if (pointDisable) Call(f.Point, "OnDisable");
                     else EventPipeline.Publish(new EventGameOver(false, "test"));
                     Check(f.Task.IsFinished && !f.Task.WasSuccessful && !f.Detector.enabled && f.CloseCount == 1);
@@ -140,7 +140,7 @@ internal static class Program
             foreach (bool success in new[] { false, true })
             {
                 var f = new StockFixture(); f.Day(); var activity = f.Quest.Activity;
-                f.Point.Interact(f.Player);
+                f.Point.Interact(f.Player, InteractKey.E);
                 Check(f.Quest.RemainingPlays == 0 && !activity.IsFinished);
                 var old = f.Callback; old(success); old(true); old(false);
                 Check(activity.IsFinished && f.Manager.Tasks.Count == 0 && !f.Detector.enabled && !f.Quest.CanSpawn);
@@ -153,32 +153,32 @@ internal static class Program
         Run("Rejected stock open does not consume quota; duplicate start callbacks count once", () =>
         {
             var f = new StockFixture(); f.Day(); f.AcceptOpen = false;
-            f.Point.Interact(f.Player); f.Callback(false);
+            f.Point.Interact(f.Player, InteractKey.E); f.Callback(false);
             Check(f.Quest.RemainingPlays == 1 && f.Point.CanInteract(f.Player));
-            f.AcceptOpen = true; f.Point.Interact(f.Player); f.Started(); f.Started();
+            f.AcceptOpen = true; f.Point.Interact(f.Player, InteractKey.E); f.Started(); f.Started();
             Check(f.Quest.RemainingPlays == 0);
             f.Callback(false); Call(f.Manager, "Update");
             Check(f.Quest.RemainingPlays == 0 && f.Quest.Activity == null);
         });
         Run("Old stock callbacks cannot close the following day's round", () =>
         {
-            var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player);
+            var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player, InteractKey.E);
             var old = f.Callback; old(false);
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Night)); f.Day();
-            f.Point.Interact(f.Player); old(true); old(false);
+            f.Point.Interact(f.Player, InteractKey.E); old(true); old(false);
             Check(!f.Point.CanInteract(f.Player) && f.Manager.Tasks.Count == 1);
             f.Callback(true); Check(!f.Point.CanInteract(f.Player) && f.Manager.Tasks.Count == 0);
         });
         Run("Leaving day closes stock and guide; next day creates exactly one fresh activity", () =>
         {
-            var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player);
+            var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player, InteractKey.E);
             var old = f.Callback; var oldActivity = f.Quest.Activity;
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Shopping));
             Check(oldActivity.IsFinished && f.Manager.Tasks.Count == 0 && f.Quest.Activity == null && !f.Detector.enabled && f.Closed == 1);
             EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Night));
             Check(!f.Point.CanInteract(f.Player));
             f.Day(); Check(f.Added == 2 && f.Removed == 1 && f.Manager.Tasks.Count == 1);
-            f.Point.Interact(f.Player); old(true);
+            f.Point.Interact(f.Player, InteractKey.E); old(true);
             Check(!f.Point.CanInteract(f.Player) && !f.Quest.Activity.IsFinished);
             f.Callback(false); Check(!f.Point.CanInteract(f.Player));
         });
@@ -186,7 +186,7 @@ internal static class Program
         {
             foreach (bool pointDisable in new[] { false, true })
             {
-                var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player);
+                var f = new StockFixture(); f.Day(); f.Point.Interact(f.Player, InteractKey.E);
                 if (pointDisable) Call(f.Point, "OnDisable"); else EventPipeline.Publish(new EventGameOver(false, "test"));
                 Check(f.Manager.Tasks.Count == 0 && !f.Detector.enabled && f.Closed == 1 && f.Quest.Activity == null);
             }
@@ -196,7 +196,7 @@ internal static class Program
             var f = new Fixture("clean"); f.Spawn();
             var other = new CleanInstance((CleanMopWater)f.Point, 99, 9);
             Check(!other.Begin() && other.IsFinished && f.Detector.enabled && !f.Task.IsFinished);
-            f.Point.Interact(f.Player); f.Callback(true);
+            f.Point.Interact(f.Player, InteractKey.E); f.Callback(true);
             Check(f.Player.PlayerResources.Coins == 17);
         });
         Run("Delivery stage switch, reward and source reuse remain correct", () =>

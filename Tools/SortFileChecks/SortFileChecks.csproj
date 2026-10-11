@@ -13,6 +13,7 @@
     <Compile Include="../../Assets/Scripts/MiniGame/TaskSpawnConditionUtility.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameQuest.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
+    <Compile Include="../../Assets/Scripts/InteractableObjects/InteractKey.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
     <Compile Include="../../Assets/Scripts/Core/EventPipeline.cs" />
     <Compile Include="../../Assets/Scripts/Core/IEvent.cs" />

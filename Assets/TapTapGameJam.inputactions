@@ -243,6 +243,17 @@
                 },
                 {
                     "name": "",
+                    "id": "8be6f158-c226-4a99-8a4b-3e5fba680293",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "21a56379-21a9-4188-8695-a16e10bd41e0",
                     "path": "<Keyboard>/b",
                     "interactions": "",

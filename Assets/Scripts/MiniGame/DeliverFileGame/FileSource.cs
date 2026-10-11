@@ -57,7 +57,7 @@ namespace TapTapGameJam.MiniGame
                 _detectCollider != null && _detectCollider.enabled;
         }
 
-        public override void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player, InteractKey key)
         {
             if (!CanInteract(player)) return;
             ResetTask();

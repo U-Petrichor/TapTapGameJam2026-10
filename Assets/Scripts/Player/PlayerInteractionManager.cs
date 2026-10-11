@@ -110,13 +110,13 @@ namespace TapTapGameJam.Player
             EventInteractionPromptChanged?.Invoke(CurrentInteractionPrompt);
             EventTargetChanged?.Invoke(_currentTarget);
         }
-        public void HandleInteract()
+        public void HandleInteract(InteractKey key)
         {
             if (_currentTarget != null)
             {
                 if (_currentTarget.CanInteract(_player))
                 {
-                    _currentTarget.Interact(_player);
+                    _currentTarget.Interact(_player, key);
                 }
                 else
                 {

@@ -72,7 +72,7 @@ namespace TapTapGameJam.MiniGame
         public override bool CanInteract(PlayerBasic player) =>
             isActiveAndEnabled && _hasTask && !_isPlaying && player != null && player.PlayerResources != null;
 
-        public override void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player, InteractKey key)
         {
             if (!CanInteract(player)) return;
             _player = player;

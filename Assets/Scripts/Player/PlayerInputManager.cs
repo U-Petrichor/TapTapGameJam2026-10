@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using TapTapGameJam.Events;
+using TapTapGameJam.Interactables;
 using System;
 
 namespace TapTapGameJam.Player
@@ -17,7 +19,8 @@ namespace TapTapGameJam.Player
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
 
-        public event Action EventOnInteractPress;
+        /// <summary>交互键按下，参数是这一次按的是哪个键（E / F）</summary>
+        public event Action<InteractKey> EventOnInteractPress;
         public event Action EventOnInteractionSwitchPress; // 按 Q 切换到下一个交互目标
         public event Action<int> EventOnCameraScroll; // 传入滚轮方向，1为远离，-1为靠近
         public event Action<int> EventOnCameraRotate; // [ 为 +1，] 为 -1，每次旋转 45 度
@@ -119,13 +122,36 @@ namespace TapTapGameJam.Player
         #endregion
 
         #region 玩家交互
+        /// <summary>
+        /// E / F 都绑在 Interact 这一个 action 上，这里把本次按下的是哪个键一起广播出去。
+        /// </summary>
         public void OnInteract(InputAction.CallbackContext context)
         {
             if (!context.performed)
             {
                 return;
             }
-            EventOnInteractPress?.Invoke();
+            EventOnInteractPress?.Invoke(ResolveInteractKey(context));
+        }
+
+        /// <summary>
+        /// 反查本次触发用的是哪个键：一个 action 挂多个绑定时，context.control 就是真正被按下的那个控件。
+        /// 认不出来的（例如以后接手柄）返回 None，交给 Interactable 走默认逻辑。
+        /// </summary>
+        private static InteractKey ResolveInteractKey(InputAction.CallbackContext context)
+        {
+            if (context.control is KeyControl keyControl)
+            {
+                switch (keyControl.keyCode)
+                {
+                    case Key.E:
+                        return InteractKey.E;
+                    case Key.F:
+                        return InteractKey.F;
+                }
+            }
+
+            return InteractKey.None;
         }
         public void OnMouseScroll(InputAction.CallbackContext context)
         {

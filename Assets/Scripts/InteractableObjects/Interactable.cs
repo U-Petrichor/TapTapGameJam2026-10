@@ -26,9 +26,10 @@ namespace TapTapGameJam.Interactables
         }
 
         /// <summary>
+        /// 真正执行交互。key 是玩家这次按下的交互键，子类可以据此实现不同的交互（例如 E 拾取、F 吃掉）。
         /// 用于一次性物品：玩家交互之后，会从所有已注册单位中取消注册
         /// </summary>
-        public abstract void Interact(PlayerBasic player);
+        public abstract void Interact(PlayerBasic player, InteractKey key);
         protected void ClearAllRegister()
         {
             foreach (var x in _registered)

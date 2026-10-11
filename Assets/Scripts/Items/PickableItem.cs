@@ -84,7 +84,7 @@ namespace TapTapGameJam.Items
             return IsOnMap;
         }
 
-        public override void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player, InteractKey key)
         {
             Debug.Log("Try pickup");
             

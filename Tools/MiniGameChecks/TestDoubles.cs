@@ -50,7 +50,7 @@ namespace TapTapGameJam.Interactables
         public abstract string InteractionPrompt { get; }
         public bool IsPendingInteract { get; set; }
         public virtual bool CanInteract(TapTapGameJam.Player.PlayerBasic player) => true;
-        public abstract void Interact(TapTapGameJam.Player.PlayerBasic player);
+        public abstract void Interact(TapTapGameJam.Player.PlayerBasic player, InteractKey key);
         protected void ClearAllRegister() => ClearCount++;
     }
 }

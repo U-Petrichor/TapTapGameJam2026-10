@@ -10,6 +10,7 @@
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameCandidate.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/MiniGameManager.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelTaskPoint.cs" />
+    <Compile Include="../../Assets/Scripts/InteractableObjects/InteractKey.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PanelMiniGameInstance.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/ITaskSpawnCondition.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/TaskSpawnConditionUtility.cs" />

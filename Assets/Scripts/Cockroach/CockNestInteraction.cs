@@ -64,7 +64,7 @@ namespace TapTapGameJam.Cockroach
             return false;
         }
 
-        public override void Interact(PlayerBasic player)
+        public override void Interact(PlayerBasic player, InteractKey key)
         {
             if (player == null) return;
 
