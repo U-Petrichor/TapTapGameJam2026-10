@@ -44,11 +44,12 @@ namespace TapTapGameJam.Player
 }
 namespace TapTapGameJam.Interactables
 {
+    public enum InteractState { InteractIdle, InteractPending, Interacting }
     public abstract class Interactable : UnityEngine.MonoBehaviour
     {
         public int ClearCount;
         public abstract string InteractionPrompt { get; }
-        public bool IsPendingInteract { get; set; }
+        public InteractState InteractState { get; set; }
         public virtual bool CanInteract(TapTapGameJam.Player.PlayerBasic player) => true;
         public abstract void Interact(TapTapGameJam.Player.PlayerBasic player, InteractKey key);
         protected void ClearAllRegister() => ClearCount++;

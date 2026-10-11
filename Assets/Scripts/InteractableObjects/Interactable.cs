@@ -6,6 +6,13 @@ using UnityEngine;
 namespace TapTapGameJam.Interactables
 {
 
+    public enum InteractState
+    {
+        InteractIdle,       // 等待交互状态
+        InteractPending,    // 已经聚焦，下一次按键即将交互
+        Interacting         // 持续交互状态
+    }
+
     public abstract class Interactable : MonoBehaviour
     {
         public abstract string InteractionPrompt { get; }
@@ -13,7 +20,8 @@ namespace TapTapGameJam.Interactables
         /// <summary>
         /// 是否处于就绪状态（已被选中，准备交互），由 PlayerInteractionManager 维护，只有当前选中的对象为 true
         /// </summary>
-        public bool IsPendingInteract { get; set; } = false;
+        // public bool IsPendingInteract { get; set; } = false;
+        public InteractState InteractState { get; set; } = InteractState.InteractIdle;
 
         private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
 

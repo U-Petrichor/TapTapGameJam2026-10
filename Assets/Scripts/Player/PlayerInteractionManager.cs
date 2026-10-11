@@ -14,9 +14,9 @@ namespace TapTapGameJam.Player
         private readonly List<Interactable> _candidates = new();
         public IReadOnlyList<Interactable> Candidates => _candidates;
         public bool HasInteractionTargets => _candidates.Count > 0;
-        public string CurrentInteractionPrompt => _currentTarget?.InteractionPrompt ?? string.Empty;
+        public string CurrentInteractionPrompt => _currentTarget != null ? _currentTarget.InteractionPrompt : string.Empty;
         private Interactable _currentTarget;
-        private int _currentTargetIndex = 0;
+        private bool _isUIVisible;
 
         // 新 UI 只接收显示、隐藏和文字通知，不维护交互对象列表。
         public event Action EventShowInteractionUI;
@@ -46,106 +46,193 @@ namespace TapTapGameJam.Player
             _inputManager.EventOnInteractPress -= HandleInteract;
             _inputManager.EventOnInteractionSwitchPress -= HandleSwitchInteraction;
         }
+
+        private void Update()
+        {
+            // 玩家一动就强制刷新：最近的候选成为 InteractPending，正在进行的交互被打断。
+            if (_inputManager != null && _inputManager.HasMoveInput)
+            {
+                RefreshInteraction(true);
+            }
+        }
+
         public void Register(Interactable interactable)
         {
             if (interactable == null || _candidates.Contains(interactable)) return;
 
-            // 1. 加入队列
             _candidates.Add(interactable);
             EventObjectAdded?.Invoke(interactable);
-            // 2. 如果这个是第一个，则额外配置
-            if (_candidates.Count == 1)
-            {
-                _currentTargetIndex = 0; // 索引归0
-                SetCurrentTarget(interactable); // 当前指向的单位改为这个
-                EventShowInteractionUI?.Invoke();
-            }
+
+            // 只是别的物体进了范围：焦点没换人就不该打断手里的持续交互
+            RefreshInteraction(false);
         }
+
         public void Unregister(Interactable interactable)
         {
-            // 事先记录要删除的这个所处的索引位置
             int deletedIndex = _candidates.IndexOf(interactable);
             if (deletedIndex < 0) return;
-            // 删除的是不是当前指向的目标
-            bool isCurrentTarget = interactable == _currentTarget;
 
-            // 先从候选列表移除，再更新当前目标和 UI。
             _candidates.RemoveAt(deletedIndex);
             EventObjectDeleted?.Invoke(interactable);
 
-            // 如果删完后为空
+            // 离开候选列表的对象不能再停在 Pending / Interacting，否则它自己的持续逻辑会一直跑下去。
+            if (interactable != null) interactable.InteractState = InteractState.InteractIdle;
+
+            // 同理：别人离开时如果焦点还是原来那个，它正在进行的交互不该被中断
+            RefreshInteraction(false);
+        }
+
+        /// <summary>
+        /// 重算候选与聚焦：距离玩家最近的候选变成 InteractPending，其余回到 InteractIdle。
+        /// 刷新一定会覆盖 Q 手动切换的结果；
+        /// breakInteracting = true（玩家移动）时无条件打断正在进行的交互；
+        /// false（别的物体注册/注销）时只有焦点真的换了对象才算打断。
+        /// </summary>
+        public void RefreshInteraction(bool breakInteracting)
+        {
+            RemoveDestroyedCandidates();
+
             if (_candidates.Count == 0)
             {
-                _currentTargetIndex = 0;
-                SetCurrentTarget(null);
-                EventHideInteractionUI?.Invoke();
+                SetFocus(null, breakInteracting);
+                if (_isUIVisible)
+                {
+                    _isUIVisible = false;
+                    EventHideInteractionUI?.Invoke();
+                }
                 return;
             }
 
-            // 删除当前目标之前的对象时，保持目标不变，只修正索引。
-            if (deletedIndex < _currentTargetIndex)
+            SetFocus(FindNearest(), breakInteracting);
+            if (!_isUIVisible)
             {
-                _currentTargetIndex -= 1;
-                return;
-            }
-            // 当前目标消失后选择原位置的下一个；原目标在末尾则选择前一个。
-            if (isCurrentTarget)
-            {
-                _currentTargetIndex = Math.Min(_currentTargetIndex, _candidates.Count - 1);
-                SetCurrentTarget(_candidates[_currentTargetIndex]);
+                _isUIVisible = true;
+                EventShowInteractionUI?.Invoke();
             }
         }
-        private void SetCurrentTarget(Interactable target)
+
+        /// <summary>
+        /// 设置聚焦对象：它变 InteractPending，其余候选回到 InteractIdle。
+        /// 焦点换人时，原来那个会走"非焦点"分支被打回 InteractIdle，也就是被中断了。
+        /// </summary>
+        private void SetFocus(Interactable target, bool breakInteracting)
         {
-            if (_currentTarget == target)
+            // Unity 的 == 重载会把已销毁对象判成 null，先把这个"假 null"清掉，后面才好比较。
+            if (_currentTarget == null) _currentTarget = null;
+
+            foreach (Interactable candidate in _candidates)
             {
-                return;
+                if (candidate == null) continue;
+
+                if (candidate != target)
+                {
+                    candidate.InteractState = InteractState.InteractIdle;
+                    continue;
+                }
+
+                // 焦点对象正在持续交互，且这次刷新不要求打断，就让它继续跑
+                if (!breakInteracting && candidate.InteractState == InteractState.Interacting) continue;
+
+                candidate.InteractState = InteractState.InteractPending;
             }
 
-            // 只有当前选中的对象处于待交互状态
-            if (_currentTarget != null) _currentTarget.IsPendingInteract = false;
-            _currentTarget = target;
-            if (_currentTarget != null) _currentTarget.IsPendingInteract = true;
+            if (_currentTarget == target) return;
 
+            _currentTarget = target;
             EventInteractionPromptChanged?.Invoke(CurrentInteractionPrompt);
             EventTargetChanged?.Invoke(_currentTarget);
         }
+
         public void HandleInteract(InteractKey key)
         {
-            if (_currentTarget != null)
+            if (_currentTarget == null) return; // 没有聚焦对象，什么都不做
+
+            if (!_currentTarget.CanInteract(_player))
             {
-                if (_currentTarget.CanInteract(_player))
-                {
-                    _currentTarget.Interact(_player, key);
-                }
-                else
-                {
-                    Debug.LogError($"当前目标{_currentTarget.InteractionPrompt}无法交互");
-                }
+                Debug.LogError($"当前目标{_currentTarget.InteractionPrompt}无法交互");
+                return;
             }
-            // else分支为无可交互对象，什么都不做
+
+            // 先切成 Interacting 再交给对象执行：它在这一帧里就能读到自己的状态
+            _currentTarget.InteractState = InteractState.Interacting;
+            _currentTarget.Interact(_player, key);
         }
+
         public void HandleSwitchInteraction()
         {
             if (_candidates.Count <= 1) return;
 
-            // Q 每次只向下切换一个，到末尾后回到第一个。
-            _currentTargetIndex = (_currentTargetIndex + 1) % _candidates.Count;
-            SetCurrentTarget(_candidates[_currentTargetIndex]);
+            // Q 按距离从近到远依次聚焦（次近、更远…），最远的下一次回到最近的。
+            // 这个聚焦是临时的，下一次刷新（移动 / 注册 / 注销）会自动覆盖回"最近"。
+            Interactable next = FindNextNearest(_currentTarget);
+            if (next != null) SetFocus(next, true);
         }
 
-        /// <summary>让特殊交互流程（例如手持巢穴）立即成为当前 E 目标。</summary>
+        /// <summary>让特殊交互流程（例如手持巢穴）立即成为当前聚焦对象，效果等同一次 Q 切换。</summary>
         public bool SelectInteractionTarget(Interactable interactable)
         {
-            int index = _candidates.IndexOf(interactable);
-            if (index < 0)
+            if (interactable == null || _candidates.IndexOf(interactable) < 0) return false;
+
+            SetFocus(interactable, true);
+            return true;
+        }
+
+        /// <summary>丢弃已经销毁、但没来得及 Unregister 的候选（例如食物被吃空后 Destroy）。</summary>
+        private void RemoveDestroyedCandidates()
+        {
+            for (int i = _candidates.Count - 1; i >= 0; i--)
             {
-                return false;
+                if (_candidates[i] == null) _candidates.RemoveAt(i);
+            }
+        }
+
+        private Interactable FindNearest()
+        {
+            Interactable nearest = null;
+            float nearestSqr = float.MaxValue;
+            foreach (Interactable candidate in _candidates)
+            {
+                if (candidate == null) continue;
+                float sqr = SqrDistanceTo(candidate);
+                if (nearest == null || sqr < nearestSqr)
+                {
+                    nearest = candidate;
+                    nearestSqr = sqr;
+                }
+            }
+            return nearest;
+        }
+
+        /// <summary>比当前聚焦更远的最近一个（次近 → 更远）；已经没有更远的就回到最近的那个。</summary>
+        private Interactable FindNextNearest(Interactable current)
+        {
+            float currentSqr = current != null ? SqrDistanceTo(current) : float.MaxValue;
+            Interactable next = null;
+            float nextSqr = float.MaxValue;
+
+            foreach (Interactable candidate in _candidates)
+            {
+                if (candidate == null || candidate == current) continue;
+                float sqr = SqrDistanceTo(candidate);
+                if (sqr <= currentSqr) continue; // 更近或同距的都跳过
+                if (next == null || sqr < nextSqr)
+                {
+                    next = candidate;
+                    nextSqr = sqr;
+                }
             }
 
-            _currentTargetIndex = index;
-            SetCurrentTarget(interactable);
-            return true;
+            return next != null ? next : FindNearest();
+        }
+
+        /// <summary>只比水平距离，避免轴心高度更高的物体被误判成更远。</summary>
+        private float SqrDistanceTo(Interactable target)
+        {
+            Vector3 self = transform.position;
+            Vector3 targetPosition = target.transform.position;
+            float dx = self.x - targetPosition.x;
+            float dz = self.z - targetPosition.z;
+            return dx * dx + dz * dz;
         }
     }
 }

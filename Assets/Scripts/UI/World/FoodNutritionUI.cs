@@ -1,4 +1,5 @@
 using TapTapGameJam.Core;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Items;
 using TapTapGameJam.Types;
 using TMPro;
@@ -46,9 +47,6 @@ namespace TapTapGameJam.UI
         [Tooltip("低于这个比例就换成低营养颜色")]
         [SerializeField, Range(0f, 1f)] private float _lowThreshold = 0.3f;
 
-        /// <summary>气泡平时的颜色，Awake 时记下来，取消选中时还原</summary>
-        private Color _bubbleNormalColor = Color.white;
-
         private void Awake()
         {
             if (_food == null)
@@ -64,11 +62,6 @@ namespace TapTapGameJam.UI
             if (_valueText == null)
             {
                 Debug.LogError($"[FoodNutritionUI:{name}]：没有配置文本");
-            }
-
-            if (_bubbleImage != null)
-            {
-                _bubbleNormalColor = _bubbleImage.color;
             }
 
             // 平时不显示提示按钮，弹出交给 Update
@@ -87,7 +80,7 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            RefreshBubble(_food.IsPendingInteract);
+            RefreshBubble(_food.InteractState == InteractState.InteractPending);
 
             float remaining = _food.remainingNutrition;
             float total = _food.totalNutrition;
@@ -112,17 +105,11 @@ namespace TapTapGameJam.UI
         /// </summary>
         private void RefreshBubble(bool pending)
         {
-            if (_bubbleImage != null)
-            {
-                _bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : _bubbleNormalColor;
-            }
+            _bubbleImage.color = pending ? new Color(0.0f, 1.0f, 1.0f) : Color.white;
 
-            if (_bubbleHintButton != null)
-            {
-                Vector3 scale = _bubbleHintButton.localScale;
-                scale.x = Mathf.MoveTowards(scale.x, pending ? 1f : 0f, _bubbleScaleSpeed * Time.deltaTime);
-                _bubbleHintButton.localScale = scale;
-            }
+            Vector3 scale = _bubbleHintButton.localScale;
+            scale.x = Mathf.MoveTowards(scale.x, pending ? 1f : 0f, _bubbleScaleSpeed * Time.deltaTime);
+            _bubbleHintButton.localScale = scale;
         }
 
         private static float ProcessedRatio(float remaining, float total)
