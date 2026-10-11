@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TapTapGameJam.MiniGame;
 using TapTapGameJam.Player;
 using UnityEngine;
@@ -38,16 +37,16 @@ namespace TapTapGameJam.MiniGame
         public override bool CanSpawn => _instances.Count < MaxActiveTasks && CanSpawnNewTask();
 
         [Tooltip("可以生成拿文件的地方")]
-        [SerializeField] private List<FileSource> _sourcePool = new();
+        [SerializeField] private List<FileSourcePoint> _sourcePool = new();
         [Tooltip("可以生成送文件目的地的地方")]
-        [SerializeField] private List<FileDestination> _destinationPool = new();
+        [SerializeField] private List<FileDestinationPoint> _destinationPool = new();
 
 
 
         private bool CanSpawnNewTask()
         {
             Debug.Log($"step4：送文件任务判定开始");
-            var availableSource = new List<FileSource>();
+            var availableSource = new List<FileSourcePoint>();
 
             foreach (var fileSource in _sourcePool)
             {
@@ -64,7 +63,7 @@ namespace TapTapGameJam.MiniGame
                 return false;
             }
 
-            var availableDestination = new List<FileDestination>();
+            var availableDestination = new List<FileDestinationPoint>();
 
             foreach (var fileDestination in _destinationPool)
             {
@@ -85,7 +84,7 @@ namespace TapTapGameJam.MiniGame
         public override MiniGameInstanceBasic CreateTask()
         {
             if (_instances.Count >= MaxActiveTasks) return null;
-            var availableSource = new List<FileSource>();
+            var availableSource = new List<FileSourcePoint>();
 
             foreach (var fileSource in _sourcePool)
             {
@@ -96,7 +95,7 @@ namespace TapTapGameJam.MiniGame
             }
 
 
-            var availableDestination = new List<FileDestination>();
+            var availableDestination = new List<FileDestinationPoint>();
 
             foreach (var fileDestination in _destinationPool)
             {
@@ -111,7 +110,7 @@ namespace TapTapGameJam.MiniGame
 
             // 添加此事件
 
-            DeliveryFileInsance instance = new DeliveryFileInsance(
+            DeliveryFileInstance instance = new DeliveryFileInstance(
                 availableSource[sourceIndex],
                 availableDestination[destinationIndex], _rewardCoins, _rewardTalentPoints
                 );

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
+using TapTapGameJam.Types;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace TapTapGameJam.MiniGame
 {
@@ -11,7 +13,8 @@ namespace TapTapGameJam.MiniGame
     public abstract class PanelTaskPoint : Interactable
     {
         [SerializeField] private Collider _detectCollider;
-        [SerializeField, Min(0)] private int _miniGameIndex;
+        [FormerlySerializedAs("_miniGameIndex")]
+        [SerializeField] private MiniGameKind _miniGameKind;
         [Tooltip("生成任务前必须满足的条件组件。组件本身只需实现 ITaskSpawnCondition。")]
         [SerializeField] private List<MonoBehaviour> _spawnConditionObjects = new();
         private bool _hasTask;
@@ -21,7 +24,7 @@ namespace TapTapGameJam.MiniGame
         private object _taskOwner;
         private bool _attemptStarted;
 
-        protected abstract int DefaultGameIndex { get; }
+        protected abstract MiniGameKind DefaultGameKind { get; }
         protected virtual bool FinishOnClose => false;
         protected virtual bool KeepAvailableAfterAttempt => false;
         public bool CanStartTask => TryGetUnavailableReason(out _);
@@ -38,15 +41,15 @@ namespace TapTapGameJam.MiniGame
         public event Action EventAttemptStarted;
         public event Action<bool> EventAttemptFinished;
 
-        public void ConfigureGameIndex(int index)
+        public void ConfigureGameKind(MiniGameKind kind)
         {
-            _miniGameIndex = index;
+            _miniGameKind = kind;
             if (_detectCollider == null) _detectCollider = GetComponent<Collider>();
         }
 
         protected virtual void Reset()
         {
-            _miniGameIndex = DefaultGameIndex;
+            _miniGameKind = DefaultGameKind;
             _detectCollider = GetComponent<Collider>();
         }
 
@@ -79,7 +82,7 @@ namespace TapTapGameJam.MiniGame
             _isPlaying = true;
             _attemptStarted = false;
             int version = ++_version;
-            EventPipeline.Publish(new EventOpenMiniGamePanel(_miniGameIndex,
+            EventPipeline.Publish(new EventOpenMiniGamePanel(_miniGameKind,
                 success => OnFinish(version, success), player, this, () =>
                 {
                     if (this == null || !_hasTask || !_isPlaying || version != _version || _attemptStarted) return;

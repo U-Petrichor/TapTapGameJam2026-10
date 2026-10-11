@@ -108,7 +108,7 @@ internal static class Program
 
     private sealed class Fixture
     {
-        public readonly PourDogFood Point = new PourDogFood();
+        public readonly PourDogFoodPoint Point = new PourDogFoodPoint();
         public readonly PourDogFoodQuest Quest = new PourDogFoodQuest();
         public readonly MiniGameManager Manager = new MiniGameManager();
         public readonly Collider Detector = new Collider();
@@ -124,8 +124,7 @@ internal static class Program
             Call(Point, "Reset");
             Set(Point, "_detectCollider", Detector);
             Call(Point, "Awake");
-            Set(Quest, "_pourDogFood", Point);
-            Call(Quest, "Awake");
+            Quest.ConfigurePoints(new[] { Point });
             Set(Manager, "_candidatePool", new List<MiniGameCandidate> { Quest });
             if (managerFirst) Call(Manager, "OnEnable");
             Call(Quest, "OnEnable");

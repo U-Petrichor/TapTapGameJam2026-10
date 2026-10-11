@@ -15,6 +15,8 @@ namespace TapTapGameJam.UI
 
         [SerializeField] private TMP_FontAsset _priceFont;
         [SerializeField] private StockAxisSettings _axisSettings = new();
+        [SerializeField] private Color _labelColor = Color.white;
+        [SerializeField] private Color _gridColor = new Color(1f, 1f, 1f, 0.08f);
 
         private IReadOnlyList<float> _prices;
         private IReadOnlyList<float> _curvePrices;
@@ -32,6 +34,16 @@ namespace TapTapGameJam.UI
         public int PriceCount => _count;
         public bool HasTarget => !_frozen && _curvePrices != null && _curvePrices.Count > _count;
         public double TargetPrice => HasTarget ? _curvePrices[_count] : DisplayedPrice;
+
+        public void ConfigureTheme(Color line, Color labels, Color grid)
+        {
+            color = line;
+            _labelColor = labels;
+            _gridColor = grid;
+            RefreshLabels();
+            SetVerticesDirty();
+            if (_plot != null) _plot.SetVerticesDirty();
+        }
         public double HorizontalPosition(double index)
         {
             // 13 个点以内预留 12 个间隔；超过后逐渐压缩，使全部点和唯一待吐点都在图内。
@@ -136,7 +148,7 @@ namespace TapTapGameJam.UI
             label.enableAutoSizing = true;
             label.fontSizeMin = 9;
             label.fontSizeMax = 16;
-            label.color = new Color(0.10f, 0.17f, 0.24f);
+            label.color = _labelColor;
             label.raycastTarget = false;
             return label;
         }
@@ -158,6 +170,7 @@ namespace TapTapGameJam.UI
                 label.gameObject.SetActive(_count > 0);
                 if (_count == 0) continue;
                 label.font = _priceFont != null ? _priceFont : TMP_Settings.defaultFontAsset;
+                label.color = _labelColor;
                 label.text = (_axis.Minimum + (_axis.Maximum - _axis.Minimum) * i / 4).ToString("0.00");
                 label.rectTransform.anchoredPosition = new Vector2(r.xMin + 68,
                     Mathf.Lerp(r.yMin + 52, r.yMax - 22, i / 4f)) - r.center;
@@ -179,11 +192,10 @@ namespace TapTapGameJam.UI
             vh.Clear();
             Rect r = rectTransform.rect;
             float left = r.xMin + 78, right = r.xMax - 58, bottom = r.yMin + 52, top = r.yMax - 22;
-            Color grid = new Color(0.72f, 0.79f, 0.87f, 0.45f);
             // 新版只保留水平网格线，横向压缩由点的位置表达时间进展。
             for (int i = 0; i < 5; i++)
                 Line(vh, new Vector2(left, Mathf.Lerp(bottom, top, i / 4f)),
-                    new Vector2(right, Mathf.Lerp(bottom, top, i / 4f)), 1, grid);
+                    new Vector2(right, Mathf.Lerp(bottom, top, i / 4f)), 1, _gridColor);
         }
 
         internal void PopulatePrices(VertexHelper vh, Rect plotRect)

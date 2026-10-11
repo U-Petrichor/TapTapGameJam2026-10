@@ -7,7 +7,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
-using SortFileInteraction = TapTapGameJam.MiniGame.SortFile;
+using SortFileInteraction = TapTapGameJam.MiniGame.SortFilePoint;
 using SortFileQuestCandidate = TapTapGameJam.MiniGame.SortFileQuest;
 
 // 在 Unity 当前场景中配置，支持 Undo，不会自动保存或覆盖磁盘上的场景。

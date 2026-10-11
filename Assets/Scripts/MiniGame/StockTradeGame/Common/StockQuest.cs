@@ -6,8 +6,7 @@ namespace TapTapGameJam.MiniGame
     // 固定白天入口。管理器在白天创建一次活动实例，用于保持交互和位置指引。
     public class StockQuest : MiniGameCandidate
     {
-        [SerializeField] private List<StockTradePoint> _stockPoints = new();
-        [SerializeField] private StockTradePoint _stockPoint;
+        [SerializeField] private List<StockPoint> _stockPoints = new();
         private StockInstance _activity;
         public const int DailyPlayLimit = 999;
         private int _playsUsed;
@@ -17,17 +16,16 @@ namespace TapTapGameJam.MiniGame
         public override bool CanSpawn => isActiveAndEnabled && RemainingPlays > 0 && _activity == null && FindAvailablePoint() != null;
         public override void BeginNewDay() => _playsUsed = 0;
 
-        public void ConfigurePoints(IEnumerable<StockTradePoint> points)
+        public void ConfigurePoints(IEnumerable<StockPoint> points)
         {
             _stockPoints.Clear();
             if (points != null)
                 foreach (var point in points)
                     if (point != null && !_stockPoints.Contains(point)) _stockPoints.Add(point);
-            _stockPoint = _stockPoints.Count > 0 ? _stockPoints[0] : null;
         }
         public override MiniGameInstanceBasic CreateTask()
         {
-            StockTradePoint point = FindAvailablePoint();
+            StockPoint point = FindAvailablePoint();
             if (!isActiveAndEnabled || RemainingPlays <= 0 || _activity != null || point == null)
                 return null;
 
@@ -60,14 +58,12 @@ namespace TapTapGameJam.MiniGame
         }
         private void OnDisable() => _activity?.Cancel();
 
-        private StockTradePoint FindAvailablePoint()
+        private StockPoint FindAvailablePoint()
         {
-            var seen = new HashSet<StockTradePoint>();
+            var seen = new HashSet<StockPoint>();
             foreach (var point in _stockPoints)
                 if (point != null && seen.Add(point) && point.CanStartTask)
                     return point;
-            if (_stockPoint != null && seen.Add(_stockPoint) && _stockPoint.CanStartTask)
-                return _stockPoint;
             return null;
         }
     }

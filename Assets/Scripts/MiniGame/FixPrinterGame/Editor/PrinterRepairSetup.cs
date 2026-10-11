@@ -25,7 +25,7 @@ public static class PrinterRepairSetup
         if (points.Length == 0)
         {
             var pointObject = new GameObject("PrinterRepairPoint");
-            var coffee = Object.FindFirstObjectByType<CoffeeQuest>(FindObjectsInactive.Include);
+            var coffee = Object.FindFirstObjectByType<MakeCoffeeQuest>(FindObjectsInactive.Include);
             if (coffee != null) pointObject.transform.SetParent(coffee.transform.parent, false);
             var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Model/MiniGame/打印文件.fbx");
             if (model != null)
@@ -50,7 +50,7 @@ public static class PrinterRepairSetup
             }
             var detector = pointObject.AddComponent<CapsuleCollider>();
             detector.isTrigger = true; detector.center = Vector3.up * 0.7f; detector.radius = 1.6f; detector.height = 3f;
-            var point = pointObject.AddComponent<PrinterRepairPoint>(); point.ConfigureGameIndex(5);
+            var point = pointObject.AddComponent<PrinterRepairPoint>(); point.ConfigureGameKind(TapTapGameJam.Types.MiniGameKind.PrinterRepair);
             pointObject.AddComponent<PrinterRepairQuest>();
             points = new[] { point };
         }
@@ -67,6 +67,6 @@ public static class PrinterRepairSetup
             if (go.scene == panel.gameObject.scene && !before.Contains(go.GetInstanceID())) Undo.RegisterCreatedObjectUndo(go, "创建打印机小游戏对象");
         EditorSceneManager.MarkSceneDirty(panel.gameObject.scene);
         Undo.CollapseUndoOperations(group);
-        Debug.Log("打印机修复 QTE 已配置为 Index 5；移动 PrinterRepairPoint 父物体即可同步模型、交互与箭头。", points[0]);
+        Debug.Log("打印机修复 QTE 已配置为 MiniGameKind.PrinterRepair；移动 PrinterRepairPoint 父物体即可同步模型、交互与箭头。", points[0]);
     }
 }

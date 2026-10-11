@@ -57,15 +57,15 @@ private void OnFinish(bool success)
 }
 ```
 
-原有 CleanMopWater 发送的是 Index 0；它不会自动打开 Index 1 的喂狗游戏，需要由对应交互物体发送新编号。
+原有 CleanPoint 发送的是 `MiniGameKind.Clean`；它不会自动打开 `MiniGameKind.PourDogFood` 的喂狗游戏，需要由对应交互物体声明自己的玩法类型。
 
 Panel 会发送 EventPlayMiniGame，使现有资源栏和交互提示隐藏/恢复；这个事件目前不等于锁住玩家移动，也不会暂停世界时间。如希望玩家喂狗期间站在原地，需要另行接入玩家输入管理。
 
 ## 接入随机任务生成器
 
-在固定的喂狗物体上保留 PourDogFood，再添加 PourDogFoodQuest。Quest 的 Pour Dog Food 字段拖入这个交互组件（同物体也会自动查找），再把 Quest 拖进 MiniGameTaskManager 的 Candidate Pool。不要把 UI 中的 PourDogFoodGame 或交互组件 PourDogFood 拖进任务池。
+在固定的喂狗物体上挂 PourDogFoodPoint，再添加 PourDogFoodQuest。把场景中的所有 PourDogFoodPoint 放入 Quest 的点位列表，再把 Quest 拖进 MiniGameTaskManager 的 Candidate Pool。不要把 UI 中的 PourDogFoodGame 或交互组件 PourDogFoodPoint 拖进任务池。
 
-PourDogFood 的 Detect Collider 需要绑定检测用 Trigger Collider，Mini Game Index 保持与 Panel 相同的 1。初始化时检测器自动关闭，随机生成任务后才开启。Quest 同时只保存一个当前任务，未完成时不能重复生成。窗口中途关闭保留任务，成功后取消注册、关闭检测、通知任务管理器移除并发放奖励；随后可以再次随机生成。默认奖励为 30 金币、1 天赋点，可在 Quest 的 Inspector 中修改，设为 0 可不奖励该资源。
+PourDogFoodPoint 的 Detect Collider 需要绑定检测用 Trigger Collider，点位的 `MiniGameKind` 使用 `MiniGameKind.PourDogFood`。初始化时检测器自动关闭，随机生成任务后才开启。Quest 同时只保存一个当前任务，未完成时不能重复生成。窗口中途关闭保留任务，成功后取消注册、关闭检测、通知任务管理器移除并发放奖励；随后可以再次随机生成。默认奖励为 30 金币、1 天赋点，可在 Quest 的 Inspector 中修改，设为 0 可不奖励该资源。
 
 阶段切换或禁用组件会取消旧任务，不发奖，并关闭对应窗口。使用现有 NotifyFinished 事件将取消的任务从管理器中移除；该事件本身没有成功/取消结果字段，奖励仍只在成功回调里处理。
 

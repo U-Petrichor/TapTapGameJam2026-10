@@ -44,7 +44,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc87bd1f8e0669a4999b401bda56f612, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.FileDestination
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.FileDestinationPoint
   _detectCollider: {fileID: 4805831235825310410}
   IsFree: 1
 --- !u!136 &4805831235825310410

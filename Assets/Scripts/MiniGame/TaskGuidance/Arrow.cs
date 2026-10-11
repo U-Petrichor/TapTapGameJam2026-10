@@ -89,16 +89,34 @@ namespace TapTapGameJam.UI
             Vector3 viewport = camera.WorldToViewportPoint(world);
 
             Vector2 direction;
+            Vector2 projected = default;
             if (viewport.z > 0f)
             {
                 Camera uiCamera = _canvas != null &&
                     _canvas.renderMode != RenderMode.ScreenSpaceOverlay ? _canvas.worldCamera : null;
                 if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(area,
-                    camera.WorldToScreenPoint(world), uiCamera, out Vector2 projected))
+                    camera.WorldToScreenPoint(world), uiCamera, out projected))
                 {
                     SetVisible(false);
                     return;
                 }
+
+                bool targetInView = viewport.x >= 0f && viewport.x <= 1f &&
+                    viewport.y >= 0f && viewport.y <= 1f;
+                if (targetInView)
+                {
+                    // 目标已经在镜头里时，箭头直接放到目标的屏幕位置，
+                    // 图标朝下指向目标；目标移出镜头后再退回屏幕边缘指引。
+                    _rect.anchoredPosition = projected;
+                    if (_arrowImage != null)
+                    {
+                        _arrowImage.localRotation = Quaternion.Euler(0f, 0f,
+                            Mathf.Atan2(Vector2.down.y, Vector2.down.x) * Mathf.Rad2Deg + _angleOffset);
+                    }
+                    SetVisible(true);
+                    return;
+                }
+
                 direction = projected - area.rect.center;
             }
             else

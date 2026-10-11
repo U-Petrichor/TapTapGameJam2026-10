@@ -5003,8 +5003,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1357511533}
-  - component: {fileID: 1357511534}
-  - component: {fileID: 1357511535}
   m_Layer: 0
   m_Name: CoffeeTask
   m_TagString: Untagged
@@ -5030,74 +5028,6 @@ Transform:
   - {fileID: 62979833}
   m_Father: {fileID: 1437506360}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1357511534
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1357511532}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d56db7f6e54ad945ab913e898f4cd6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Coffee.CoffeeMinigameController
-  _brain: {fileID: 1652861765}
-  _interactor: {fileID: 1357511535}
-  _cameraTimeout: 8
-  _kettleSwitch: {fileID: 0}
-  _grinderButton: {fileID: 0}
-  _kettle: {fileID: 0}
-  _beans: {fileID: 0}
-  _dripper: {fileID: 0}
-  _filterPaper: {fileID: 0}
-  _groundsCup: {fileID: 0}
-  _grinderZone: {fileID: 0}
-  _cupZone: {fileID: 0}
-  _filterZone: {fileID: 0}
-  _groundsPourPoint: {fileID: 0}
-  _heatSeconds: 1
-  _grindSeconds: 1
-  _groundsSeconds: 0.5
-  _waterSeconds: 2
-  _dripSeconds: 0.5
-  _coffeePanel: {fileID: 326990029}
-  _step1Text: {fileID: 0}
-  _step2Text: {fileID: 0}
-  _step3Text: {fileID: 0}
-  _step4Text: {fileID: 0}
-  _step5Text: {fileID: 0}
-  _step6Text: {fileID: 0}
-  _step7Text: {fileID: 0}
-  _heatProgressBar: {fileID: 0}
-  _grindProgressBar: {fileID: 0}
-  _brewProgressBar: {fileID: 0}
-  _heatingEffect: {fileID: 0}
-  _waterStream: {fileID: 0}
-  _beansInGrinder: {fileID: 0}
-  _groundsInFilter: {fileID: 0}
-  _coffeeLiquid: {fileID: 0}
-  _grinderRotor: {fileID: 0}
-  _onCoffeeCompleted:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &1357511535
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1357511532}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3de60af413addbb4f8dca46edb8b0a7e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Coffee.CoffeeDeskInteractor
-  _controller: {fileID: 1357511534}
-  _pickMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  _maxPickDistance: 20
 --- !u!1 &1371600841
 GameObject:
   m_ObjectHideFlags: 0

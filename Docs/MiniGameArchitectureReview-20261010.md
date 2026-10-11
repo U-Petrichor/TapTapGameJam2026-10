@@ -45,15 +45,15 @@ PanelTaskPoint
 - `MiniGameDefaultSetup`：运行时补齐默认面板；编辑器配置后的场景仍然可以依靠它恢复引用。
 - 每个游戏的 `Quest`、`Instance`、`Point` 和 `Round`：它们分别承担任务、奖励、世界点位和规则状态。
 - `TaskIndicatorGeometry`：除了 `TaskIndicatorUI`，还被 `DisinfectionArrowView` 使用，不能只按文件夹位置判断为多余。
-- `DeliveryFileInsance`：类名虽然有拼写错误，但工具测试和任务代码仍然使用它。直接改名会破坏类型引用。
+- `DeliveryFileInstance`：送文件实例，负责起点、终点和携带文件的生命周期。
 
 ## 第一批清理候选
 
 ### 咖啡小游戏的旧 3D 交互链
 
-当前 `GameScene` 使用的是 `CoffeeGame` 和 `CoffeeRecipe`。`CoffeeMinigameManager`、`CoffeeDeskInteractor`、`CoffeeClickable`、`CoffeeDraggable`、`CoffeeDropZone` 在当前主场景中没有运行组件，`MiniGameDefaultSetup` 还会主动禁用旧控制器。
+当前 `GameScene` 使用的是 `CoffeeGame` 和 `CoffeeRecipe`。旧的 `CoffeeMinigameManager` 与 `CoffeeDeskInteractor` 已从运行代码删除；`CoffeeClickable`、`CoffeeDraggable`、`CoffeeDropZone` 仅作为旧场景资产保留，主场景不再依赖它们。
 
-它们仍然被 `TestNight.unity`、`NoUseAnymore.unity` 和 `Assets/_Recovery/0.unity` 等旧场景引用，也被 `Docs/CoffeeDragExample.md` 记录。因此它们属于“可迁移到 Legacy 或待确认删除”，不是现在可以无条件删除的代码。
+它们仍然被 `Assets/_Recovery/0.unity` 等恢复材料引用，也被 `Docs/CoffeeDragExample.md` 记录。因此它们属于“可迁移到 Legacy 或待确认删除”，不是现在可以无条件删除的代码。
 
 清理条件是：确认这些旧场景不再用于试玩、回滚或教学；之后可以把这些脚本和文档移到 `RecoverySnapshots`，再从 `Assets/Scripts/MiniGame/MakeCoffeeGame` 删除。
 
@@ -79,7 +79,7 @@ PanelTaskPoint
 
 - 不要因为脚本没有直接被 C# 调用就删除它；Unity 场景和预制体可能通过 `.meta` GUID 保存引用。
 - 不要先改公共基类的命名空间；当前部分脚本位于 `MiniGame`，但命名空间仍是 `TapTapGameJam.UI`，改 namespace 会影响序列化组件类型。
-- 不要直接把 `DeliveryFileInsance` 改成正确拼写；可以以后增加新拼写的兼容包装类，再逐步迁移。
+- 送文件实例已经统一为 `DeliveryFileInstance`，不再保留错误拼写。
 - 不要删除 `MiniGameSuiteSmokeChecks`；它虽然不是运行时代码，但承担跨小游戏的输入、UI、物理和结算回归检查。
 
 ## 这次任务系统的经验总结
@@ -92,4 +92,4 @@ PanelTaskPoint
 6. **编辑器配置和运行时兜底是两套职责**：编辑器工具负责把场景保存成可检查的状态，`MiniGameDefaultSetup` 负责运行时补齐缺失对象；两者都存在时要保持配置方向一致。
 7. **遗留代码要先确认资产边界**：只要旧场景还引用脚本，它就不是单纯的“没被当前主场景使用”，而是一个需要产品决定的兼容资产。
 
-建议下一轮清理顺序是：先确认旧咖啡场景是否弃用，再处理咖啡 Legacy 链；之后再拆分 `MiniGameDefaultSetup`，最后统一 namespace 和类名等结构性改动。
+建议下一轮清理顺序是：先确认恢复材料是否还需要旧咖啡辅助组件；之后再拆分 `MiniGameDefaultSetup`，最后统一 namespace 等结构性改动。

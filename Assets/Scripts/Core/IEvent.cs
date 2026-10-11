@@ -20,21 +20,11 @@ namespace TapTapGameJam.Events
     /// 目前主要作用：
     /// 1. 通知MiniGamePanelUI打开
     /// 2. 通知玩家切换ActionMap
-    /// index = 0 ->清理拖把污水的任务
-    /// index = 1 ->
-    /// index = 2 ->
-    /// index = 3 ->
-    /// index = 4 ->
-    /// index = 5 ->
-    /// index = 6 ->
-    /// index = 7 ->
-    /// index = 8 ->
+    /// 事件携带 MiniGameKind，面板据此查找对应内容。
     /// </summary>
     public readonly struct EventOpenMiniGamePanel:IEvent
     {
-        // MiniGameIndex打算在控制的Canvas内声明并设置，这样一个小游戏自己有一个编号
-        // 当要执行对应的小游戏，需要打开对应的Panel时只需要传一个整形就行；
-        public int MiniGameIndex { get; }
+        public MiniGameKind GameKind { get; }
         /// <summary>
         /// 这个需要所有小游戏在发布此事件时一并传出用于处理游戏完成或失败时的处理方法
         /// 并且接受一个bool值
@@ -43,9 +33,9 @@ namespace TapTapGameJam.Events
         public TapTapGameJam.Player.PlayerBasic Player { get; }
         public object Owner { get; }
         public Action OnStarted { get; }
-        public EventOpenMiniGamePanel(int miniGameIndex,Action<bool> action,
+        public EventOpenMiniGamePanel(MiniGameKind gameKind, Action<bool> action,
             TapTapGameJam.Player.PlayerBasic player = null, object owner = null, Action onStarted = null){
-            MiniGameIndex = miniGameIndex;
+            GameKind = gameKind;
             OnFinished = action;
             Player = player;
             Owner = owner;

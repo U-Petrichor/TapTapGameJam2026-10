@@ -89,7 +89,7 @@ public static class StockPointPlayChecks
         typeof(PlayerBasic).GetField("<PlayerResources>k__BackingField", Private).SetValue(player, wallet);
         typeof(PlayerResources).GetField("<Coins>k__BackingField", Private).SetValue(wallet, 1000);
         bool started = false, completed = false, successful = false;
-        EventPipeline.Publish(new EventOpenMiniGamePanel(3,
+        EventPipeline.Publish(new EventOpenMiniGamePanel(TapTapGameJam.Types.MiniGameKind.StockTrade,
             success => { completed = true; successful = success; }, player, Owner, () => started = true));
         Check(started && Current() == point && point.isActiveAndEnabled, "real panel opens the enabled point game");
         var round = (StockRound)typeof(StockPointGame).GetField("_round", Private).GetValue(point);

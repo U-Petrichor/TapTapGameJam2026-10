@@ -45,7 +45,7 @@ namespace TapTapGameJam.Events
 namespace TapTapGameJam.MiniGame
 {
     // Only stand in for Unity physics and point visuals. Task/manager code is real.
-    public class FileSource
+    public class FileSourcePoint
     {
         public readonly UnityEngine.Transform transform = new();
         public bool IsFree = true;
@@ -56,7 +56,7 @@ namespace TapTapGameJam.MiniGame
         public void ResetTask() { Enabled = false; IsFree = true; ResetCount++; }
         public void PickUp() { ResetTask(); EventFileSourceFinish?.Invoke(); }
     }
-    public class FileDestination
+    public class FileDestinationPoint
     {
         public readonly UnityEngine.Transform transform = new();
         public bool IsFree = true;

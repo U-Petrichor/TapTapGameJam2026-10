@@ -59,8 +59,8 @@ internal static class Program
             {
                 var f = new Fixture();
                 f.Source.PickUp();
-                var nextDestination = new FileDestination();
-                var next = new DeliveryFileInsance(f.Source, nextDestination);
+                var nextDestination = new FileDestinationPoint();
+                var next = new DeliveryFileInstance(f.Source, nextDestination);
                 next.Begin();
                 if (success) f.Destination.Deliver(f.Player); else f.Task.Cancel();
                 Check(!f.Source.IsFree && f.Source.Enabled && !next.IsFinished);
@@ -120,11 +120,11 @@ internal static class Program
 
     private sealed class Fixture
     {
-        public readonly FileSource Source = new();
-        public readonly FileDestination Destination = new();
+        public readonly FileSourcePoint Source = new();
+        public readonly FileDestinationPoint Destination = new();
         public readonly PlayerBasic Player = new();
-        public readonly DeliveryFileInsance Task;
-        public Fixture() { Task = new DeliveryFileInsance(Source, Destination); Task.Begin(); }
+        public readonly DeliveryFileInstance Task;
+        public Fixture() { Task = new DeliveryFileInstance(Source, Destination); Task.Begin(); }
     }
 
     private static void Edge(float dx, float dy, float hw, float hh, float expectedX, float expectedY)

@@ -108,8 +108,9 @@ MonoBehaviour:
   isActive: 0
   _cockroachPrefab: {fileID: 0}
   _interactionRadius: 2
-  _carryLocalPosition: {x: 0, y: 0, z: 0}
-  _carryLocalEulerAngles: {x: 0, y: 0, z: 0}
+  _carryLocalPosition: {x: -0.041, y: 0.06, z: -0.119}
+  _carryLocalEulerAngles: {x: -154.956, y: -47.66101, z: -37.44202}
+  _carryLocalScale: {x: 0.3, y: 0.3, z: 0.3}
   _groundMask:
     serializedVersion: 2
     m_Bits: 4294967295

@@ -36,20 +36,20 @@ public static class MiniGameSuiteSetup
             if (go.scene == panel.gameObject.scene && !before.Contains(go.GetInstanceID()))
                 Undo.RegisterCreatedObjectUndo(go, "创建小游戏对象");
         // 写入编辑器配置时把同一种玩法的所有点位集中到一个 Quest。
-        var cleanPoints = new List<CleanMopWater>();
-        foreach (var point in Object.FindObjectsByType<CleanMopWater>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        var cleanPoints = new List<CleanPoint>();
+        foreach (var point in Object.FindObjectsByType<CleanPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (point.gameObject.scene == panel.gameObject.scene) cleanPoints.Add(point);
         foreach (var quest in Object.FindObjectsByType<CleanQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(cleanPoints);
 
-        var coffeePoints = new List<TaskMakeCoffee>();
-        foreach (var point in Object.FindObjectsByType<TaskMakeCoffee>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        var coffeePoints = new List<MakeCoffeePoint>();
+        foreach (var point in Object.FindObjectsByType<MakeCoffeePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (point.gameObject.scene == panel.gameObject.scene) coffeePoints.Add(point);
-        foreach (var quest in Object.FindObjectsByType<CoffeeQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var quest in Object.FindObjectsByType<MakeCoffeeQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(coffeePoints);
 
-        var stockPoints = new List<StockTradePoint>();
-        foreach (var point in Object.FindObjectsByType<StockTradePoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        var stockPoints = new List<StockPoint>();
+        foreach (var point in Object.FindObjectsByType<StockPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (point.gameObject.scene == panel.gameObject.scene) stockPoints.Add(point);
         foreach (var quest in Object.FindObjectsByType<StockQuest>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (quest.gameObject.scene == panel.gameObject.scene) quest.ConfigurePoints(stockPoints);
@@ -65,7 +65,7 @@ public static class MiniGameSuiteSetup
         EditorSceneManager.MarkSceneDirty(panel.gameObject.scene);
         Undo.CollapseUndoOperations(group);
         Selection.activeGameObject = panel.gameObject;
-        Debug.Log("清理 Index 0、炒股 Index 3、咖啡 Index 4 已配置。炒股占位终端在咖啡点右侧 3 米，可自行移动；请保存场景。", panel);
+        Debug.Log("清理、炒股、咖啡面板及对应 MiniGameKind 已配置。炒股占位终端在咖啡点右侧 3 米，可自行移动；请保存场景。", panel);
     }
 
     private static void ConfigureFonts(MiniGamePanelUI panel)
@@ -82,7 +82,7 @@ public static class MiniGameSuiteSetup
             AssetDatabase.AddObjectToAsset(font.material, font);
             foreach (var texture in font.atlasTextures) AssetDatabase.AddObjectToAsset(texture, font);
             // 字库可在运行时继续增加字符；预填常用文本，让编辑器预览也完整。
-            font.TryAddCharacters("清理垃圾按住鼠标左键滑动擦掉污渍即可完成已目标模拟炒股价格金币持仓浮动盈亏第个点独立随机每次等待产生新自动强制清空提前退出当前买入一只卖全部结果本轮制作咖啡开关烧水拖豆到研磨机滤杯纸粉壶在上方注中顺序点击或拽器具保持区域就位获得天赋0123456789%[]><:+-~ /，。·…", out _);
+            font.TryAddCharacters("清理垃圾按住鼠标左键滑动擦掉污渍即可完成已目标模拟炒股价格金币持仓浮动盈亏第个点独立随机每次等待产生新自动强制清空提前退出当前买入一只卖全部结果本轮制作咖啡开关烧水拖豆到研磨机滤杯纸粉壶在上方注中顺序点击或拽器具保持区域就位获得天赋⌛0123456789%[]><:+-~ /，。·…", out _);
             EditorUtility.SetDirty(font);
             AssetDatabase.SaveAssets();
         }

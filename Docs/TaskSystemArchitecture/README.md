@@ -9,7 +9,7 @@
 | 总管 | MiniGameManager | 维护候选池、当前实例列表；白天随机生成普通任务；立即开放每日活动；结束阶段时取消任务。 |
 | 生成规则 | MiniGameCandidate / PanelMiniGameQuest | 具体 Quest 维护候选点位池、并发上限、奖励并创建实例；Quest 不再假定只有一个点位。 |
 | 一次任务 | MiniGameInstanceBasic / PanelMiniGameInstance | 记录 Id、状态、目标、奖励；协调点位；统一完成和取消。实例是普通 C# 对象，不是面板或场景预制体。 |
-| 场景入口 | PanelTaskPoint | Collider 检测、玩家交互、点位占用和回调版本；具体 Point 设置交互文字与小游戏编号。 |
+| 场景入口 | PanelTaskPoint | Collider 检测、玩家交互、点位占用和回调版本；具体 Point 声明自己的 `MiniGameKind`。 |
 | 面板总管 | MiniGamePanelUI | 接收打开事件；绑定本次玩家；按 Index 打开内容；处理关闭、输入模式、结果回调。 |
 | 具体玩法 | MiniGameContent | 具体 Game 处理鼠标、空格、视觉反馈和完成条件，遵循 Begin / End / ResetView。 |
 | 位置指引 | TaskIndicatorUI / Arrow | 订阅任务增删、目标和阶段变化；每帧读取 TargetPosition 的当前世界位置，更新屏幕边缘箭头。 |
@@ -21,19 +21,21 @@
 
 | 任务 | Quest | Instance | 场景入口 | 面板玩法 |
 | --- | --- | --- | --- | --- |
-| 清理垃圾 | CleanQuest | CleanInstance | CleanMopWater | CleanGame |
-| 分拣文件 | SortFileQuest | SortFileInstance | SortFile | SortFileGame |
-| 倒狗粮 | PourDogFoodQuest | PourDogFoodInstance | PourDogFood | PourDogFoodGame |
-| 制作咖啡 | CoffeeQuest | CoffeeInstance | TaskMakeCoffee | CoffeeGame |
+| 清理垃圾 | CleanQuest | CleanInstance | CleanPoint | CleanGame |
+| 分拣文件 | SortFileQuest | SortFileInstance | SortFilePoint | SortFileGame |
+| 倒狗粮 | PourDogFoodQuest | PourDogFoodInstance | PourDogFoodPoint | PourDogFoodGame |
+| 制作咖啡 | MakeCoffeeQuest | MakeCoffeeInstance | MakeCoffeePoint | CoffeeGame |
 | 修复打印机 | PrinterRepairQuest | PrinterRepairInstance | PrinterRepairPoint | PrinterRepairGame |
-| 模拟炒股 | StockQuest | StockInstance | StockTradePoint | StockPointGame |
-| 送文件 | DeliverFileQuest | DeliveryFileInsance | FileSource + FileDestination | 直接在场景交互 |
+| 模拟炒股 | StockQuest | StockInstance | StockPoint | StockPointGame |
+| 送文件 | DeliverFileQuest | DeliveryFileInstance | FileSourcePoint + FileDestinationPoint | 直接在场景交互 |
 
-前五项共用 PanelMiniGameQuest 和 PanelMiniGameInstance。每种 Quest 可以配置多个同类型点位，每个实例只占用最终选中的点位。送文件实例类名保留了项目已有的 DeliveryFileInsance 拼写。
+前五项共用 PanelMiniGameQuest 和 PanelMiniGameInstance。每种 Quest 可以配置多个同类型点位，每个实例只占用最终选中的点位。送文件实例使用独立的双点位流程。
 
 任务点位的生成前提通过 `ITaskSpawnCondition` 提供。接口只有 `IsAvailable` 和只读的 `UnavailableReason`，条件对象自己维护门、日期或前置任务状态；Unity Inspector 保存 `MonoBehaviour` 引用，运行时验证其是否实现该接口。点位先检查所有条件，再由任务实例占用；条件变化只影响新任务生成，阶段切换和游戏结束才会取消已有任务。
 
-旧场景中的单点字段会在迁移配置时复制到新的点位列表；保留这些字段只是为了读取尚未重新保存的场景，新的配置入口是同类型点位列表和并发上限。
+面板玩法使用 `TapTapGameJam.Types.MiniGameKind` 标识。点位、打开事件和面板注册都使用枚举名称（例如 `MiniGameKind.PrinterRepair`），不再在业务代码中传递魔法整数；枚举底层数值只用于兼容旧场景序列化。
+
+当前场景已经迁移到同类型点位列表。Quest 只读取点位列表和并发上限；新增同类刷新点时，直接把新的 Point 加入对应 Quest 的列表即可。
 
 ## 一次打印机任务的流程
 
@@ -41,7 +43,7 @@
 2. Quest 创建 PrinterRepairInstance，传入交互点和奖励；实例启用交互点。
 3. 管理器登记实例，发送 TaskAdded，指引 UI 创建箭头。
 4. 玩家在 PrinterRepairPoint 交互，发出 EventOpenMiniGamePanel。
-5. MiniGamePanelUI 按 Index 5 打开 PrinterRepairGame，绑定玩家并调用 Begin。
+5. MiniGamePanelUI 按 `MiniGameKind.PrinterRepair` 打开 PrinterRepairGame，绑定玩家并调用 Begin。
 6. 指针持续移动，玩家按空格，命中黄色区累计成功；达到五次通知面板完成。
 7. 面板先 End，再回调 Point；Point 发出 EventCompleted，实例调用 Complete。
 8. MiniGameInstanceBasic 标记结束并执行 Release，发放配置的金币和天赋点，发送 EventFinished。
@@ -53,7 +55,7 @@
 
 - 炒股属于每日活动：白天固定开放，不进入随机池；StockQuest 持有每日三次额度，成功打开面板扣一次，提前退出也计次。StockInstance 在尚有次数时跨单局保留入口和指引，每局五个价格点。交易直接使用玩家金币，关闭或白天结束按当前价格清仓；次数耗尽或离开白天时活动结束，下一天恢复。
 - 送文件属于两阶段场景任务：领取后实例把 TargetPosition 从起点切到目的地，箭头随之更新；送达后使用同一套统一结算。
-- 咖啡的额外产出通过 CoffeeInstance.OnSuccess 增加一份咖啡，基础金币和天赋仍由基类发放。
+- 咖啡的额外产出通过 MakeCoffeeInstance.OnSuccess 增加一份咖啡，基础金币和天赋仍由基类发放。
 
 ## 设计上的名称
 

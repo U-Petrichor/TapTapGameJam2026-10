@@ -5,7 +5,7 @@
 - `Assets/Scripts/MiniGame/SortFileGame/SortFileGame.cs`：UI 生命周期、生成文件堆、接收区域判断、归位动画及完成回调。
 - `SortFileCard.cs`：文件拖动、归位和部门文字。
 - `SortFileRound.cs`：四部门枚举和不依赖 Unity 的栈顶分类规则。
-- `Assets/Scripts/MiniGame/SortFileGame/SortFile.cs`：固定工作台交互，使用 `EventOpenMiniGamePanel(2, callback)` 打开，使用 `EventCloseMiniGamePanel` 取消窗口。
+- `Assets/Scripts/MiniGame/SortFileGame/SortFilePoint.cs`：固定工作台交互，使用 `EventOpenMiniGamePanel(2, callback)` 打开，使用 `EventCloseMiniGamePanel` 取消窗口。
 - `SortFileQuest.cs`：单点任务候选，完成后通知管理器并结算奖励。
 
 ## 快速配置现有场景
@@ -16,9 +16,9 @@
 
 默认文件模板使用可区分的部门颜色与中文部门文字，字体使用项目现有的 AlibabaPuHuiTi SDF，可以更换文件 Image 的 Sprite 和模板样式。场景配置支持 Undo，不会自动保存，请检查布局后保存 GameScene。重复运行复用已有节点，不会重复创建文件模板和任务池条目。
 
-场景中的固定分拣工作台需要挂 **SortFile**，并将检测用 Trigger Collider 拖入 **Detect Collider**。菜单若发现已挂 SortFile 的工作台，会自动添加/绑定 **SortFileQuest** 并加入同场景的 MiniGameTaskManager 候选池。若还没挂 SortFile，可先挂并绑定，再运行一次菜单；也可以手动添加 Quest、绑定 Sort File 并拖进 Candidate Pool。
+场景中的固定分拣工作台需要挂 **SortFilePoint**，并将检测用 Trigger Collider 拖入 **Detect Collider**。菜单若发现已挂 SortFilePoint 的工作台，会自动添加/绑定 **SortFileQuest** 并加入同场景的 MiniGameTaskManager 候选池。若还没挂 SortFilePoint，可先挂并绑定，再运行一次菜单；也可以手动添加 Quest、绑定 Sort File 并拖进 Candidate Pool。
 
-没有在磁盘场景中凭空创建一个工作台，不会猜测分拣工作台的世界位置。SortFile 和 UI 的编号保持一致，默认均为 **2**。
+没有在磁盘场景中凭空创建一个工作台，不会猜测分拣工作台的世界位置。SortFilePoint 和 UI 的编号保持一致，默认均为 **2**。
 
 ## 玩法规则
 

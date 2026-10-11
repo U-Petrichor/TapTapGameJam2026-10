@@ -4,29 +4,21 @@ namespace TapTapGameJam.Coffee
 {
     public enum CoffeeStep
     {
-        HeatWater,
-        LoadBeans,
-        GrindBeans,
-        PlaceDripper,
-        PlaceFilter,
-        PourGrounds,
+        Grind,
+        PlaceGrounds,
         PourWater,
-        Dripping,
         Complete
     }
 
-    // 只负责配方顺序和进度，不引用 Unity、镜头、鼠标或 Canvas。
-    // 点击/拖拽合法后，由 CoffeeMinigameManager 调用这里的方法。
+    // 三步咖啡规则：研磨、把粉杯放到杯子上、持续注水 2 秒。
+    // 不引用 Unity、输入或 Canvas，便于独立测试。
     public sealed class CoffeeRecipe
     {
-        private readonly float _heatSeconds;
         private readonly float _grindSeconds;
-        private readonly float _groundsSeconds;
         private readonly float _waterSeconds;
-        private readonly float _dripSeconds;
         private float _elapsed;
 
-        public CoffeeStep Step { get; private set; } = CoffeeStep.HeatWater;
+        public CoffeeStep Step { get; private set; } = CoffeeStep.Grind;
         public bool IsProcessing { get; private set; }
         public event Action<CoffeeStep> StepChanged;
 
@@ -39,64 +31,56 @@ namespace TapTapGameJam.Coffee
             }
         }
 
-        public CoffeeRecipe(float heatSeconds, float grindSeconds, float groundsSeconds,
-            float waterSeconds, float dripSeconds)
+        public CoffeeRecipe(float grindSeconds, float waterSeconds)
         {
-            _heatSeconds = CheckDuration(heatSeconds);
             _grindSeconds = CheckDuration(grindSeconds);
-            _groundsSeconds = CheckDuration(groundsSeconds);
             _waterSeconds = CheckDuration(waterSeconds);
-            _dripSeconds = CheckDuration(dripSeconds);
         }
 
-        private static float CheckDuration(float seconds)
+        public bool StartGrinding()
         {
-            if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds <= 0f)
-                throw new ArgumentOutOfRangeException(nameof(seconds), "步骤时长必须是正数。");
-            return seconds;
-        }
-
-        public bool StartHeating()
-        {
-            if (Step != CoffeeStep.HeatWater || IsProcessing) return false;
+            if (Step != CoffeeStep.Grind || IsProcessing) return false;
             IsProcessing = true;
             return true;
         }
 
-        public bool LoadBeans() => AdvanceFrom(CoffeeStep.LoadBeans, CoffeeStep.GrindBeans);
-        public bool PlaceDripper() => AdvanceFrom(CoffeeStep.PlaceDripper, CoffeeStep.PlaceFilter);
-        public bool PlaceFilter() => AdvanceFrom(CoffeeStep.PlaceFilter, CoffeeStep.PourGrounds);
-
-        public bool StartPouringGrounds()
+        public void StopGrinding()
         {
-            if (Step != CoffeeStep.PourGrounds || IsProcessing) return false;
-            IsProcessing = true;
-            return true;
+            if (Step == CoffeeStep.Grind)
+                IsProcessing = false;
         }
 
-        // 按住研磨机时才调用；松开后保留进度，不会自动磨完。
         public void Grind(float deltaTime)
         {
-            if (Step == CoffeeStep.GrindBeans)
-                AddProgress(deltaTime, _grindSeconds, CoffeeStep.PlaceDripper);
+            if (Step == CoffeeStep.Grind && IsProcessing)
+                AddProgress(deltaTime, _grindSeconds, CoffeeStep.PlaceGrounds);
         }
 
-        // 水壶在有效区域内、按住且正在出水时才调用。
+        public bool PlaceGrounds()
+        {
+            if (Step != CoffeeStep.PlaceGrounds) return false;
+            SetStep(CoffeeStep.PourWater);
+            return true;
+        }
+
+        public bool StartPouringWater()
+        {
+            if (Step != CoffeeStep.PourWater || IsProcessing) return false;
+            IsProcessing = true;
+            return true;
+        }
+
+        // 只有粉杯已经放置后，按住热水壶并停在杯子区域内才会推进。
         public void PourWater(float deltaTime)
         {
-            if (Step == CoffeeStep.PourWater)
-                AddProgress(deltaTime, _waterSeconds, CoffeeStep.Dripping);
+            if (Step == CoffeeStep.PourWater && IsProcessing)
+                AddProgress(deltaTime, _waterSeconds, CoffeeStep.Complete);
         }
 
-        // 自动过程：烧水、倒粉动画、滴滤。这里没有修改全局倒计时。
-        public void Tick(float deltaTime)
+        public void StopPouringWater()
         {
-            if (Step == CoffeeStep.HeatWater && IsProcessing)
-                AddProgress(deltaTime, _heatSeconds, CoffeeStep.LoadBeans);
-            else if (Step == CoffeeStep.PourGrounds && IsProcessing)
-                AddProgress(deltaTime, _groundsSeconds, CoffeeStep.PourWater);
-            else if (Step == CoffeeStep.Dripping)
-                AddProgress(deltaTime, _dripSeconds, CoffeeStep.Complete);
+            if (Step == CoffeeStep.PourWater)
+                IsProcessing = false;
         }
 
         private void AddProgress(float deltaTime, float duration, CoffeeStep next)
@@ -104,13 +88,6 @@ namespace TapTapGameJam.Coffee
             if (deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
             _elapsed = Math.Min(duration, _elapsed + deltaTime);
             if (_elapsed >= duration) SetStep(next);
-        }
-
-        private bool AdvanceFrom(CoffeeStep required, CoffeeStep next)
-        {
-            if (Step != required) return false;
-            SetStep(next);
-            return true;
         }
 
         private void SetStep(CoffeeStep next)
@@ -121,17 +98,18 @@ namespace TapTapGameJam.Coffee
             StepChanged?.Invoke(next);
         }
 
-        private float DurationFor(CoffeeStep step)
+        private float DurationFor(CoffeeStep step) => step switch
         {
-            switch (step)
-            {
-                case CoffeeStep.HeatWater: return _heatSeconds;
-                case CoffeeStep.GrindBeans: return _grindSeconds;
-                case CoffeeStep.PourGrounds: return _groundsSeconds;
-                case CoffeeStep.PourWater: return _waterSeconds;
-                case CoffeeStep.Dripping: return _dripSeconds;
-                default: return 0f;
-            }
+            CoffeeStep.Grind => _grindSeconds,
+            CoffeeStep.PourWater => _waterSeconds,
+            _ => 0f
+        };
+
+        private static float CheckDuration(float seconds)
+        {
+            if (float.IsNaN(seconds) || float.IsInfinity(seconds) || seconds <= 0f)
+                throw new ArgumentOutOfRangeException(nameof(seconds), "步骤时长必须是正数。");
+            return seconds;
         }
     }
 }

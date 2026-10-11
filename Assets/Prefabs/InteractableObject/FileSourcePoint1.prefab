@@ -44,9 +44,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b69198fda085dba4c9e0c8b40f34eb06, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.FileSource
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.FileSourcePoint
   _detectCollider: {fileID: 2918996098975626861}
   _filePrefab: {fileID: 3707738227635256133, guid: 7d73f61a2c9e14d499315558ec1b59de, type: 3}
+  _carryLocalPosition: {x: -0.0621, y: 0.028, z: -0.1047}
+  _carryLocalEulerAngles: {x: -105.601, y: -687.739, z: 483.525}
+  _carryLocalScale: {x: 0.3, y: 0.3, z: 0.3}
   IsFree: 1
 --- !u!136 &2918996098975626861
 CapsuleCollider:

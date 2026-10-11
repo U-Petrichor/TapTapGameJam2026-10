@@ -171,7 +171,7 @@ internal static class Program
 
     private sealed class Fixture
     {
-        public readonly SortFile Point = new SortFile();
+        public readonly SortFilePoint Point = new SortFilePoint();
         public readonly SortFileQuest Quest = new SortFileQuest();
         public readonly MiniGameManager Manager = new MiniGameManager();
         public readonly Collider Detector = new Collider();
@@ -187,15 +187,14 @@ internal static class Program
             Call(Point, "Reset");
             Set(Point, "_detectCollider", Detector);
             Call(Point, "Awake");
-            Set(Quest, "_sortFile", Point);
-            Call(Quest, "Awake");
+            Quest.ConfigurePoints(new[] { Point });
             Set(Manager, "_candidatePool", new List<MiniGameCandidate> { Quest });
             if (managerFirst) Call(Manager, "OnEnable");
             Call(Quest, "OnEnable");
             if (!managerFirst) Call(Manager, "OnEnable");
             EventPipeline.Subscribe<EventOpenMiniGamePanel>(evt =>
             {
-                Check(evt.MiniGameIndex == 2);
+                Check(evt.GameKind == TapTapGameJam.Types.MiniGameKind.SortFile);
                 OpenCount++;
                 Callback = evt.OnFinished;
                 if (RejectOpen) Callback(false);

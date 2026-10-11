@@ -110,7 +110,7 @@ _coffeeCamera.enabled = false; // 完成或取消
 
 CoffeeDeskInteractor 的 Controller 拖入同一物体上的 CoffeeMinigameManager。Pick Mask 初次使用 Everything，Max Pick Distance 默认 20。
 
-TaskMakeCoffee 的 Coffee Minigame 指向这个控制器。玩家身上需要已有的 PlayerResources，成功后咖啡数保存在这里。
+MakeCoffeePoint 的 Coffee Minigame 指向这个控制器。玩家身上需要已有的 PlayerResources，成功后咖啡数保存在这里。
 
 器具 Collider 不勾选 Is Trigger。CoffeeClickable 和 CoffeeDraggable 所在物体都应有 Collider；可以在水壶同一个物体上同时挂两个脚本，实现前期点击加热、后期拖拽注水。为开关单独建子物体时，需要开关自己的 Collider，保证射线可以点中它。
 
@@ -150,7 +150,7 @@ CoffeeCanvas 使用 Screen Space - Overlay。文本、进度条和整屏背景�
 
 ## 8. 阅读代码的顺序
 
-1. 从 TaskMakeCoffee.Interact 看进入点：只调用 Begin(player)。
+1. 从 MakeCoffeePoint.Interact 看进入点：只调用 Begin(player)。
 2. 查看 CoffeeMinigameManager.Begin：连接器具、锁普通玩家操作、启用自己的镜头。
 3. 查看 CoffeeRecipe：七步的顺序、每个操作的合法性、时间如何累积。
 4. 查看 CoffeeDeskInteractor：鼠标按下检测 Collider，按住驱动研磨或拖拽，松手调用 TryDrop。
@@ -185,3 +185,7 @@ dotnet run --project Tools/CoffeeRecipeChecks/CoffeeRecipeChecks.csproj
 覆盖顺序限制、加热启动、研磨松手、分次注水、自动滴滤完成、重复完成保护、重新开始及无效时间参数。
 
 Unity 中仍需连接器具/UI 后进行 Play 验证：开始/取消、每步拖错位置、注水移出区域、完整制作后自动退出且 CoffeeCount 只增加 1，以及倒计时到期中止。代码编译和配方测试不等于已完成场景中的鼠标操作验证。
+# 旧版 3D 咖啡交互记录（Legacy）
+
+本文记录的是已经移除的 3D 咖啡控制器和交互器，仅用于历史参考。当前主场景使用 `MakeCoffeeQuest → MakeCoffeeInstance → MakeCoffeePoint → CoffeeGame` 的三步 2D 面板流程：研磨 1.5 秒、移动粉杯、注水 2 秒。文中的 `CoffeeMinigameManager` 与 `CoffeeDeskInteractor` 已不再存在。
+

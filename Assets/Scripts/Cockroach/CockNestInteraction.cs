@@ -11,8 +11,11 @@ namespace TapTapGameJam.Cockroach
         [Header("巢穴交互")]
         [SerializeField, Min(0.1f)] private float _interactionRadius = 2f;
         [Tooltip("巢穴挂到玩家手部挂点后的局部位置")]
-        [SerializeField] private Vector3 _carryLocalPosition;
-        [SerializeField] private Vector3 _carryLocalEulerAngles;
+        [SerializeField] private Vector3 _carryLocalPosition = Vector3.zero;
+        [Tooltip("巢穴挂到玩家手部挂点后的局部旋转")]
+        [SerializeField] private Vector3 _carryLocalEulerAngles = Vector3.zero;
+        [Tooltip("巢穴挂到玩家手部挂点后的局部缩放")]
+        [SerializeField] private Vector3 _carryLocalScale = new Vector3(0.3f, 0.3f, 0.3f);
         [Tooltip("落地射线允许命中的地面层")]
         [SerializeField] private LayerMask _groundMask = ~0;
 
@@ -155,6 +158,7 @@ namespace TapTapGameJam.Cockroach
             transform.SetParent(anchor, true);
             transform.localPosition = _carryLocalPosition;
             transform.localRotation = Quaternion.Euler(_carryLocalEulerAngles);
+            transform.localScale = _carryLocalScale;
             // 碰撞体已停用，但携带中的巢穴仍必须作为当前交互目标保留，才能按 E 放下。
             _carrierInteraction = player.PlayerInteractionManager;
             if (_carrierInteraction != null)

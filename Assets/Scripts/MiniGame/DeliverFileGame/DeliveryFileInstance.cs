@@ -1,11 +1,11 @@
-﻿
+
 
 using TapTapGameJam.Player;
 using UnityEngine;
 
 namespace TapTapGameJam.MiniGame
 {
-    public class DeliveryFileInsance : MiniGameInstanceBasic
+    public class DeliveryFileInstance : MiniGameInstanceBasic
     {
         private enum Stage
         {
@@ -14,13 +14,15 @@ namespace TapTapGameJam.MiniGame
             Finished
         }
             
-        private readonly FileSource _source;
-        private readonly FileDestination _destination;
+        private readonly FileSourcePoint _source;
+        private readonly FileDestinationPoint _destination;
+        private PlayerBasic _carrier;
+        private UnityEngine.GameObject _carriedFile;
         private Stage _stage;
         private bool _begun;
         
 
-        public DeliveryFileInsance(FileSource source, FileDestination destination, int coins = 1, int talent = 5)
+        public DeliveryFileInstance(FileSourcePoint source, FileDestinationPoint destination, int coins = 1, int talent = 5)
             : base(source.transform, coins, talent)
         {
             _source = source;
@@ -41,10 +43,14 @@ namespace TapTapGameJam.MiniGame
 
             _source.StartTask();
         }
-        private void HandleFilePickedup()
+        private void HandleFilePickedup(PlayerBasic player)
         {
-            if (_stage != Stage.WaitingForPickup || IsFinished) return;
+            if (_stage != Stage.WaitingForPickup || IsFinished || player == null) return;
             _stage = Stage.WaitingForDelivery;
+            _carrier = player;
+            _carriedFile = player.CarryController != null
+                ? player.CarryController.CurrentObject as UnityEngine.GameObject
+                : null;
             // 文件已被拾取，取消订阅
             _source.EventFileSourceFinish -= HandleFilePickedup;
 
@@ -73,6 +79,18 @@ namespace TapTapGameJam.MiniGame
                 _source.EventFileSourceFinish -= HandleFilePickedup;
             if (_destination != null)
                 _destination.EventFileDestinationFinish -= HandleDestinationFinished;
+
+            if (_carrier != null && _carrier.CarryController != null &&
+                _carrier.CarryController.CurrentType == PlayerCarryController.CarryType.File)
+            {
+                _carrier.CarryController.EndCarry();
+            }
+
+            if (_carriedFile != null)
+            {
+                UnityEngine.Object.Destroy(_carriedFile);
+                _carriedFile = null;
+            }
 
             // 起点领取后可能被另一单复用，不能再重置它。
             if (_begun && waitingForPickup && _source != null) _source.ResetTask();

@@ -128,7 +128,7 @@ public static class MiniGameSuiteSmokeChecks
         _mouse.MakeCurrent();
 
         var cleanQuest = Object.FindFirstObjectByType<CleanQuest>();
-        var cleanPoint = cleanQuest.GetComponent<CleanMopWater>();
+        var cleanPoint = cleanQuest.GetComponent<CleanPoint>();
         int before = _player.PlayerResources.Coins;
         var cleanTask = cleanQuest.CreateTask();
         Assert(cleanTask != null, "clean task generated");
@@ -157,7 +157,7 @@ public static class MiniGameSuiteSmokeChecks
         Assert(_player.PlayerResources.Coins == before + cleanTask.RewardCoins, "clean reward matches task configuration");
 
         var stockQuest = Object.FindFirstObjectByType<StockQuest>();
-        var stockPoint = stockQuest.GetComponent<StockTradePoint>();
+        var stockPoint = stockQuest.GetComponent<StockPoint>();
         var taskManager = Object.FindFirstObjectByType<MiniGameManager>();
         Action<GamePhase> changePhase = phase => typeof(MiniGameManager)
             .GetMethod("HandlePhaseChanged", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -280,11 +280,12 @@ public static class MiniGameSuiteSmokeChecks
         changePhase(GamePhase.Day);
 
         if (SessionState.GetBool(StockOnlyKey, false)) yield break;
-        var coffeeQuest = Object.FindFirstObjectByType<CoffeeQuest>();
-        var coffeePoint = coffeeQuest.GetComponent<TaskMakeCoffee>();
+        var coffeeQuest = Object.FindFirstObjectByType<MakeCoffeeQuest>();
+        var coffeePoint = coffeeQuest.GetComponent<MakeCoffeePoint>();
         var coffee = _panel.GetComponentInChildren<CoffeeGame>(true);
         var coffeeData = new SerializedObject(coffee);
-        foreach (string field in new[] { "_heatSeconds", "_grindSeconds", "_groundsSeconds", "_waterSeconds", "_dripSeconds" }) coffeeData.FindProperty(field).floatValue = 0.1f;
+        coffeeData.FindProperty("_grindSeconds").floatValue = 0.1f;
+        coffeeData.FindProperty("_waterSeconds").floatValue = 0.1f;
         coffeeData.ApplyModifiedPropertiesWithoutUndo();
         before = _player.PlayerResources.Coins;
         int coffeeBefore = _player.PlayerResources.CoffeeCount;
@@ -297,21 +298,15 @@ public static class MiniGameSuiteSmokeChecks
         yield return null;
         Canvas.ForceUpdateCanvases();
         yield return null;
-        Field<Button>(coffee, "_heatButton").onClick.Invoke();
-        deadline = Time.realtimeSinceStartup + 5;
-        while (Field<CoffeeRecipe>(coffee, "_recipe").Step != CoffeeStep.LoadBeans)
-        { Assert(Time.realtimeSinceStartup < deadline, "coffee heating timeout"); yield return null; }
         Capture("coffee.png");
         yield return null;
-        DragCoffee(coffee, "_beans", "_grinderZone");
-        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.GrindBeans, "coffee bean UI drag advances recipe");
         var grindRect = Field<RectTransform>(coffee, "_grindButton");
         var grindGraphic = grindRect.GetComponent<Graphic>();
         Vector2 grindScreen = RectTransformUtility.WorldToScreenPoint(EventCamera(grindGraphic), grindRect.position);
         InputState.Change(_mouse, new MouseState { position = grindScreen }.WithButton(MouseButton.Left));
         ExecuteEvents.ExecuteHierarchy(grindRect.gameObject, Pointer(grindGraphic, grindScreen), ExecuteEvents.pointerDownHandler);
         deadline = Time.realtimeSinceStartup + 5;
-        while (Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.GrindBeans)
+        while (Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.Grind)
         {
             // 编辑器后台运行时原生鼠标或失焦事件可能覆盖模拟按住状态。
             _mouse.MakeCurrent();
@@ -321,15 +316,9 @@ public static class MiniGameSuiteSmokeChecks
             yield return null;
         }
         InputState.Change(_mouse, new MouseState { position = grindScreen });
-        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.PlaceDripper, "held grinder finishes grinding");
-        DragCoffee(coffee, "_dripper", "_cupZone");
-        yield return null;
-        DragCoffee(coffee, "_filter", "_cupZone");
-        yield return null;
-        DragCoffee(coffee, "_grounds", "_pourZone");
-        deadline = Time.realtimeSinceStartup + 5;
-        while (Field<CoffeeRecipe>(coffee, "_recipe").Step != CoffeeStep.PourWater)
-        { Assert(Time.realtimeSinceStartup < deadline, "coffee grounds timeout"); yield return null; }
+        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.PlaceGrounds, "held grinder finishes grinding");
+        DragCoffee(coffee, "_grounds", "_cupZone");
+        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.PourWater, "coffee grounds move advances recipe");
         var kettle = Field<RectTransform>(coffee, "_kettle");
         var zone = Field<RectTransform>(coffee, "_pourZone");
         var kettleGraphic = kettle.GetComponent<Graphic>();
@@ -341,7 +330,7 @@ public static class MiniGameSuiteSmokeChecks
         InputState.Change(_mouse, new MouseState { position = evt.position }.WithButton(MouseButton.Left));
         deadline = Time.realtimeSinceStartup + 5;
         while (!coffeeTask.IsFinished)
-        { _mouse.MakeCurrent(); Assert(Time.realtimeSinceStartup < deadline, "coffee pour/drip timeout"); yield return null; }
+        { _mouse.MakeCurrent(); Assert(Time.realtimeSinceStartup < deadline, "coffee pour timeout"); yield return null; }
         InputState.Change(_mouse, new MouseState());
         Assert(coffeeTask.WasSuccessful && _player.PlayerResources.CoffeeCount == coffeeBefore + 1, "2D coffee awards exactly one coffee");
         Assert(_player.PlayerResources.Coins == before + coffeeTask.RewardCoins, "coffee reward matches task configuration");
@@ -350,7 +339,7 @@ public static class MiniGameSuiteSmokeChecks
         _panel.OnEscKeyPressed();
         Assert(!coffeeTask.IsFinished && coffeePoint.CanInteract(_player), "coffee early exit retains task for retry");
         coffeePoint.Interact(_player, InteractKey.E);
-        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.HeatWater, "coffee retry starts fresh recipe");
+        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.Grind, "coffee retry starts fresh recipe");
         coffeeTask.Cancel();
         Assert(coffeeTask.IsFinished && !_panel.GetComponent<CanvasGroup>().blocksRaycasts, "task cancellation closes its panel");
         Assert(_player.PlayerResources.CoffeeCount == coffeeBefore + 1, "coffee cancellation gives no extra coffee");

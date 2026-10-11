@@ -12,6 +12,7 @@ namespace TapTapGameJam.UI
         [SerializeField] private TMP_Text _statusText;
         [SerializeField] private TMP_Text _resultText;
         [SerializeField] private Button _buyOne, _sellAll;
+        [SerializeField] private StockHourglass _hourglass;
         [SerializeField] private StockPriceSettings _priceSettings = new();
         private StockRound _round;
         private Action _onCompleted;
@@ -19,7 +20,8 @@ namespace TapTapGameJam.UI
 
         public bool IsConfigured => _chart != null && _buyOne != null && _sellAll != null;
 
-        public void Configure(StockPointChart chart, TMP_Text status, TMP_Text result, Button buy, Button sell)
+        public void Configure(StockPointChart chart, TMP_Text status, TMP_Text result, Button buy, Button sell,
+            StockHourglass hourglass = null)
         {
             UnbindButtons();
             _chart = chart;
@@ -27,6 +29,7 @@ namespace TapTapGameJam.UI
             _resultText = result;
             _buyOne = buy;
             _sellAll = sell;
+            _hourglass = hourglass;
             BindButtons();
         }
 
@@ -55,6 +58,7 @@ namespace TapTapGameJam.UI
             _round = new StockRound(() => wallet.Coins, wallet.TrySpendCoins, wallet.AddCoins, generator);
             _onCompleted = onCompleted;
             _running = true;
+            _hourglass?.ResetProgress();
             Refresh();
         }
 
@@ -76,9 +80,10 @@ namespace TapTapGameJam.UI
         private void Refresh()
         {
             if (_chart != null) _chart.SetPrices(_round.Prices, _round.Elapsed, _round.CurvePrices, _round.IsFinished);
+            _hourglass?.SetProgress((float)(_round.Elapsed / StockRound.Duration));
             if (_statusText != null) _statusText.text = _round.IsFinished
-                ? $"已结算     股价 {_round.Price:0.00}     今日金币 {Resources.Coins}     持仓 0"
-                : $"剩余 {_round.RemainingSeconds:0.0} 秒     最新点 {_round.ConfirmedPrice:0.00}     资金 {_round.Balance:0.00}     持仓 {_round.Shares}";
+                ? $"当前资金\n{Resources.Coins:0}"
+                : $"当前资金\n{_round.Balance:0}";
             if (_resultText != null)
             {
                 _resultText.color = _round.IsFinished
@@ -86,8 +91,8 @@ namespace TapTapGameJam.UI
                         : _round.SettledProfit < 0 ? new Color(0.72f, 0.18f, 0.18f) : new Color(0.10f, 0.17f, 0.24f))
                     : new Color(0.10f, 0.17f, 0.24f);
                 _resultText.text = _round.IsFinished
-                    ? $"今日{(_round.SettledProfit > 0 ? "赚了" : _round.SettledProfit < 0 ? "亏了" : "持平")} · 结算 {_round.SettledProfit:+0;-0;0} 金币\n本局盈亏 {_round.Profit:+0.00;-0.00;0.00} · {_round.RemainingSeconds:0.0} 秒后结束"
-                    : $"本局盈亏 {_round.Profit:+0.00;-0.00;0.00} · {(_round.LastTradePrice.HasValue ? $"最近成交 {_round.LastTradePrice.Value:0.00}" : "每 0.5 秒吐出一个报价点")}\n买卖与提前退出按待吐目标报价成交 · 最多持有 1 股";
+                    ? $"结算 {_round.SettledProfit:+0;-0;0}\n本局盈亏 {_round.Profit:+0.00;-0.00;0.00}"
+                    : $"剩余 {_round.RemainingSeconds:0.0} 秒\n持仓 {_round.Shares} 股 · 股价 {_round.Price:0.00}";
             }
             if (_buyOne != null) _buyOne.interactable = _running && _round.CanBuy;
             if (_sellAll != null) _sellAll.interactable = _running && _round.CanSell;
@@ -107,6 +112,7 @@ namespace TapTapGameJam.UI
             End();
             _round = null;
             if (_chart != null) _chart.SetPrices(null);
+            _hourglass?.ResetProgress();
             if (_statusText != null) _statusText.text = "每局 20 秒 · 每 0.5 秒吐出一个点";
             if (_resultText != null) _resultText.text = "白天开放 · 每天 1 次 · 开盘先显示 1 个点";
         }

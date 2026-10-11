@@ -88,8 +88,8 @@ internal static class Program
         Run("点位池跳过受限点位并保留只读原因", () =>
         {
             EventPipeline.ClearAll();
-            var lockedPoint = new SortFile();
-            var openPoint = new SortFile();
+            var lockedPoint = new SortFilePoint();
+            var openPoint = new SortFilePoint();
             var lockedDetector = new Collider();
             var openDetector = new Collider();
             Set(lockedPoint, "_detectCollider", lockedDetector);
@@ -101,7 +101,7 @@ internal static class Program
             Check(!lockedPoint.CanStartTask && lockedPoint.UnavailableReason == "办公室门尚未开放");
 
             var quest = new SortFileQuest();
-            Set(quest, "_sortFilePoints", new List<SortFile> { lockedPoint, openPoint });
+            Set(quest, "_sortFilePoints", new List<SortFilePoint> { lockedPoint, openPoint });
             Check(quest.CanSpawn);
             var task = quest.CreateTask();
             Check(task != null && !lockedPoint.CanInteract(new PlayerBasic()) && openPoint.CanInteract(new PlayerBasic()));
@@ -111,12 +111,12 @@ internal static class Program
         Run("同一种任务可以按并发上限占用多个不同点位", () =>
         {
             EventPipeline.ClearAll();
-            var first = new SortFile(); var second = new SortFile();
+            var first = new SortFilePoint(); var second = new SortFilePoint();
             var firstDetector = new Collider(); var secondDetector = new Collider();
             Set(first, "_detectCollider", firstDetector); Set(second, "_detectCollider", secondDetector);
             Call(first, "Awake"); Call(second, "Awake");
             var quest = new SortFileQuest();
-            Set(quest, "_sortFilePoints", new List<SortFile> { first, second });
+            Set(quest, "_sortFilePoints", new List<SortFilePoint> { first, second });
             quest.MaxActiveTasks = 2;
             var a = quest.CreateTask(); var b = quest.CreateTask();
             Check(a != null && b != null && quest.ActiveTaskCount == 2 && !first.CanStartTask && !second.CanStartTask);
@@ -194,17 +194,17 @@ internal static class Program
         Run("Failure to acquire an occupied point cannot release another task", () =>
         {
             var f = new Fixture("clean"); f.Spawn();
-            var other = new CleanInstance((CleanMopWater)f.Point, 99, 9);
+            var other = new CleanInstance((CleanPoint)f.Point, 99, 9);
             Check(!other.Begin() && other.IsFinished && f.Detector.enabled && !f.Task.IsFinished);
             f.Point.Interact(f.Player, InteractKey.E); f.Callback(true);
             Check(f.Player.PlayerResources.Coins == 17);
         });
         Run("Delivery stage switch, reward and source reuse remain correct", () =>
         {
-            var source = new FileSource(); var dest = new FileDestination(); var player = new PlayerBasic();
-            var task = new DeliveryFileInsance(source, dest, 31, 4); task.Begin();
+            var source = new FileSourcePoint(); var dest = new FileDestinationPoint(); var player = new PlayerBasic();
+            var task = new DeliveryFileInstance(source, dest, 31, 4); task.Begin();
             source.PickUp(); Check(task.GuideText == "送达文件" && task.TargetPosition == dest.transform);
-            var next = new DeliveryFileInsance(source, new FileDestination()); next.Begin();
+            var next = new DeliveryFileInstance(source, new FileDestinationPoint()); next.Begin();
             dest.Deliver(player); dest.Deliver(player); task.Cancel();
             Check(task.IsFinished && !source.IsFree && source.Enabled && !next.IsFinished);
             Check(player.PlayerResources.Coins == 31 && player.PlayerResources.TalentPoint == 4);
@@ -228,16 +228,14 @@ internal static class Program
         });
         StockChecks.Run(Run);
         StockAxisChecks.Run(Run);
-        Run("Coffee recipe enforces order and held progress; restart creates a fresh recipe", () =>
+        Run("Coffee recipe has three steps and a fresh retry", () =>
         {
-            var recipe = new CoffeeRecipe(1,1,1,1,1);
-            Check(!recipe.LoadBeans() && !recipe.PlaceFilter());
-            recipe.StartHeating(); recipe.Tick(1); Check(recipe.Step == CoffeeStep.LoadBeans);
-            recipe.LoadBeans(); recipe.Grind(0.5f); recipe.Tick(20); Check(recipe.Step == CoffeeStep.GrindBeans && recipe.Progress == 0.5f);
-            recipe.Grind(0.5f); recipe.PlaceDripper(); recipe.PlaceFilter(); recipe.StartPouringGrounds(); recipe.Tick(1);
-            Check(recipe.Step == CoffeeStep.PourWater); recipe.Tick(20); Check(recipe.Step == CoffeeStep.PourWater);
-            recipe.PourWater(1); recipe.Tick(1); Check(recipe.Step == CoffeeStep.Complete);
-            Check(new CoffeeRecipe(1,1,1,1,1).Step == CoffeeStep.HeatWater);
+            var recipe = new CoffeeRecipe(1.5f, 2f);
+            Check(recipe.Step == CoffeeStep.Grind && recipe.StartGrinding());
+            recipe.Grind(1.5f); Check(recipe.Step == CoffeeStep.PlaceGrounds);
+            Check(recipe.PlaceGrounds() && recipe.StartPouringWater());
+            recipe.PourWater(2f); Check(recipe.Step == CoffeeStep.Complete);
+            Check(new CoffeeRecipe(1.5f, 2f).Step == CoffeeStep.Grind);
         });
         Run("Printer pointer bounces continuously and handles large frame steps", () =>
         {
@@ -308,11 +306,11 @@ internal static class Program
             EventPipeline.ClearAll();
             switch (kind)
             {
-                case "sort": Point = new SortFile(); Quest = new SortFileQuest(); Set(Quest, "_sortFile", Point); break;
-                case "dog": Point = new PourDogFood(); Quest = new PourDogFoodQuest(); Set(Quest, "_pourDogFood", Point); break;
-                case "clean": Point = new CleanMopWater(); Quest = new CleanQuest(); Set(Quest, "_cleanPoint", Point); break;
-                case "coffee": Point = new TaskMakeCoffee(); Quest = new CoffeeQuest(); Set(Quest, "_coffeePoint", Point); break;
-                case "printer": Point = new PrinterRepairPoint(); Quest = new PrinterRepairQuest(); Set(Quest, "_printerPoint", Point); break;
+                case "sort": Point = new SortFilePoint(); Quest = new SortFileQuest(); ((SortFileQuest)Quest).ConfigurePoints(new[] { (SortFilePoint)Point }); break;
+                case "dog": Point = new PourDogFoodPoint(); Quest = new PourDogFoodQuest(); ((PourDogFoodQuest)Quest).ConfigurePoints(new[] { (PourDogFoodPoint)Point }); break;
+                case "clean": Point = new CleanPoint(); Quest = new CleanQuest(); ((CleanQuest)Quest).ConfigurePoints(new[] { (CleanPoint)Point }); break;
+                case "coffee": Point = new MakeCoffeePoint(); Quest = new MakeCoffeeQuest(); ((MakeCoffeeQuest)Quest).ConfigurePoints(new[] { (MakeCoffeePoint)Point }); break;
+                case "printer": Point = new PrinterRepairPoint(); Quest = new PrinterRepairQuest(); ((PrinterRepairQuest)Quest).ConfigurePoints(new[] { (PrinterRepairPoint)Point }); break;
                 default: throw new ArgumentException(kind);
             }
             Set(Point, "_detectCollider", Detector); Call(Point, "Awake");
@@ -327,7 +325,7 @@ internal static class Program
     }
     private sealed class StockFixture
     {
-        public readonly StockTradePoint Point = new();
+        public readonly StockPoint Point = new();
         public readonly StockQuest Quest = new();
         public readonly MiniGameManager Manager = new();
         public readonly PlayerBasic Player = new();
@@ -340,7 +338,7 @@ internal static class Program
         {
             EventPipeline.ClearAll();
             Set(Point, "_detectCollider", Detector); Call(Point, "Awake");
-            Set(Quest, "_stockPoint", Point);
+            Quest.ConfigurePoints(new[] { Point });
             Manager.RegisterCandidate(Quest);
             Manager.EventTaskAdded += _ => Added++;
             Manager.EventTaskRemoved += _ => Removed++;

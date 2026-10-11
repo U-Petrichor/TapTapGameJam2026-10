@@ -12,8 +12,10 @@ namespace UnityEngine
         public T GetComponent<T>() where T : class => Components.TryGetValue(typeof(T), out var item) ? item as T : null;
     }
     public class Transform { }
+    public class GameObject { }
     public class Collider { public bool enabled = true; }
     public class SerializeField : Attribute { }
+    namespace Serialization { public class FormerlySerializedAsAttribute : Attribute { public FormerlySerializedAsAttribute(string name) { } } }
     public class MinAttribute : Attribute { public MinAttribute(float value) { } }
     public class HeaderAttribute : Attribute { public HeaderAttribute(string value) { } }
     public class TooltipAttribute : Attribute { public TooltipAttribute(string value) { } }
@@ -57,7 +59,7 @@ namespace TapTapGameJam.Interactables
 }
 namespace TapTapGameJam.MiniGame
 {
-    public class FileSource
+    public class FileSourcePoint
     {
         public UnityEngine.Transform transform = new();
         public bool IsFree = true, Enabled;
@@ -66,7 +68,7 @@ namespace TapTapGameJam.MiniGame
         public void ResetTask() { Enabled = false; IsFree = true; }
         public void PickUp() { ResetTask(); EventFileSourceFinish?.Invoke(); }
     }
-    public class FileDestination
+    public class FileDestinationPoint
     {
         public UnityEngine.Transform transform = new();
         public bool IsFree = true, Enabled;

@@ -2,7 +2,9 @@ using System.Collections;
 using TapTapGameJam.Events;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 using System.Collections.Generic;
+using TapTapGameJam.Types;
 
 namespace TapTapGameJam.UI
 {
@@ -13,7 +15,8 @@ namespace TapTapGameJam.UI
         [System.Serializable]
         private class MiniGameEntry
         {
-            public int Index;
+            [FormerlySerializedAs("Index")]
+            public MiniGameKind Kind;
             public MiniGameContent Content;
         }
         [SerializeField] private List<MiniGameEntry> _miniGames = new List<MiniGameEntry>();
@@ -75,10 +78,10 @@ namespace TapTapGameJam.UI
         {
             // 输入 ActionMap 由面板在成功打开后切换，拒绝请求不影响已有会话。
             if (_currentContent != null) { evt.OnFinished?.Invoke(false); return; }
-            MiniGameContent content = FindContent(evt.MiniGameIndex);
+            MiniGameContent content = FindContent(evt.GameKind);
             if (content == null)
             {
-                Debug.LogError($"[MiniGamePanelUI] 小游戏编号 {evt.MiniGameIndex} 未正确配置。", this);
+                Debug.LogError($"[MiniGamePanelUI] 小游戏 {evt.GameKind} 未正确配置。", this);
                 evt.OnFinished?.Invoke(false);
                 EventPipeline.Publish(new EventCloseMiniGamePanel());
                 return;
@@ -108,21 +111,21 @@ namespace TapTapGameJam.UI
             catch (System.Exception ex) { Debug.LogException(ex, content); FinishCurrent(false); }
         }
 
-        private MiniGameContent FindContent(int index)
+        private MiniGameContent FindContent(MiniGameKind kind)
         {
             foreach (var entry in _miniGames)
             {
-                if (entry.Index == index)
+                if (entry.Kind == kind)
                     return entry.Content;
             }
             return null;
         }
 
-        public void RegisterContent(int index, MiniGameContent content)
+        public void RegisterContent(MiniGameKind kind, MiniGameContent content)
         {
             foreach (var entry in _miniGames)
-                if (entry.Index == index) { entry.Content = content; return; }
-            _miniGames.Add(new MiniGameEntry { Index = index, Content = content });
+                if (entry.Kind == kind) { entry.Content = content; return; }
+            _miniGames.Add(new MiniGameEntry { Kind = kind, Content = content });
         }
 
         /// <summary>

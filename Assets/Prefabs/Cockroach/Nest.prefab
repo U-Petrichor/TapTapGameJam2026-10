@@ -405,6 +405,10 @@ MonoBehaviour:
   radius: 0.6
   range: 10
   isActive: 1
+  _interactionRadius: 2
+  _carryLocalPosition: {x: -0.041, y: 0.06, z: -0.119}
+  _carryLocalEulerAngles: {x: -154.956, y: -47.66101, z: -37.44202}
+  _carryLocalScale: {x: 0.3, y: 0.3, z: 0.3}
 --- !u!114 &6620537959936228669
 MonoBehaviour:
   m_ObjectHideFlags: 0
