@@ -1,4 +1,8 @@
+using System;
 using TapTapGameJam.Cockroach;
+using TapTapGameJam.Core;
+using TapTapGameJam.Events;
+using TapTapGameJam.Types;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,70 +25,85 @@ namespace TapTapGameJam.UI
 
         [Tooltip("孵化进度环。留空则不显示进度")]
         [SerializeField] private Image _hatchProgressRing;
-
+        
+        [Tooltip("整个地面环")]
+        [SerializeField] private Transform _groundRing;
+        
         [Tooltip("要显示的巢穴。留空则从自己往上找")]
         [SerializeField] private CockNest _nest;
-
+        
         [Header("富文本颜色")]
         [Tooltip("蟑螂数量为 0 时的颜色")]
-        [SerializeField] private Color _emptyColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        [SerializeField] private Color _emptyColor = new Color(0.6f, 0.6f, 0.6f);
 
         [Tooltip("有蟑螂时的颜色")]
-        [SerializeField] private Color _countColor = new Color(0.55f, 0.88f, 0.35f, 1f);
+        [SerializeField] private Color _countColor = new Color(0.55f, 0.88f, 0.35f);
 
+        [Header("圆环颜色")]
+        [Tooltip("产卵颜色")]
+        [SerializeField] private Color _unlockColor = new Color(0.2f, 1.0f, 1.0f);
+
+        [Tooltip("孵化颜色")]
+        [SerializeField] private Color _firstHatchColor = new Color(0.95f, 0.88f, 0.35f);
+
+        [Tooltip("小蟑螂孵化颜色")]
+        [SerializeField] private Color _hatchColor = new Color(0.75f, 0.48f, 0.35f);
+
+        
         private void Awake()
         {
             if (_nest == null)
             {
                 _nest = GetComponentInParent<CockNest>();
             }
+            
+            EventPipeline.Subscribe<GamePhaseChangedEvent>(SwitchDayNight);
+        }
 
-            if (_nest == null)
-            {
-                Debug.LogError($"[CockroachNestUI:{name}]：没找到 CockNest，也没手动指定");
-            }
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<GamePhaseChangedEvent>(SwitchDayNight);
+        }
 
-            if (_text == null)
-            {
-                Debug.LogError($"[CockroachNestUI:{name}]：没有配置文本");
-            }
+        void SwitchDayNight(GamePhaseChangedEvent evt)
+        {
+            bool toNight = evt.NewPhase == GamePhase.Night;
+            _groundRing.gameObject.SetActive(toNight);
         }
 
         private void Update()
         {
-            if (_nest == null || _text == null)
-            {
-                return;
-            }
+            if (!GameManager.IsNight) return;
 
+            if (_nest.nestLockState == CockNest.NestLockState.Unlocked)
+            {
+                RefreshHatchRingAndText();
+            }
+            else if (_nest.nestLockState == CockNest.NestLockState.Locked)
+            {
+                _text.text = "";
+                _hatchProgressRing.color = _unlockColor;
+                _hatchProgressRing.fillAmount = _nest.UnlockProgress;
+            } else if (_nest.nestLockState == CockNest.NestLockState.FirstHatching)
+            {
+                _text.text = "";
+                _hatchProgressRing.color = _firstHatchColor;
+                _hatchProgressRing.fillAmount = _nest.FirstHatchProgress;
+            }
+        }
+
+        /// <summary>孵化进度环：只在 Hatch 指令下显示，fillAmount 就是进度</summary>
+        private void RefreshHatchRingAndText()
+        {
             int count = _nest.CockroachList.Count;
             string countColor = ToRichTextColor(count > 0 ? _countColor : _emptyColor);
 
             _text.text =
                 $"<color={countColor}>{count}</color> cockroaches\n" +
                 $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
-
-            RefreshHatchRing();
-        }
-
-        /// <summary>孵化进度环：只在 Hatch 指令下显示，fillAmount 就是进度</summary>
-        private void RefreshHatchRing()
-        {
-            if (_hatchProgressRing == null)
-            {
-                return;
-            }
-
-            bool show = _nest.CurrentCommand == CockroachCommand.Hatch;
-            if (_hatchProgressRing.enabled != show)
-            {
-                _hatchProgressRing.enabled = show;
-            }
-
-            if (show)
-            {
-                _hatchProgressRing.fillAmount = _nest.HatchProgress;
-            }
+            
+            _hatchProgressRing.color = _hatchColor;
+            _hatchProgressRing.fillAmount = _nest.HatchProgress;
         }
 
         /// <summary>

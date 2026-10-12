@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using TapTapGameJam.Types;
 using TapTapGameJam.Events;
@@ -14,7 +15,12 @@ namespace TapTapGameJam.Core
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
         public float RemainingTime = 0f; // 当前阶段剩余时间
         public int DayIndex = 1; // 当前是第几天，从1开始计数
-        
+
+
+        private void Awake()
+        {
+            EnterPhase(GamePhase.Day);
+        }
 
         private void Update()
         {
@@ -38,16 +44,14 @@ namespace TapTapGameJam.Core
             }
 
             // 阶段结束，进入下一个阶段
-            if (CurrentPhase == GamePhase.Day)
-            {
-                EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Shopping));
-            }
-            else if (CurrentPhase == GamePhase.Night)
-            {
-                EventPipeline.Publish(new GamePhaseChangedEvent(GamePhase.Day));
-            }
+            NextPhase();
         }
 
+        public void NextPhase()
+        {
+            EnterPhase(CurrentPhase == GamePhase.Day ? GamePhase.Shopping : CurrentPhase == GamePhase.Shopping ? GamePhase.Night : GamePhase.Day);
+        }
+        
         /// <summary>
         /// 只需要传入接下来要进入的阶段，方法会自动处理剩余时间和事件触发
         /// </summary>
@@ -61,6 +65,7 @@ namespace TapTapGameJam.Core
                 _ => 0f
             };
             CurrentPhase = phase;
+            EventPipeline.Publish(new GamePhaseChangedEvent(phase));
         }
         /// <summary>
         /// 购物时点击按钮主动结束，触发阶段切换事件

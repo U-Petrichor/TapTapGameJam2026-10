@@ -18,6 +18,10 @@ namespace TapTapGameJam.Core
         [Tooltip("背包界面（HUDCanvas 下的 BagPanel）")]
         [SerializeField] private BagPanelUI _bagPanel;
         private int _dayCount=0 ;
+        
+        public static bool IsDay => _instance._gamePhaseManager.CurrentPhase == GamePhase.Day;
+        public static bool IsNight => _instance._gamePhaseManager.CurrentPhase == GamePhase.Night;
+        public static PlayerBasic Player => _instance._player;
 
         private void Awake()
         {

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
@@ -30,38 +31,29 @@ namespace TapTapGameJam.Cockroach
         private float _pivotAboveGround;
         private Canvas[] _carryCanvases;
         private bool[] _canvasEnabled;
-        private bool _ringWasActive;
-        private bool _wasActive;
         private readonly Dictionary<PlayerInteractionManager, HashSet<Collider>> _interactionPlayers = new();
 
         public bool IsCarried => _carrier != null;
         public override string InteractionPrompt => IsCarried ? "按 E 放下巢穴" : "按 E 搬运巢穴";
 
-        private void InitializeInteraction()
-        {
-            // 原预制体的 BoxCollider 保留实体碰撞，另外增加交互范围。
-            var detector = gameObject.AddComponent<SphereCollider>();
-            detector.isTrigger = true;
-            detector.radius = _interactionRadius;
-        }
-
         public override bool CanInteract(PlayerBasic player)
         {
             if (player == null || !isActiveAndEnabled) return false;
+            if (!player.CompareTag("Player")) return false;
 
-            if (player.CompareTag("Player"))
+            if (GameManager.IsDay)
             {
                 if (player.CarryController == null) return false;
                 if (IsCarried)
                     return _carrier == player && player.CarryController.CurrentObject == this;
-                return !player.IsCarry &&
-                    (player.transform.position - transform.position).sqrMagnitude <= _interactionRadius * _interactionRadius;
+                return !player.IsCarry;
             }
 
-            if (player.CompareTag("Cockroach"))
+            if (GameManager.IsNight)
             {
-                // TODO: 夜晚产卵的可交互条件。蟑螂不能搬运巢穴。
-                return false;
+                // 只有解锁状态不能交互。
+                if (nestLockState == NestLockState.Unlocked) return false;
+                return true;
             }
 
             return false;
@@ -71,7 +63,7 @@ namespace TapTapGameJam.Cockroach
         {
             if (player == null) return;
 
-            if (player.CompareTag("Player"))
+            if (GameManager.IsDay)
             {
                 if (!CanInteract(player)) return;
                 if (IsCarried)
@@ -81,12 +73,12 @@ namespace TapTapGameJam.Cockroach
                 return;
             }
 
-            if (player.CompareTag("Cockroach"))
+            if (GameManager.IsNight)
             {
-                // TODO: 夜晚产卵交互。接通时先检查 CanInteract(player)。
-                // 此分支不会进入人形拾起/放下逻辑。
+                // 夜间交互靠Interacting即可，无特殊逻辑
                 return;
             }
+
         }
 
         public bool TryPickUp(PlayerBasic player)
@@ -105,9 +97,6 @@ namespace TapTapGameJam.Cockroach
                 _carrier = null;
                 return false;
             }
-
-            _wasActive = isActive;
-            isActive = false;
 
             _groundRotation = transform.rotation;
             _groundScale = transform.lossyScale;
@@ -146,11 +135,6 @@ namespace TapTapGameJam.Cockroach
             {
                 _canvasEnabled[i] = _carryCanvases[i].enabled;
                 _carryCanvases[i].enabled = false;
-            }
-            if (_ringRoot != null)
-            {
-                _ringWasActive = _ringRoot.gameObject.activeSelf;
-                _ringRoot.gameObject.SetActive(false);
             }
 
             UnregisterInteractionTargets();
@@ -193,15 +177,11 @@ namespace TapTapGameJam.Cockroach
             _carrierInteraction?.Unregister(this);
             _carrierInteraction = null;
             _carrier = null;
-            isActive = _wasActive;
             for (int i = 0; i < _carryColliders.Length; i++)
                 if (_carryColliders[i] != null) _carryColliders[i].enabled = _colliderEnabled[i];
             if (_carryBody != null) _carryBody.isKinematic = _bodyKinematic;
             for (int i = 0; i < _carryCanvases.Length; i++)
                 if (_carryCanvases[i] != null) _carryCanvases[i].enabled = _canvasEnabled[i];
-            if (_ringRoot != null) _ringRoot.gameObject.SetActive(_ringWasActive);
-            ApplyPhasePresentation();
-            RefreshDistanceField();
         }
 
         // 巢穴的交互范围是运行时添加的触发器，并且要同时识别人形与 AI 蟑螂，
@@ -214,7 +194,7 @@ namespace TapTapGameJam.Cockroach
             if (IsCarried || !other.enabled) return;
             // 用玩家根节点 Tag 判形态；子碰撞体可能没有 Tag，AI 蟑螂没有 PlayerBasic。
             var player = other.GetComponentInParent<PlayerBasic>();
-            if (player == null || (!player.CompareTag("Player") && !player.CompareTag("Cockroach"))) return;
+            if (player == null || !player.CompareTag("Player")) return;
             var interaction = player.PlayerInteractionManager;
             if (interaction == null) return;
             if (!_interactionPlayers.TryGetValue(interaction, out var colliders))

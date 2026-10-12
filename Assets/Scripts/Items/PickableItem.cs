@@ -81,7 +81,7 @@ namespace TapTapGameJam.Items
 
         public override bool CanInteract(PlayerBasic player)
         {
-            return IsOnMap;
+            return GameManager.IsNight && IsOnMap;
         }
 
         public override void Interact(PlayerBasic player, InteractKey key)

@@ -1,4 +1,5 @@
 using System;
+using TapTapGameJam.Core;
 using UnityEngine.Assertions;
 using TapTapGameJam.Interactables;
 using UnityEngine;
@@ -46,6 +47,23 @@ namespace TapTapGameJam.UI
         private void RefreshBubble()
         {
             InteractState state = _interactable.InteractState;
+            
+            if (state == InteractState.Interacting || !_interactable.CanInteract(GameManager.Player))
+            {
+                if (!_isHided)
+                {
+                    _isHided = true;
+                    _bubbleImage.transform.localScale = Vector3.zero;
+                }
+
+                return;
+            }
+            
+            if (_isHided)
+            {
+                _isHided = false;
+                _bubbleImage.transform.localScale = _orginScale;
+            }
 
             if (state == InteractState.InteractPending)
             {
@@ -62,22 +80,6 @@ namespace TapTapGameJam.UI
                 _bubbleHintButton.localScale = scale;
             }
 
-            if (state == InteractState.Interacting)
-            {
-                if (!_isHided)
-                {
-                    _isHided = true;
-                    _bubbleImage.transform.localScale = Vector3.zero;
-                }
-            }
-            else
-            {
-                if (_isHided)
-                {
-                    _isHided = false;
-                    _bubbleImage.transform.localScale = _orginScale;
-                }
-            }
         }
 
         

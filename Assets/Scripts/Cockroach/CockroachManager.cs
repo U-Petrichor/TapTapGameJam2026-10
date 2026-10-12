@@ -70,7 +70,7 @@ namespace TapTapGameJam.Cockroach
             // 全体决策
             for (int i = 0; i < CockNestList.Count; i++)
             {
-                if (!CockNestList[i].isActive) continue;
+                if (!CockNestList[i].isCockroachActive) continue;
                 List<Cockroach> roaches = CockNestList[i].CockroachList;
                 for (int j = 0; j < roaches.Count; j++)
                 {
@@ -84,7 +84,7 @@ namespace TapTapGameJam.Cockroach
             int total = 0;
             foreach (CockNest nest in CockNestList)
             {
-                if (nest.isActive) total += nest.CockroachList.Count;
+                if (nest.isCockroachActive) total += nest.CockroachList.Count;
             }
 
             return total;

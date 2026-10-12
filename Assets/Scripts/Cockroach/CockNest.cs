@@ -3,17 +3,43 @@ using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
 using UnityEngine;
 using TapTapGameJam.Core;
+using TapTapGameJam.Player;
 using TapTapGameJam.Types;
 
 namespace TapTapGameJam.Cockroach
 {
-    
+
     /// <summary>
     /// 蟑螂巢穴。既是归巢目标，也是信息素归巢通道的起点。
     /// </summary>
     public partial class CockNest : Interactable
     {
-        
+        public enum NestLockState
+        {
+            Locked,
+            FirstHatching,
+            Unlocked
+        }
+
+        [Tooltip("巢穴解锁状态")] 
+        public NestLockState nestLockState = NestLockState.Locked;
+
+        [Tooltip("产卵（解锁）所需时间")] [SerializeField]
+        private float _spawnTime = 5.0f;
+        private float _spawnSpentTime = 0.0f;
+
+        [Tooltip("初次孵化所需时间")] [SerializeField]
+        private float _firstHatchTime = 30.0f;
+        private float _firstHatchSpentTime = 0.0f;
+
+        [Tooltip("初次孵化产生的蟑螂数量")] [SerializeField]
+        private int _firstHatchCount = 3;
+
+        public bool isCockroachActive => nestLockState == NestLockState.Unlocked && !GameManager.IsDay;
+
+
+        // =========== 夜间巢穴属性 ============== //
+
         /// <summary>巢穴距离场里"不可达"的哨兵值</summary>
         public const int FarDistance = 1 << 24;
 
@@ -31,33 +57,14 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("活动范围半径（世界单位）。超出所有巢穴范围的蟑螂会被拉回来")]
         public float range = 10f;
 
-        [Tooltip("是否已启用")]
-        public bool isActive = false;
-
         [Header("范围虚线圈")]
-        [Tooltip("环的线宽（世界单位）")]
-        private float _ringWidth = 0.2f;
-
-        [Tooltip("期望的单段实线弧长（世界单位）。段数由 range 反推，range 越大段数越多")]
-        private float _targetDashLength = 0.3f;
-
-        [Tooltip("环的不透明度。颜色本身跟着当前指令走（见 HatchColor / ForagingColor）")]
-        private float _ringAlpha = 0.35f;
-
-        [Tooltip("孵化指令下的自转速度（度/秒），顺时针")]
-        private float _hatchSpinSpeed = 4f;
-
-        [Tooltip("觅食指令下的自转速度（度/秒），逆时针")]
-        private float _foragingSpinSpeed = 16f;
-
-        [Tooltip("画范围圈的层。需要在 UI 相机的 Culling Mask 里，才能盖在 3D 物体上层")]
-        private string _ringLayerName = "WorldUI";
+        [Tooltip("范围虚线圈。留空则先从子物体里找，还找不到就在运行时建一个 RangeRing 子物体")]
+        [SerializeField] private CockNestRing _ring;
 
         public List<Cockroach> CockroachList { get; private set; } = new List<Cockroach>();
 
-        [Header("孵化")]
-        [Tooltip("孵出来的蟑螂用它实例化。留空则孵不出东西")]
-        [SerializeField] private Cockroach _cockroachPrefab;
+        [Header("孵化")] [Tooltip("孵出来的蟑螂用它实例化。留空则孵不出东西")] [SerializeField]
+        private Cockroach _cockroachPrefab;
 
         /// <summary>巢内的蟑螂数量。由蟑螂自己上报，不遍历 CockroachList</summary>
         public int InsideCount { get; private set; }
@@ -73,107 +80,120 @@ namespace TapTapGameJam.Cockroach
         /// <summary>
         /// 到本巢穴的格数距离场
         /// </summary>
-        public int[,] DistanceField {get; private set;}
+        public int[,] DistanceField { get; private set; }
 
-        /// <summary>程序化生成的范围虚线圈。只在初始化时生成一次</summary>
-        private Transform _ringRoot;
+        // 距离孵出下一只的进度 0~1
+        public float HatchProgress =>
+            Mathf.Clamp01(_hatchNutrition / CockroachManager.Instance.cockroachSetting.HatchNutritionCost);
 
-        /// <summary>范围圈的材质。运行时靠改它的颜色来跟随当前指令</summary>
-        private Material _ringMaterial;
+        // 距离解锁的进度
+        public float UnlockProgress => Mathf.Clamp01(_spawnSpentTime / _spawnTime);
 
-        /// <summary>上一次套用到环上的指令，用来判断颜色需不需要刷新</summary>
-        private CockroachCommand _ringCommand = CockroachCommand.Hatch;
-        private bool _isNight;
-
-        private void Awake()
-        {
-            // TODO: 假设游戏里半径不会变动，所以只生成一次
-            BuildRangeRing();
-            InitializeInteraction();
-            ApplyPhasePresentation();
-        }
-
+        // 初次孵化的进度
+        public float FirstHatchProgress => Mathf.Clamp01(_firstHatchSpentTime / _firstHatchTime);
+        
         private void Update()
         {
-            if (IsCarried || !isActive) return;
-            float dt = Time.deltaTime;
-
-            UpdateHatch(dt);
-
-            if (_ringRoot == null)
+            if (GameManager.IsDay) return;
+            
+            if (nestLockState == NestLockState.FirstHatching)
             {
-                return;
+                _firstHatchSpentTime += Time.deltaTime;
+                if (InteractState == InteractState.Interacting)
+                {
+                    // TODO: 玩家加速孵化速率
+                    _firstHatchSpentTime += Time.deltaTime * 5;
+                }
+
+                if (_firstHatchSpentTime >= _firstHatchTime)
+                {
+                    // 孵化第一批
+                    for(int i = 0; i < _firstHatchCount; i++) SpawnCockroach();
+                    SetLockState(NestLockState.Unlocked);
+                }
             }
-
-            // 顺时针为正角度，所以孵化给正值、觅食给负值
-            float speed = currentCommand == CockroachCommand.Hatch
-                ? _hatchSpinSpeed
-                : -_foragingSpinSpeed;
-
-            _ringRoot.Rotate(0f, speed * dt, 0f, Space.Self);
-
-            // 指令变了就换颜色。放在这里是为了不放过任何改 currentCommand 的路径
-            if (_ringCommand != currentCommand)
+            else if (nestLockState == NestLockState.Locked)
             {
-                _ringCommand = currentCommand;
-                ApplyRingColor();
+                if (InteractState == InteractState.Interacting)
+                {
+                    _spawnSpentTime += Time.deltaTime;
+                    if (_spawnSpentTime >= _spawnTime)
+                    {
+                        // 成功产卵
+                        SetLockState(NestLockState.FirstHatching);
+                        // 打断一下，要重新点才能继续孵化
+                        InteractState = InteractState.InteractPending;
+                    }
+                }
+                else
+                {
+                    _spawnSpentTime = 0;
+                }
+            } else if (nestLockState == NestLockState.Unlocked)
+            {
+                UpdateNight();
             }
         }
 
-        /// <summary>把当前指令的颜色套到范围圈材质上</summary>
-        private void ApplyRingColor()
+
+        void UpdateNight()
         {
-            if (_ringMaterial == null)
-            {
-                return;
-            }
+            // 夜间蟑螂逻辑
+            UpdateHatch(Time.deltaTime);
 
-            Color color = RingColorOf(currentCommand);
-
-            // 显式写两个名字：URP Unlit 用的是 _BaseColor，_Color 是为了兼容老材质
-            if (_ringMaterial.HasProperty("_BaseColor"))
-            {
-                _ringMaterial.SetColor("_BaseColor", color);
-            }
-
-            _ringMaterial.SetColor("_Color", color);
-        }
-
-        /// <summary>取某个指令的颜色，alpha 换成环专用的透明度</summary>
-        private Color RingColorOf(CockroachCommand command)
-        {
-            Color color = command == CockroachCommand.Hatch ? HatchColor : ForagingColor;
-            color.a = _ringAlpha;
-            return color;
+            // 指令变了就换颜色。放在这里是为了不放过任何改 currentCommand 的路径。
+            // 自转不在这里做，由 CockNestRing 自己按当前指令跑。
+            _ring?.SetCommand(currentCommand);
         }
 
         /// <summary>
-        /// 用程序化网格搭一个虚线圆环，画巢穴的覆盖范围。
+        /// 拿到范围圈：先用 Inspector 里挂的引用，其次子物体，最后运行时建一个专用子物体。
+        /// 网格、材质、自转都在 CockNestRing 里，这里只把当前半径交给它。
         /// </summary>
-        private void BuildRangeRing()
+        private void EnsureRing()
         {
-            var ringObject = new GameObject("RangeRing");
-            _ringRoot = ringObject.transform;
-            _ringRoot.SetParent(transform, false);
+            if (_ring == null) _ring = GetComponentInChildren<CockNestRing>(true);
 
-            int layer = LayerMask.NameToLayer(_ringLayerName);
-            if (layer >= 0)
+            if (_ring == null)
             {
-                ringObject.layer = layer;
+                var ringObject = new GameObject("RangeRing");
+                ringObject.transform.SetParent(transform, false);
+                _ring = ringObject.AddComponent<CockNestRing>();
             }
 
-            // 段数跟着 range 走：半径越大，同样的虚线长度需要越多段
-            int dashCount = CockroachNestRangeRing.DashesFor(range, _targetDashLength);
+            _ring.Regenerate(range);
+            RefreshRingVisibility();
+        }
 
-            Mesh mesh = CockroachNestRangeRing.Build(range, _ringWidth, dashCount);
-            ringObject.AddComponent<MeshFilter>().sharedMesh = mesh;
+        /// <summary>范围圈只在夜间、已解锁、且没被玩家搬着的时候显示</summary>
+        private void RefreshRingVisibility()
+        {
+            bool visible = GameManager.IsNight && !IsCarried && nestLockState != NestLockState.Locked;
+            if (_ring == null || _ring.IsVisible == visible) return;
 
-            _ringMaterial = CockroachNestRangeRing.CreateUnlitMaterial(RingColorOf(_ringCommand));
-            ringObject.AddComponent<MeshRenderer>().sharedMaterial = _ringMaterial;
+            if (visible)
+            {
+                // 显示出来的这一刻保证颜色跟当前指令一致
+                _ring.SetCommand(currentCommand);
+            }
+
+            _ring.SetVisible(visible);
+        }
+
+        /// <summary>切换解锁状态。内部的迁移都走这里，保证范围圈的显示跟着更新</summary>
+        private void SetLockState(NestLockState state)
+        {
+            if (nestLockState == state) return;
+
+            nestLockState = state;
+            RefreshRingVisibility();
         }
 
         private void OnEnable()
         {
+            EnsureRing();
+            RefreshDistanceField();
+            
             EventPipeline.Subscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
             // 和 PickableItem 一样由自己登记，CockroachManager 不主动遍历场景
             CockroachManager.Instance.CockNestList.Add(this);
@@ -198,26 +218,15 @@ namespace TapTapGameJam.Cockroach
 
         private void HandlePhaseChanged(GamePhaseChangedEvent evt)
         {
-            _isNight = evt.NewPhase == GamePhase.Night;
-            ApplyPhasePresentation();
-        }
+            bool enteringNight = evt.NewPhase == GamePhase.Night;
 
-        /// <summary>
-        /// 白天仍保留拾取触发器，但只在夜晚显示蟑螂活动范围和巢穴世界 UI。
-        /// </summary>
-        private void ApplyPhasePresentation()
-        {
-            bool visible = _isNight && !IsCarried && isActive;
-            if (_ringRoot != null)
+            // 每次进入夜晚重建一次范围圈：夜间才看得见它，半径这时候可能已经变过
+            if (enteringNight)
             {
-                _ringRoot.gameObject.SetActive(visible);
+                _ring.Regenerate(range);
+                RefreshDistanceField();
             }
-
-            Canvas[] canvases = GetComponentsInChildren<Canvas>(true);
-            for (int i = 0; i < canvases.Length; i++)
-            {
-                canvases[i].enabled = visible;
-            }
+            _ring.SetVisible(false);
         }
 
         // 不含生成/销毁语义，仅记录 & 注册一只蟑螂
@@ -243,30 +252,6 @@ namespace TapTapGameJam.Cockroach
         public void ReportWentOutside()
         {
             InsideCount--;
-        }
-
-        /// <summary>
-        /// 距离孵出下一只的进度 0~1。没配 prefab 时恒为 0
-        /// </summary>
-        public float HatchProgress
-        {
-            get
-            {
-                float cost = HatchCost;
-                return cost > 0f ? Mathf.Clamp01(_hatchNutrition / cost) : 0f;
-            }
-        }
-
-        private float HatchCost
-        {
-            get
-            {
-                CockroachSettings settings = CockroachManager.Instance != null
-                    ? CockroachManager.Instance.cockroachSetting
-                    : null;
-
-                return settings != null ? settings.HatchNutritionCost : 0f;
-            }
         }
 
         /// <summary>
@@ -321,6 +306,7 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         public void CycleCommand()
         {
+            if (!isCockroachActive) return;
             int count = System.Enum.GetValues(typeof(CockroachCommand)).Length;
             currentCommand = (CockroachCommand)(((int)currentCommand + 1) % count);
 

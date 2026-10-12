@@ -1,4 +1,5 @@
 using System;
+using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
@@ -26,6 +27,11 @@ namespace TapTapGameJam.Items
         public float ScannedRate => scannedTime / scanReqTime;
 
         public override string InteractionPrompt => "按E扫描";
+
+        public override bool CanInteract(PlayerBasic player)
+        {
+            return GameManager.IsNight && base.CanInteract(player);
+        }
 
         public override void Interact(PlayerBasic player, InteractKey key)
         {
