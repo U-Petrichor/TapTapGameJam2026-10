@@ -23,7 +23,7 @@ namespace TapTapGameJam.Interactables
         // public bool IsPendingInteract { get; set; } = false;
         public InteractState InteractState { get; set; } = InteractState.InteractIdle;
 
-        private Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
+        protected Dictionary<PlayerInteractionManager, HashSet<Collider>> _registered = new Dictionary<PlayerInteractionManager, HashSet<Collider>>();
 
         /// <summary>
         /// 玩家是否可以与当前物品交互，需要在子类中重写，完善逻辑，默认可交互

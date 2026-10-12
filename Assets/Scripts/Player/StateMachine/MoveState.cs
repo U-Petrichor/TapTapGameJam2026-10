@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace TapTapGameJam.Player
 {
-    public class MoveState : PlayerStateBase
+    public class MoveState : NpcStateBase
     {
         public override bool CanStartAttack => true;
         public MoveState(PlayerBasic owner) : base(owner) { }

@@ -4,11 +4,11 @@ namespace TapTapGameJam.Player
 {
     public class PlayerStateMachine
     {
-        private PlayerStateBase _currentState;
+        private NpcStateBase _currentState;
 
-        public PlayerStateBase CurrentState => _currentState;
+        public NpcStateBase CurrentState => _currentState;
 
-        public void ChangeState(PlayerStateBase newState)
+        public void ChangeState(NpcStateBase newState)
         {
             if (newState == null)
             {

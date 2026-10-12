@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
-using TapTapGameJam.Player;
 using TapTapGameJam.MiniGame;
+using TapTapGameJam.NPC;
+using TapTapGameJam.Player;
 using UnityEngine;
 
 public class SecurityDoor : Interactable, ITaskSpawnCondition
@@ -12,10 +14,22 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     [SerializeField] private Collider _detectCollider;
     [SerializeField] private Animator _animator;
 
+    [Header("NPC 自动开关门")]
+    [Tooltip("开门动画的时长；当前 OpenSecurityDoor 动画约为 0.4167 秒")]
+    [Min(0.01f)] [SerializeField] private float _doorAnimationDuration = 0.4166667f;
+
     [Header("填入预计第几天开放，-1就是永远不开放")]
     [SerializeField] private int _whichDayOpen=1;
     private bool _canIOpen = false;
     private static readonly int OpenSecurityDoorHash = Animator.StringToHash("Base Layer.OpenSecurityDoor");
+
+    private bool _playerUnlocked;
+    private bool _doorOpen;
+    private bool _isAnimating;
+    private bool _opening;
+    private bool _unlockPlayerAfterOpen;
+    private float _animationNormalizedTime;
+
     public bool IsAvailable => _canIOpen;
     public string UnavailableReason => _canIOpen ? string.Empty : "门尚未开放";
 
@@ -33,6 +47,10 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
         {
             Debug.LogError($"[SecurityDoor]:没有配置Animator");
         }
+
+        if (_blockCollider != null) _blockCollider.enabled = true;
+        if (_detectCollider != null) _detectCollider.enabled = true;
+        SampleDoorPose(0f);
     }
     private void OnEnable()
     {
@@ -42,6 +60,12 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     {
         EventPipeline.UnSubscribe<EventNewDay>(TimeToUnlock);
      }
+
+    private void Update()
+    {
+        UpdateNpcPresence();
+        UpdateDoorAnimation();
+    }
     private void TimeToUnlock(EventNewDay evt)
     {
         if (_whichDayOpen >= 0 && evt.DayCount >= _whichDayOpen)
@@ -56,38 +80,218 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     }
     public override bool CanInteract(PlayerBasic player)
     {
-        if (_canIOpen)
-        {
-            // 如果当前门可以进入
-            return true;
-        }
-        if (true)
-        {
-            // 这里写玩家有通行证的情况
-        }
-        return false;
-        
+        return _canIOpen && !_playerUnlocked;
     }
 
     public override void Interact(PlayerBasic player, InteractKey key)
     {
-        // 先取消订阅
+        if (!_canIOpen) return;
+
         ClearAllRegister();
-        _animator.Play(OpenSecurityDoorHash);
+        _unlockPlayerAfterOpen = true;
+
+        if (_doorOpen && !_isAnimating)
+        {
+            UnlockTheDoor();
+        }
+        else
+        {
+            StartDoorAnimation(true, true);
+        }
+    }
+
+    /// <summary>NPC 靠近时只打开视觉动画，玩家阻挡碰撞体仍然保持启用。</summary>
+    private void OpenForNpc()
+    {
+        if (_playerUnlocked) return;
+        StartDoorAnimation(true, false);
+    }
+
+    /// <summary>所有 NPC 离开后倒放开门动画。</summary>
+    private void CloseForNpc()
+    {
+        if (_playerUnlocked || !_doorOpen) return;
+        StartDoorAnimation(false, false);
+    }
+
+    private void UpdateNpcPresence()
+    {
+        if (_playerUnlocked || _detectCollider == null || !_detectCollider.enabled) return;
+
+        Bounds bounds = _detectCollider.bounds;
+        Collider[] hits = Physics.OverlapBox(
+            bounds.center,
+            bounds.extents,
+            Quaternion.identity,
+            ~0,
+            QueryTriggerInteraction.Collide);
+
+        bool npcNearby = false;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (hits[i] != null && hits[i].GetComponentInParent<NPC>() != null)
+            {
+                npcNearby = true;
+                break;
+            }
+        }
+
+        if (npcNearby)
+        {
+            OpenForNpc();
+        }
+        else if (_doorOpen && !_isAnimating)
+        {
+            CloseForNpc();
+        }
+    }
+
+    private void StartDoorAnimation(bool opening, bool unlockPlayerWhenFinished)
+    {
+        if (_animator == null) return;
+
+        if (_isAnimating && _opening == opening)
+        {
+            _unlockPlayerAfterOpen |= unlockPlayerWhenFinished;
+            return;
+        }
+
+        bool wasAnimating = _isAnimating;
+        float currentTime = _animationNormalizedTime;
+        if (!wasAnimating)
+        {
+            currentTime = _doorOpen ? 1f : 0f;
+        }
+
+        _opening = opening;
+        _unlockPlayerAfterOpen = unlockPlayerWhenFinished || _unlockPlayerAfterOpen;
+        _animationNormalizedTime = Mathf.Clamp01(currentTime);
+        _isAnimating = true;
+
+        // 从当前姿态继续，开门中途遇到 NPC 离开/进入时不会跳帧。
+        SampleDoorPose(_animationNormalizedTime);
+    }
+
+    private void UpdateDoorAnimation()
+    {
+        if (!_isAnimating || _animator == null) return;
+
+        float delta = Time.deltaTime / Mathf.Max(0.01f, _doorAnimationDuration);
+        _animationNormalizedTime = Mathf.Clamp01(
+            _animationNormalizedTime + ( _opening ? delta : -delta));
+        SampleDoorPose(_animationNormalizedTime);
+
+        if ((_opening && _animationNormalizedTime >= 1f) ||
+            (!_opening && _animationNormalizedTime <= 0f))
+        {
+            FinishDoorAnimation();
+        }
+    }
+
+    private void SampleDoorPose(float normalizedTime)
+    {
+        if (_animator == null || !_animator.isActiveAndEnabled) return;
+
+        // 不依赖 Animator.speed = -1（Unity 对负速率有限制），逐帧采样同一动画的正/反方向。
+        _animator.speed = 0f;
+        _animator.Play(OpenSecurityDoorHash, 0, Mathf.Clamp01(normalizedTime));
+        _animator.Update(0f);
+    }
+
+    private void FinishDoorAnimation()
+    {
+        if (!_isAnimating) return;
+
+        bool opened = _opening;
+        _isAnimating = false;
+        _doorOpen = opened;
+        _animationNormalizedTime = opened ? 1f : 0f;
+        SampleDoorPose(_animationNormalizedTime);
+
+        if (opened && _unlockPlayerAfterOpen)
+        {
+            UnlockTheDoor();
+        }
+        else
+        {
+            // NPC 自动开门/关门不会改变玩家的通行权限。
+            if (_blockCollider != null) _blockCollider.enabled = true;
+            if (_detectCollider != null) _detectCollider.enabled = true;
+        }
+
+        _unlockPlayerAfterOpen = false;
     }
     private void UnlockTheDoor()
     {
+        _playerUnlocked = true;
+        _doorOpen = true;
+        _isAnimating = false;
         _blockCollider.enabled = false; // 关闭碰撞体，允许玩家通行
         _detectCollider.enabled = false; // 关闭检测碰撞体
     }
     private void LockTheDoor()
     {
+        _playerUnlocked = false;
+        _doorOpen = false;
+        _isAnimating = false;
+        _unlockPlayerAfterOpen = false;
         _blockCollider.enabled = true; // 打开碰撞体，禁止玩家通行
-        _detectCollider.enabled = false; // 允许检测碰撞体，玩家才会显示可交互的提示
+        _detectCollider.enabled = true; // 继续检测玩家与 NPC
+        SampleDoorPose(0f);
     }
     private void OpenDoorAnimationFinish(int _)
     {
-        // 动画播放结束，关闭碰撞体允许玩家通行
-        UnlockTheDoor();
+        // 保留现有 Animation Event；NPC 自动开门时不会解锁玩家。
+        if (_isAnimating && _opening && _animationNormalizedTime >= 0.99f)
+        {
+            FinishDoorAnimation();
+        }
+    }
+    public override void OnTriggerEnter(Collider other)
+    {
+        if (_canIOpen == false)
+        {
+            // 门还没有开放，直接不注册
+            return;
+        }
+        if (other.CompareTag("Player"))
+        {
+            // 玩家进入范围
+            PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
+            if (!_registered.TryGetValue(interactionManager, out var colliders))
+            {
+                // 尝试获取值失败→这是第一个collider
+                colliders = new HashSet<Collider>();
+                _registered.Add(interactionManager, colliders);
+                interactionManager.Register(this);
+            }
+            colliders.Add(other);
+        }
+    }
+    /// <summary>
+    /// 检测离开的单位Tag是否为Player，是则取消注册自身
+    /// </summary>
+    public override void OnTriggerExit(Collider other)
+    {
+        if (_canIOpen == false)
+        {
+            // 门还没有开放，直接跳过逻辑
+            return;
+        }
+        if (other.CompareTag("Player"))
+        {
+            // 玩家离开范围
+            PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
+            if (_registered.TryGetValue(interactionManager, out var colliders))
+            {
+                colliders.Remove(other);
+                if (colliders.Count == 0)
+                {
+                    // 说明是最后一个，那么就取消注册并且删除这个键
+                    interactionManager.Unregister(this);
+                    _registered.Remove(interactionManager);
+                }
+            }
+        }
     }
 }

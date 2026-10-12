@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2289136790171395397}
   - component: {fileID: 5067637546724118092}
   - component: {fileID: 8411695771672281315}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: DoorFrame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 8510442796967571888}
   - component: {fileID: 5238432115821694344}
   - component: {fileID: 7849124756210026621}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: DoorJumb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,7 +191,7 @@ GameObject:
   - component: {fileID: 6703041362538589831}
   - component: {fileID: 7598505103564425744}
   - component: {fileID: 7196899096250017717}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: DoorFrame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -279,7 +279,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3145394209344613712}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: LeftPart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -315,7 +315,7 @@ GameObject:
   - component: {fileID: 1091511998640741466}
   - component: {fileID: 1915253445654820382}
   - component: {fileID: 2503575610817218753}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: DoorJumb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -405,7 +405,7 @@ GameObject:
   - component: {fileID: 286174620919199339}
   - component: {fileID: 7763671304269867028}
   - component: {fileID: 2723135157551698819}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Door
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -495,7 +495,7 @@ GameObject:
   - component: {fileID: 6261537517850218338}
   - component: {fileID: 7575074032420995800}
   - component: {fileID: 5493489113522821252}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Threshold
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -583,7 +583,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1554106243223010568}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: RightPart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -621,7 +621,8 @@ GameObject:
   - component: {fileID: 8666498584733240780}
   - component: {fileID: 4801999785741093362}
   - component: {fileID: 2647176103509007570}
-  m_Layer: 0
+  - component: {fileID: 2698908814053735652}
+  m_Layer: 14
   m_Name: SecurityDoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -661,6 +662,7 @@ MonoBehaviour:
   _blockCollider: {fileID: 8666498584733240780}
   _detectCollider: {fileID: 4801999785741093362}
   _animator: {fileID: 2647176103509007570}
+  _whichDayOpen: -1
 --- !u!65 &8666498584733240780
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -725,6 +727,26 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2698908814053735652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8597062983158765775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &8884960211478284975
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,7 +758,7 @@ GameObject:
   - component: {fileID: 415786215411614915}
   - component: {fileID: 4505804856764846377}
   - component: {fileID: 6233433683005192167}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Door
   m_TagString: Untagged
   m_Icon: {fileID: 0}

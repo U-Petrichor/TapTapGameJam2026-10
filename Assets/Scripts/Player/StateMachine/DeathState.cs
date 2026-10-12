@@ -1,6 +1,6 @@
 namespace TapTapGameJam.Player
 {
-    public class DeathState : PlayerStateBase
+    public class DeathState : NpcStateBase
     {
         public DeathState(PlayerBasic owner) : base(owner)
         {

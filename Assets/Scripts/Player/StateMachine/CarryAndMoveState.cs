@@ -2,7 +2,7 @@
 
 namespace TapTapGameJam.Player
 {
-    public class CarryAndMoveState : PlayerStateBase
+    public class CarryAndMoveState : NpcStateBase
     {
         public override bool CanStartAttack => true;
         public CarryAndMoveState(PlayerBasic owner) : base(owner) { }

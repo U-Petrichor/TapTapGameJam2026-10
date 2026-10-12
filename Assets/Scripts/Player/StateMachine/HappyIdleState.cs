@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TapTapGameJam.Player
 {
-    public class HappyIdleState : PlayerStateBase
+    public class HappyIdleState : NpcStateBase
     {
         public HappyIdleState(PlayerBasic owner) : base(owner) { }
         public override void Enter()

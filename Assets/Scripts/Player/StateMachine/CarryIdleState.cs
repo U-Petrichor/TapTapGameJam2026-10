@@ -2,7 +2,7 @@
 
 namespace TapTapGameJam.Player
 {
-    public class CarryIdleState : PlayerStateBase
+    public class CarryIdleState : NpcStateBase
     {
         public override bool CanStartAttack => true;
         public CarryIdleState(PlayerBasic owner) : base(owner) { }

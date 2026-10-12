@@ -108,7 +108,7 @@ namespace TapTapGameJam.Player
             }
 
             bool moving = InputManager != null && InputManager.HasMoveInput;
-            PlayerStateBase current = StateMachine.CurrentState;
+            NpcStateBase current = StateMachine.CurrentState;
 
             if (IsCarry)
             {

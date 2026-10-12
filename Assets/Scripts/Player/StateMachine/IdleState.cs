@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace TapTapGameJam.Player
 {
-    public class IdleState : PlayerStateBase
+    public class IdleState : NpcStateBase
     {
         private float _idleTimer;
         private const float CHANGE_IDLE = 10f;
