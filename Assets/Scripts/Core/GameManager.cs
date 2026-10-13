@@ -68,22 +68,18 @@ namespace TapTapGameJam.Core
             {
                 case GamePhase.Day:
                     {
-                        _gamePhaseManager.EnterPhase(GamePhase.Day);
                         _gamePhaseManager.CouldWork = true;
                         EventPipeline.Publish<EventNewDay>(new EventNewDay(_dayCount++));
                         break;
                     }
                 case GamePhase.Shopping:
                     {
-                        _gamePhaseManager.EnterPhase(GamePhase.Shopping);
                         _gamePhaseManager.CouldWork = false;
                         _shopMenu.OpenShopMenu();
                         break;
                     }
                 case GamePhase.Night:
                     {
-
-                        _gamePhaseManager.EnterPhase(GamePhase.Night);
                         _gamePhaseManager.CouldWork = true;
                         _shopMenu.CloseShopMenu();
                         break;

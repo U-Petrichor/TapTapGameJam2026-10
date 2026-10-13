@@ -226,7 +226,7 @@ namespace TapTapGameJam.Cockroach
                 _ring.Regenerate(range);
                 RefreshDistanceField();
             }
-            _ring.SetVisible(false);
+            _ring.SetVisible(!enteringNight);
         }
 
         // 不含生成/销毁语义，仅记录 & 注册一只蟑螂
