@@ -274,7 +274,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3136187452460036554}
         m_TargetAssemblyTypeName: TapTapGameJam.Player.PlayerInputManager, Assembly-CSharp
-        m_MethodName: OnOpenBackpack
+        m_MethodName: OnToggleBackpack
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

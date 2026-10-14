@@ -27,7 +27,11 @@ namespace TapTapGameJam.Items
             /// <summary>已经在玩家背包里（gameObject 被挪到暂存区隐藏，不销毁重建）</summary>
             InBag,
             /// <summary>已装备在玩家身上（gameObject 被挪到暂存区隐藏，不销毁重建）</summary>
-            Equipped
+            Equipped,
+            /// <summary>在商店中</summary>
+            InStore,
+            /// <summary>在仓库中</summary>
+            InRepo
         }
 
         [Header("背包形状")]

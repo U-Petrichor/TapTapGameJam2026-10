@@ -15,7 +15,7 @@ namespace TapTapGameJam.UI
     /// 这个类只提供"我代表哪个槽"和指针回调，穿脱规则都在 BagPanelUI / PlayerBag 里。
     /// </summary>
     [DisallowMultipleComponent]
-    public class BagSlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    public class BagSlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IItemSlot
     {
         public EquipSlot Slot { get; private set; }
 
@@ -59,11 +59,6 @@ namespace TapTapGameJam.UI
         {
             _isHovered = false;
             Apply();
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            bagPanelUI.NotifySlotClicked(this, eventData.button);
         }
 
         private void Apply()

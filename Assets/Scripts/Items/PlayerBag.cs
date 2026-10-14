@@ -66,7 +66,7 @@ namespace TapTapGameJam.Items
         #region 运行时数据
 
         /// <summary>背包里每个已放置物品的落点记录</summary>
-        private class Placement
+        public class Placement
         {
             public PickableItem item;
 
@@ -88,6 +88,8 @@ namespace TapTapGameJam.Items
         /// </summary>
         public PickableItem PendingPickupItem { get; private set; }
 
+        public List<Placement> Placements => _placements;
+        
         #endregion
 
         #region 只读查询
@@ -393,7 +395,7 @@ namespace TapTapGameJam.Items
             return TryPlace(item, origin, item);
         }
 
-        /// <summary>把物品从背包格子里摘掉（不改 Location、不挪 transform）。返回原本是否在格子里</summary>
+        /// <summary>把物品从背包格子里摘掉（仅维护Placement）</summary>
         public bool TakeFromGrid(PickableItem item)
         {
             for (int i = 0; i < _placements.Count; i++)
@@ -457,7 +459,7 @@ namespace TapTapGameJam.Items
             return true;
         }
 
-        /// <summary>把槽位里的饰品摘下来（不改 Location，交给调用方安顿）</summary>
+        /// <summary>把槽位里的饰品摘下来（仅维护slot）</summary>
         public bool TakeFromSlot(EquipSlot slot, out PickableItem item)
         {
             int index = (int)slot;

@@ -13,7 +13,13 @@ namespace TapTapGameJam.UI
         FromBag,
 
         /// <summary>从装备槽里拖出来的。放不下时要穿回 <see cref="HandBagItem.FromSlot"/></summary>
-        FromSlot
+        FromSlot,
+        
+        /// <summary>从商店里拖出来的。放不下时要穿回 <see cref="HandBagItem.FromSlot"/></summary>
+        FromStore,
+        
+        /// <summary>从仓库里拖出来的。放不下时要穿回 <see cref="HandBagItem.FromSlot"/></summary>
+        FromRepo,
     }
 
     /// <summary>
@@ -34,7 +40,7 @@ namespace TapTapGameJam.UI
         /// <summary>从哪来的</summary>
         public HandItemOrigin Origin { get; set; }
 
-        /// <summary>Origin == FromBag 时：它原来放在哪个格子（放不下就回这里）</summary>
+        /// <summary>Origin == FromBag / Store / Repo 时：它原来放在哪个格子（放不下就回这里）</summary>
         public Vector2Int FromOrigin { get; set; }
 
         /// <summary>Origin == FromSlot 时：它原来穿在哪个槽（放不下就穿回去）</summary>

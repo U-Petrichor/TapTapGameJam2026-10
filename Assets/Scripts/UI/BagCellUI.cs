@@ -1,3 +1,4 @@
+using TapTapGameJam.Items;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,7 +12,7 @@ namespace TapTapGameJam.UI
     /// 这里只有底色和试放预览两层：Background → Preview（raycastTarget=false）。
     /// </summary>
     [DisallowMultipleComponent]
-    public class BagCellUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    public class BagCellUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IItemSlot
     {
         public Vector2Int Cell { get; private set; }
 
