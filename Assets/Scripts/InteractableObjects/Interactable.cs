@@ -38,7 +38,18 @@ namespace TapTapGameJam.Interactables
         /// 用于一次性物品：玩家交互之后，会从所有已注册单位中取消注册
         /// </summary>
         public abstract void Interact(PlayerBasic player, InteractKey key);
-        protected void ClearAllRegister()
+        /// <summary>
+        /// 主动从所有已注册的 PlayerInteractionManager 里注销自己。
+        ///
+        /// 除了 <see cref="OnTriggerExit"/>，**被隐藏起来时也必须调用它**：
+        /// Unity 不会为被禁用的碰撞体触发 OnTriggerExit，物体被 SetActive(false)
+        /// 收起来（例如收进背包暂存区）后如果还留在候选列表里，它会一直霸住焦点，
+        /// 而这时它的 CanInteract 往往已经是 false —— 玩家按交互键只会看到"无法交互"。
+        ///
+        /// 它会把 <see cref="_registered"/> 的账一起清掉，所以之后重新启用时
+        /// OnTriggerEnter 能正常把注册重新建起来（只调 manager.Unregister 做不到这点）。
+        /// </summary>
+        public void ClearAllRegister()
         {
             foreach (var x in _registered)
             {

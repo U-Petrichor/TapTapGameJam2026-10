@@ -603,6 +603,16 @@ namespace TapTapGameJam.Items
             item.transform.SetParent(staging, false);
             item.transform.localPosition = Vector3.zero;
             item.transform.localRotation = Quaternion.identity;
+
+            // 藏起来之前必须主动从交互系统注销。
+            // Unity 不会为"被禁用的碰撞体"触发 OnTriggerExit，所以光靠 SetActive(false)
+            // 这件物品会一直留在 PlayerInteractionManager 的候选列表里；而暂存区是玩家的子物体、
+            // 偏移只有 Y=+10000，PlayerInteractionManager 又刻意只比水平距离 ——
+            // 它的距离恒为 0，于是永远被选成"最近的交互目标"，把焦点霸住。
+            // 它的 CanInteract 这时已经是 false（Location 不再是 OnMap），
+            // 结果就是按交互键只会报"无法交互"，而地上别的东西永远轮不到。
+            item.ClearAllRegister();
+
             item.gameObject.SetActive(false);
         }
 
