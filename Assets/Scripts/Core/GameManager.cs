@@ -14,12 +14,11 @@ namespace TapTapGameJam.Core
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private ShopMenu _shopMenu;
         [SerializeField] private GamePhaseManager _gamePhaseManager;
-        [Tooltip("背包界面（HUDCanvas 下的 BagPanel）")]
-        [SerializeField] private BagPanelUI _bagPanel;
         
         public static bool IsDay => _instance._gamePhaseManager.CurrentPhase == GamePhase.Day;
         public static bool IsNight => _instance._gamePhaseManager.CurrentPhase == GamePhase.Night;
         public static PlayerBasic Player => _instance._player;
+        public static PlayerInputManager PlayerInputManager => _instance._playerInputManager;
 
         private void Awake()
         {
@@ -31,20 +30,6 @@ namespace TapTapGameJam.Core
             {
                 _instance = this;
                 DontDestroyOnLoad(this.gameObject);
-            }
-
-            if (_bagPanel == null)
-            {
-                Debug.LogWarning("[GameManager]：没有配置 BagPanel，按 B 打开背包会没有反应", this);
-            }
-        }
-        void Start()
-        {
-            // 背包界面开局先收起来，等 BackpackEvent 再打开
-            // （PlayerBag 引用由 BagPanelUI 在 Inspector 里直接拖好，这里不做运行时接线）
-            if (_bagPanel != null)
-            {
-                _bagPanel.SetVisible(false);
             }
         }
     }

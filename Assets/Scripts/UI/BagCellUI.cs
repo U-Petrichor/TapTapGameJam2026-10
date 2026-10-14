@@ -5,10 +5,10 @@ using UnityEngine.UI;
 namespace TapTapGameJam.UI
 {
     /// <summary>
-    /// 背包里的一个格子。只负责"显示自己处于什么状态"和"把指针事件转发给 BagPanelUI"，
-    /// 摆放规则、预览合法性都由 BagPanelUI 问 PlayerBag 决定。
+    /// 背包里的一个格子。只负责"显示自己处于什么状态"和"把指针事件转发给 BagPanelUI"。
     ///
-    /// 层级：Background（可着色）→ Marker（物品图标）→ Preview（预览叠色，raycastTarget=false）
+    /// 格子本身不画物品 —— 物品由 <see cref="TapTapGameJam.Items.BagItemBlock"/> 整体表现，
+    /// 这里只有底色和试放预览两层：Background → Preview（raycastTarget=false）。
     /// </summary>
     [DisallowMultipleComponent]
     public class BagCellUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
@@ -16,22 +16,19 @@ namespace TapTapGameJam.UI
         public Vector2Int Cell { get; private set; }
 
         private Image _background;
-        private Image _marker;
         private Image _preview;
 
         private Color _baseColor = Color.white;
         private Color _previewColor;
-        private Sprite _markerSprite;
-        private Color _markerColor;
         private bool _hasPreview;
-        private bool _hasMarker;
         private bool _isHovered;
 
-        public void Initialize(Vector2Int cell, Image background, Image marker, Image preview, Color baseColor)
+        public BagPanelUI bagPanelUI;
+
+        public void Initialize(Vector2Int cell, Image background, Image preview, Color baseColor)
         {
             Cell = cell;
             _background = background;
-            _marker = marker;
             _preview = preview;
             _baseColor = baseColor;
             Apply();
@@ -49,33 +46,14 @@ namespace TapTapGameJam.UI
             Apply();
         }
 
-        /// <summary>设置/清除物品图标。值没变就不碰 UI</summary>
-        public void SetMarker(Sprite sprite, Color color)
+        /// <summary>设置/清除试放预览颜色（半透明叠色）</summary>
+        public void SetPreview(bool active, Color color)
         {
-            // 注意：sprite 为 null 时也要按 _hasMarker 判断，不能只看 sprite 引用
-            bool hasMarker = sprite != null;
-            if (hasMarker == _hasMarker && (!hasMarker || (_markerSprite == sprite && _markerColor == color)))
+            if (_hasPreview == active && (!active || _previewColor == color))
             {
                 return;
             }
 
-            _hasMarker = hasMarker;
-            _markerSprite = sprite;
-            _markerColor = color;
-
-            if (_marker != null)
-            {
-                _marker.sprite = sprite;
-                _marker.color = color;
-                _marker.enabled = hasMarker;
-            }
-
-            Apply();
-        }
-
-        /// <summary>设置/清除试放预览颜色（半透明叠色）</summary>
-        public void SetPreview(bool active, Color color)
-        {
             _hasPreview = active;
             _previewColor = color;
 
@@ -84,8 +62,6 @@ namespace TapTapGameJam.UI
                 _preview.enabled = active;
                 _preview.color = color;
             }
-
-            Apply();
         }
 
         /// <summary>清空所有预览（每次重算前调用）</summary>
@@ -98,19 +74,19 @@ namespace TapTapGameJam.UI
         {
             _isHovered = true;
             Apply();
-            BagPanelUI.NotifyCellHovered(this, true);
+            bagPanelUI.NotifyCellHovered(this, true);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _isHovered = false;
             Apply();
-            BagPanelUI.NotifyCellHovered(this, false);
+            bagPanelUI.NotifyCellHovered(this, false);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            BagPanelUI.NotifyCellClicked(this, eventData.button);
+            bagPanelUI.NotifyCellClicked(this, eventData.button);
         }
 
         private void Apply()

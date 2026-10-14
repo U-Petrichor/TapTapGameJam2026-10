@@ -24,6 +24,7 @@ namespace TapTapGameJam.Player
         public event Action EventOnInteractionSwitchPress; // 按 Q 切换到下一个交互目标
         public event Action<int> EventOnCameraScroll; // 传入滚轮方向，1为远离，-1为靠近
         public event Action<int> EventOnCameraRotate; // [ 为 +1，] 为 -1，每次旋转 45 度
+        public event Action EventOnRotateItemPress;
 
         private InputAction _rotateCameraLeft;
         private InputAction _rotateCameraRight;
@@ -195,11 +196,11 @@ namespace TapTapGameJam.Player
         #endregion
         #region 控制背包
         /// <summary>
-        /// 按 B 打开背包。
+        /// 按 B 打开/关闭背包。
         /// 注意：Player 预制体里 `Player/Backpack[/Keyboard/b]` 绑定的就是这个名字，
         /// 不要随手改名，否则预制体上的 UnityEvent 会变成 Missing。
         /// </summary>
-        public void OnOpenBackpack(InputAction.CallbackContext context)
+        public void OnToggleBackpack(InputAction.CallbackContext context)
         {
             if (!context.performed)
             {
@@ -216,20 +217,17 @@ namespace TapTapGameJam.Player
             }
         }
 
-        /// <summary>给 UI 按钮/代码调用的重载（没有 InputAction 上下文时用）</summary>
-        public void OnOpenBackpack()
+        public void OnRotateItem(InputAction.CallbackContext context)
         {
-            if (IsBackpackOpen)
+            if (!context.performed)
             {
-                CloseBackpack();
+                return;
             }
-            else
-            {
-                OpenBackpack();
-            }
+
+            EventOnRotateItemPress?.Invoke();
         }
 
-        /// <summary>打开背包：切 ActionMap + 发事件（UI 与暂停都靠这个事件驱动）</summary>
+        /// <summary>打开背包唯一入口：切 ActionMap + 发事件（UI 与暂停都靠这个事件驱动）</summary>
         public void OpenBackpack()
         {
             if (IsBackpackOpen)
@@ -242,7 +240,7 @@ namespace TapTapGameJam.Player
             EventPipeline.Publish(new BackpackEvent(true));
         }
 
-        /// <summary>关闭背包</summary>
+        /// <summary>关闭背包唯一入口</summary>
         public void CloseBackpack()
         {
             if (!IsBackpackOpen)
@@ -252,18 +250,6 @@ namespace TapTapGameJam.Player
 
             SwitchActionMap("DayPlayer");
             EventPipeline.Publish(new BackpackEvent(false));
-        }
-
-        /// <summary>旧名字，保留兼容旧绑定</summary>
-        public void SwitchBackpackPanel(InputAction.CallbackContext context)
-        {
-            OnOpenBackpack(context);
-        }
-
-        /// <summary>旧名字（无参重载），UI 按钮调用时用来切换</summary>
-        public void SwitchBackpackPanel()
-        {
-            OnOpenBackpack();
         }
 
         /// <summary>Backpack ActionMap 下的 ESC：关闭背包</summary>

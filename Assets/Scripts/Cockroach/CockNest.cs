@@ -189,7 +189,7 @@ namespace TapTapGameJam.Cockroach
             RefreshRingVisibility();
         }
 
-        private void OnEnable()
+        private void Start()
         {
             EnsureRing();
             RefreshDistanceField();
@@ -226,7 +226,8 @@ namespace TapTapGameJam.Cockroach
                 _ring.Regenerate(range);
                 RefreshDistanceField();
             }
-            _ring.SetVisible(!enteringNight);
+
+            RefreshRingVisibility();
         }
 
         // 不含生成/销毁语义，仅记录 & 注册一只蟑螂

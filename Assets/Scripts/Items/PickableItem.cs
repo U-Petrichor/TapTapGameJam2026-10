@@ -13,9 +13,9 @@ namespace TapTapGameJam.Items
     ///
     /// 位置状态说明：
     /// - OnMap：躺在地图上，可被拾取 / 被蟑螂吃掉。
-    /// - InBag：已经属于玩家背包（含"手上正拿着、还没放进格子"这一状态，靠 PlayerBag.HandItem 区分）。
-    /// - Equipped：已装备在玩家身上。
-    /// 进背包 / 装备时本体不销毁，只是被 PlayerBag 挪到暂存区隐藏（见 PlayerBag.MoveToBagRoot），
+    /// - InBag：已经属于玩家背包（本体被 PlayerBag 挪到暂存区隐藏）。
+    /// - Equipped：已装备在玩家身上（本体同样在暂存区隐藏）。
+    /// 进背包 / 装备时本体不销毁，只是被 PlayerBag 挪到暂存区隐藏（见 PlayerBag.MoveToBagStorage），
     /// 所以食物剩余营养之类的运行时状态都会被完整保留。
     /// </summary>
     public class PickableItem : Interactable
@@ -33,7 +33,7 @@ namespace TapTapGameJam.Items
         [Header("背包形状")]
         [FormerlySerializedAs("itemShape")]
         [Tooltip("在背包中占据的格子形状。(0,0) 是鼠标咬住的抓取格，旋转与占格判定都在 BagShape 里")]
-        public BagShape shape = new BagShape();
+        public BagShape shape;
 
         [Header("显示")]
         [Tooltip("在背包格子里的图标。留空则由 BagPanelUI 用同色方块兜底，不影响摆放逻辑")]
@@ -102,8 +102,6 @@ namespace TapTapGameJam.Items
                 return;
             }
 
-            // 捡起来交给背包：是否自动穿戴、是否打开摆放界面都由 PlayerBag 决定
-            EventPipeline.Publish(new BackpackEvent(true));
             bag.PickUp(this);
         }
 

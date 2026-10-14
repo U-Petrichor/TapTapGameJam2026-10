@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using TapTapGameJam.Core;
+using TapTapGameJam.Events;
 using TapTapGameJam.Player;
 using UnityEngine;
 
@@ -18,29 +20,21 @@ namespace TapTapGameJam.Items
     }
 
     /// <summary>
-    /// 捡起物品的结果
-    /// </summary>
-    public enum PickUpResult
-    {
-        /// <summary>手上没有空位 / 物品不该被捡起，什么都没发生</summary>
-        Failed = 0,
-        /// <summary>成功拿在手上，等待玩家放进背包</summary>
-        InHand = 1,
-        /// <summary>饰品且对应槽位为空，已直接穿上（不需要打开背包界面）</summary>
-        EquippedDirectly = 2
-    }
-
-    /// <summary>
-    /// 玩家背包：管"哪些物品、分别占了哪些格子"，外加一个手位和三个装备槽。
+    /// 玩家背包：只当"后端"用，负责物品真正存进/移出背包、以及物品状态（OnMap / InBag / Equipped）的变换。
     ///
-    /// 设计要点：
-    /// 1. 纯逻辑，不引用任何 UI 类型，也不发事件。
-    ///    界面（BagPanelUI）每帧直接读这里的状态 —— 数据只有这一份真相，谁改了界面都能看到，
-    ///    不会出现"忘了触发事件导致显示陈旧"的问题。
-    /// 2. 物品进背包 / 装备时本体不销毁，而是被挪到"暂存区"隐藏起来。
-    ///    这样食物剩余营养之类的运行时状态天然保留，不用额外写一套存档结构。
-    /// 3. 形状与旋转态都在物品自己的 <see cref="BagShape"/> 里（(0,0) 是抓取格），
-    ///    这里只记"抓取格落在背包的哪个格子"，不维护第二份旋转数据。
+    /// 【不管什么】
+    /// - 不管"手上正拿着哪一件"。手持是界面层的概念（BagPanelUI 的 HandBagItemBlock），
+    ///   因为手持物品的来源（未拾取 / 从背包拿出 / 从槽位脱下）只有界面才知道，后端没必要记。
+    /// - 不发任何事件，不引用 UI。界面每帧直接读这里的状态。
+    /// - 只有 <see cref="PendingPickupItem"/> 是个例外：它是"从地图捡起来、等着被放进背包"的那一件，
+    ///   属于游戏状态而不是界面状态，所以留在后端，由界面在打开背包时消费。
+    ///
+    /// 【物品状态】
+    /// - OnMap：躺在地图上（也在世界物件里可见）。
+    /// - InBag：属于玩家，本体被挪到暂存区隐藏。注意"被界面拿在手上拖动"的物品也算 InBag，
+    ///   因为它在后端看来仍然是玩家的东西，只是暂时没有占格记录。
+    /// - Equipped：穿在装备槽里，本体同样在暂存区隐藏。
+    /// 进背包 / 装备时本体不销毁，所以食物剩余营养之类的运行时状态天然保留。
     /// </summary>
     [DisallowMultipleComponent]
     public class PlayerBag : MonoBehaviour
@@ -49,9 +43,9 @@ namespace TapTapGameJam.Items
 
         [Header("背包尺寸")]
         [Tooltip("列数")]
-        [SerializeField, Min(1)] private int _width = 6;
+        [SerializeField, Min(1)] private int _width = 5;
         [Tooltip("行数")]
-        [SerializeField, Min(1)] private int _height = 4;
+        [SerializeField, Min(1)] private int _height = 5;
 
         [Header("暂存区")]
         [Tooltip("进背包/装备后，物品本体被挪到这个相对位置隐藏起来。放得足够远，避免被相机或物理碰到")]
@@ -86,14 +80,13 @@ namespace TapTapGameJam.Items
 
         private Transform _stagingRoot;
 
-        #endregion
-
-        #region 手
-
-        /// <summary>当前拿在手上、还没放进格子的物品。同一时间只允许一件</summary>
-        public PickableItem HandItem { get; private set; }
-
-        public bool HasHandItem => HandItem != null;
+        /// <summary>
+        /// 从地图捡起来、等着玩家在背包界面里安顿的那一件。
+        /// 由 <see cref="PickUp"/> 或 <see cref="SetPendingPickupItem"/> 设置；
+        /// 界面在收到"背包打开"事件时读它来决定要不要生成手持块，
+        /// 收到"背包关闭"事件时调 <see cref="ClearPendingPickupItem"/> 清掉。
+        /// </summary>
+        public PickableItem PendingPickupItem { get; private set; }
 
         #endregion
 
@@ -117,7 +110,7 @@ namespace TapTapGameJam.Items
             return null;
         }
 
-        /// <summary>某个物品是以哪个格子为左上角放着的（不在背包里返回 false）</summary>
+        /// <summary>某个物品是以哪个格子为抓取格放着的（不在背包格子里返回 false）</summary>
         public bool TryGetPlacement(PickableItem item, out Vector2Int origin)
         {
             for (int i = 0; i < _placements.Count; i++)
@@ -174,7 +167,7 @@ namespace TapTapGameJam.Items
         /// 这个重载就是界面预览算出来的 ok —— 保证"预览是绿的，点下去一定放得下"。
         /// 旋转态已经存在物品自己的 shape 里，所以不需要再传旋转参数。
         /// </summary>
-        /// <param name="ignore">需要排除自身占格的物品（把已经在背包里的东西挪个位置时必须传自己，否则会被自己挡住）</param>
+        /// <param name="ignore">需要排除自身占格的物品（把已经在背包里的东西挪位置时要传自己，否则会被自己挡住）</param>
         public bool CanPlace(PickableItem item, Vector2Int origin, PickableItem ignore = null)
         {
             if (item == null || item.shape == null)
@@ -230,8 +223,24 @@ namespace TapTapGameJam.Items
             return index >= 0 && index < _equipped.Length ? _equipped[index] : null;
         }
 
+        /// <summary>某个物品在哪个装备槽里（不在任何槽里返回 false）</summary>
+        public bool TryGetEquipSlot(PickableItem item, out EquipSlot slot)
+        {
+            for (int i = 0; i < _equipped.Length; i++)
+            {
+                if (_equipped[i] == item && item != null)
+                {
+                    slot = (EquipSlot)i;
+                    return true;
+                }
+            }
+
+            slot = default;
+            return false;
+        }
+
         /// <summary>
-        /// 背包里被物品占了多少格（只算放进格子的，手上拿着的那件不算）。
+        /// 背包里被物品占了多少格（只算放进格子的，界面拿在手上的那件不算）。
         /// 负重换算用这个值。
         /// </summary>
         public int OccupiedCellCount
@@ -253,17 +262,27 @@ namespace TapTapGameJam.Items
 
         #endregion
 
-        #region 捡起 / 手
+        #region 拾取
 
         /// <summary>
         /// 把地图上的物品捡起来。
-        /// 饰品且对应槽位为空时直接穿上；否则拿在手上，由界面进入摆放流程。
+        /// - 饰品且对应槽位为空：直接穿上，不需要玩家再操作（返回 true，PendingPickupItem 仍为 null）。
+        /// - 其余情况：记成 <see cref="PendingPickupItem"/>，等玩家在背包界面里安顿。
+        ///
+        /// 这里不负责开界面，也不返回"该不该开界面"——那是输入层/界面的事。
         /// </summary>
-        public PickUpResult PickUp(PickableItem item)
+        public bool PickUp(PickableItem item)
         {
             if (item == null || !item.IsOnMap)
             {
-                return PickUpResult.Failed;
+                return false;
+            }
+
+            // 手上/待拾取位只有一件：已经有一件等着安顿就先不接受新的，
+            // 否则前一件会卡在"既不在背包也不在世界"的状态。
+            if (PendingPickupItem != null && PendingPickupItem != item)
+            {
+                return false;
             }
 
             if (item is DressItem dress)
@@ -271,113 +290,70 @@ namespace TapTapGameJam.Items
                 EquipSlot slot = dress.ToSlot();
                 if (GetEquipped(slot) == null)
                 {
-                    BeginMoveToBag(item);
+                    MoveToBagStorage(item);
                     _equipped[(int)slot] = item;
                     item.SetLocation(PickableItem.ItemLocation.Equipped);
-                    return PickUpResult.EquippedDirectly;
+                    PendingPickupItem = null;
+                    return true;
                 }
             }
 
-            if (HasHandItem)
-            {
-                // 手上只允许拿一个 piece（需求约定）。拿不下就不动地图上的东西
-                return PickUpResult.Failed;
-            }
-
-            BeginMoveToBag(item);
-            HandItem = item;
-            return PickUpResult.InHand;
-        }
-
-        /// <summary>
-        /// 把手上的物品放进背包格子（走"试放"）。放不下（越界/被占）则什么都不做。
-        /// </summary>
-        /// <param name="origin">形状里 (0,0) 那一格（也就是鼠标咬住的那格）落在背包的位置</param>
-        public bool PlaceHandAt(PickableItem item, Vector2Int origin)
-        {
-            if (item == null || item != HandItem)
-            {
-                return false;
-            }
-
-            if (!TryPlace(item, origin, item))
-            {
-                // 放不下：什么都不做，东西继续留在手上（别把它的旧位置弄丢）
-                return false;
-            }
-
-            HandItem = null;
+            PendingPickupItem = item;
+            GameManager.PlayerInputManager.OpenBackpack();
             return true;
         }
 
+        /// <summary>放弃"等着安顿的那一件"（例如它已经被放进背包、或者界面关掉了）</summary>
+        public void ClearPendingPickupItem()
+        {
+            PendingPickupItem = null;
+        }
+
         /// <summary>
-        /// 把背包里的某件物品（已放置的）拿到手上，用于在格子间挪位置。
-        /// 会顺手处理"手上原本还拿着东西"的情况。
+        /// 把一件已经不在世界上的物品登记成"待拾取"。
+        /// 用在"从装备槽脱下来"这类场合：物品本体还在暂存区里，但已经不属于玩家了，
+        /// 界面下次打开时会把它当成手持物、并提示玩家去安顿。
         /// </summary>
-        public bool TakeToHand(PickableItem item)
-        {
-            if (item == null || HandItem == item)
-            {
-                return false;
-            }
-
-            if (!TakeFromGrid(item))
-            {
-                return false;
-            }
-
-            ReturnToHand(item);
-            return true;
-        }
-
-        /// <summary>顺时针旋转手上的物品 90 度（绕抓取格转，所以鼠标咬点不会跑）</summary>
-        public void RotateHand()
-        {
-            if (HandItem == null || HandItem.shape == null)
-            {
-                return;
-            }
-
-            HandItem.shape.RotateInPlace();
-        }
-
-        /// <summary>让某件物品拿在手上（内部用，不做 CanPlace 判断）</summary>
-        private void ReturnToHand(PickableItem item)
+        public void SetPendingPickupItem(PickableItem item)
         {
             if (item == null)
             {
                 return;
             }
 
-            if (HandItem != null && HandItem != item)
+            if (PendingPickupItem != null && PendingPickupItem != item)
             {
-                // 手上已经有一件了：先找地方放，放不下就丢到玩家脚边回地图，避免卡住
-                if (!TryPlace(HandItem, out _))
-                {
-                    ReturnToWorld(HandItem, EvaluateDropPosition());
-                }
+                // 待拾取位只有一个：旧的先回世界，免得它卡在没人记录的状态
+                ReturnToWorld(PendingPickupItem, EvaluateDropPosition());
             }
 
-            BeginMoveToBag(item);
-            HandItem = item;
+            TakeFromGrid(item);
+            if (TryGetEquipSlot(item, out EquipSlot slot))
+            {
+                _equipped[(int)slot] = null;
+            }
+
+            // 状态上离开背包，但本体不做"回世界"的那套摆放——它其实是被界面拿在手上
+            item.SetLocation(PickableItem.ItemLocation.OnMap);
+            PendingPickupItem = item;
         }
 
         #endregion
 
-        #region 放置 / 取下
+        #region 放置 / 取出
 
-        /// <summary>把物品放到指定位置（抓取格落在 origin）。旋转态已经在物品自己的 shape 里</summary>
+        /// <summary>把物品放进背包格子（抓取格落在 origin）。旋转态已经在物品自己的 shape 里</summary>
         public bool TryPlace(PickableItem item, Vector2Int origin)
         {
             return TryPlace(item, origin, item);
         }
 
         /// <summary>
-        /// 把物品放到指定位置。
+        /// 把物品放进背包格子。
         /// </summary>
         /// <param name="ignore">
-        /// 算占格时要忽略的物品。默认忽略自己 —— 把已经在背包里的东西挪一格时，
-        /// 不排除自身就会被自己原来的占格挡住。第一次放置时忽略一个不在背包里的东西也没有副作用。
+        /// 算占格时要忽略的物品。默认忽略自己 —— 把已经在背包里的东西挪位置时，
+        /// 不排除自身就会被自己原来的占格挡住。
         /// </param>
         public bool TryPlace(PickableItem item, Vector2Int origin, PickableItem ignore)
         {
@@ -393,12 +369,19 @@ namespace TapTapGameJam.Items
                 origin = origin
             });
 
-            MoveToBagRoot(item);
+            MoveToBagStorage(item);
             item.SetLocation(PickableItem.ItemLocation.InBag);
+
+            if (PendingPickupItem == item)
+            {
+                // 已经安顿好了，不再"等着被拾取"
+                PendingPickupItem = null;
+            }
+
             return true;
         }
 
-        /// <summary>把物品放到第一个能放下的位置。手上的东西放不下时用它兜底</summary>
+        /// <summary>把物品放进第一个能放下的位置</summary>
         public bool TryPlace(PickableItem item, out Vector2Int origin)
         {
             origin = default;
@@ -410,7 +393,7 @@ namespace TapTapGameJam.Items
             return TryPlace(item, origin, item);
         }
 
-        /// <summary>把物品从网格里摘掉（不改变 Location，也不挪 transform）。返回原本是否在网格里</summary>
+        /// <summary>把物品从背包格子里摘掉（不改 Location、不挪 transform）。返回原本是否在格子里</summary>
         public bool TakeFromGrid(PickableItem item)
         {
             for (int i = 0; i < _placements.Count; i++)
@@ -425,25 +408,14 @@ namespace TapTapGameJam.Items
             return false;
         }
 
-        /// <summary>把物品从背包（网格或手）里摘掉</summary>
-        public bool RemoveFromBag(PickableItem item)
-        {
-            bool removed = TakeFromGrid(item);
-            if (HandItem == item)
-            {
-                HandItem = null;
-                removed = true;
-            }
-
-            return removed;
-        }
-
         #endregion
 
         #region 装备槽
 
         /// <summary>
-        /// 尝试把饰品装到对应槽位。槽里原本有东西时会换下来并交回手上（需求：原饰品回到手上）。
+        /// 把饰品装到对应槽位。
+        /// 槽里原本有的那件不在这里处理：通过 <paramref name="replaced"/> 交出去，
+        /// 由界面决定怎么安顿（当前策略是送回世界并提示玩家）。
         /// </summary>
         public bool TryEquip(PickableItem item, out PickableItem replaced)
         {
@@ -455,55 +427,53 @@ namespace TapTapGameJam.Items
 
             EquipSlot slot = dress.ToSlot();
             PickableItem current = _equipped[(int)slot];
-
-            // 先把它从网格里摘掉（右键使用的情况它还在格子里）
-            RemoveFromBag(item);
-
-            if (current != null && current != item)
+            if (current == item)
             {
-                replaced = current;
-                _equipped[(int)slot] = null;
-                ReturnToHand(current);
+                return false;
             }
 
-            BeginMoveToBag(item);
+            // 先把它从原来的位置摘掉（可能在格子里，也可能已经在别的槽里）
+            TakeFromGrid(item);
+            if (TryGetEquipSlot(item, out EquipSlot oldSlot))
+            {
+                _equipped[(int)oldSlot] = null;
+            }
+
+            if (current != null)
+            {
+                _equipped[(int)slot] = null;
+                replaced = current;
+            }
+
+            MoveToBagStorage(item);
             _equipped[(int)slot] = item;
             item.SetLocation(PickableItem.ItemLocation.Equipped);
+
+            if (PendingPickupItem == item)
+            {
+                PendingPickupItem = null;
+            }
+
             return true;
         }
 
-        /// <summary>把槽位里的饰品脱下来拿在手上</summary>
-        public bool TryUnequip(EquipSlot slot)
+        /// <summary>把槽位里的饰品摘下来（不改 Location，交给调用方安顿）</summary>
+        public bool TakeFromSlot(EquipSlot slot, out PickableItem item)
         {
             int index = (int)slot;
-            PickableItem item = _equipped[index];
+            item = _equipped[index];
             if (item == null)
             {
                 return false;
             }
 
             _equipped[index] = null;
-            ReturnToHand(item);
             return true;
         }
 
         #endregion
 
-        #region 丢弃
-
-        /// <summary>把手上的物品丢回地图（点背包外面）</summary>
-        public bool DropHandToWorld(Vector3 worldPos)
-        {
-            if (HandItem == null)
-            {
-                return false;
-            }
-
-            PickableItem item = HandItem;
-            HandItem = null;
-            ReturnToWorld(item, worldPos);
-            return true;
-        }
+        #region 丢弃 / 回世界
 
         /// <summary>
         /// 计算"丢在玩家脚边"的落点：玩家前方一点，再往下打射线贴地。
@@ -530,7 +500,16 @@ namespace TapTapGameJam.Items
             return target;
         }
 
-        /// <summary>把物品放回地图。回地图后剩余营养等状态原样保留（本体从没被销毁过）</summary>
+        /// <summary>就地丢在玩家面前</summary>
+        public bool DropToWorld(PickableItem item)
+        {
+            return ReturnToWorld(item, EvaluateDropPosition());
+        }
+
+        /// <summary>
+        /// 把物品放回地图。回地图后剩余营养等状态原样保留（本体从没被销毁过）。
+        /// 本来就在地图上的物品不会重复处理，避免把玩家脚下刚丢下的东西又挪一次。
+        /// </summary>
         public bool ReturnToWorld(PickableItem item, Vector3 worldPos)
         {
             if (item == null)
@@ -538,7 +517,21 @@ namespace TapTapGameJam.Items
                 return false;
             }
 
-            RemoveFromBag(item);
+            if (item.IsOnMap)
+            {
+                return false;
+            }
+
+            TakeFromGrid(item);
+            if (TryGetEquipSlot(item, out EquipSlot slot))
+            {
+                _equipped[(int)slot] = null;
+            }
+
+            if (PendingPickupItem == item)
+            {
+                PendingPickupItem = null;
+            }
 
             item.transform.SetParent(null, false);
             item.transform.position = worldPos;
@@ -553,10 +546,11 @@ namespace TapTapGameJam.Items
         #region 使用
 
         /// <summary>
-        /// 在背包里右键使用某个物品。
+        /// 在背包里使用某个物品（右键）。
         /// - 子类通过 <see cref="PickableItem.UseInBag"/> 施加效果；
-        /// - 返回 true 表示"这件事到此为止"，由这里把它从背包摘掉并销毁（食物被吃掉之类）；
-        /// - 返回 false 表示"效果做了，但东西还在"，这里只把它从网格摘掉、保留在手上（换装下来的旧饰品走这条路）。
+        /// - 返回 true 表示"用完了"，这里把它从背包摘掉并销毁；
+        /// - 返回 false 表示"效果做了，但东西还在"（换装之类），这里只把它从格子里摘掉，
+        ///   后续怎么安顿（送回世界 / 拿在手上）交给调用方。
         /// </summary>
         public bool UseItem(PickableItem item, PlayerBasic player)
         {
@@ -572,43 +566,36 @@ namespace TapTapGameJam.Items
 
             bool consumed = item.UseInBag(player);
 
-            if (!consumed)
+            if (consumed)
             {
-                // 还在的东西统一交回手上，让玩家自己决定放进格子还是丢掉
                 TakeFromGrid(item);
-                if (HandItem != item)
+                if (TryGetEquipSlot(item, out EquipSlot slot))
                 {
-                    ReturnToHand(item);
-                }
-            }
-            else
-            {
-                // 用完了：先摘数据再销毁，否则会留下指向已销毁对象的占格记录
-                if (!RemoveFromBag(item))
-                {
-                    TakeFromGrid(item);
+                    _equipped[(int)slot] = null;
                 }
 
-                ItemManagerSafeUnregister(item);
+                if (PendingPickupItem == item)
+                {
+                    PendingPickupItem = null;
+                }
+
+                if (Core.ItemManager.Instance != null)
+                {
+                    Core.ItemManager.Instance.Unregister(item);
+                }
+
                 Destroy(item.gameObject);
             }
 
-            return true;
+            return consumed;
         }
 
         #endregion
 
         #region 内部：状态搬运
 
-        /// <summary>把地图上的物品收进背包：改状态 + 挪到暂存区隐藏</summary>
-        private void BeginMoveToBag(PickableItem item)
-        {
-            item.SetLocation(PickableItem.ItemLocation.InBag);
-            MoveToBagRoot(item);
-        }
-
         /// <summary>把物品本体挂到暂存区并隐藏。不销毁，所以运行时状态全部保留</summary>
-        private void MoveToBagRoot(PickableItem item)
+        private void MoveToBagStorage(PickableItem item)
         {
             Transform staging = EnsureStagingRoot();
             item.transform.SetParent(staging, false);
@@ -637,23 +624,14 @@ namespace TapTapGameJam.Items
 
         private void OnDestroy()
         {
-            // 玩家没了，暂存区里的物品也跟着销毁；这里只是清掉悬挂的引用，避免空引用报错
+            // 玩家没了，暂存区里的物品也跟着销毁；这里只清掉悬挂的引用，避免空引用报错
             _placements.Clear();
             for (int i = 0; i < _equipped.Length; i++)
             {
                 _equipped[i] = null;
             }
 
-            HandItem = null;
-        }
-
-        /// <summary>ItemManager 可能不存在（例如 TestNight），这里统一做空判断</summary>
-        private static void ItemManagerSafeUnregister(PickableItem item)
-        {
-            if (Core.ItemManager.Instance != null)
-            {
-                Core.ItemManager.Instance.Unregister(item);
-            }
+            PendingPickupItem = null;
         }
 
         private static bool Contains(Placement placement, Vector2Int cell)
