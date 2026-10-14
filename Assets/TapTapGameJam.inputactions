@@ -438,6 +438,119 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "TalentTree",
+            "id": "9b6bf16e-b470-49f8-a7fe-118f55780968",
+            "actions": [
+                {
+                    "name": "PressE",
+                    "type": "Button",
+                    "id": "8486fc59-eed6-4954-8b8f-102f04aa4b4d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "PressF",
+                    "type": "Button",
+                    "id": "ed938b70-bef8-4fc3-a6e8-dd1b6a03299a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "PressT",
+                    "type": "Button",
+                    "id": "221f7629-cbc8-4ad9-b4b0-30e917f1d2f8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "PressQ",
+                    "type": "Button",
+                    "id": "6f9e7d0c-20f7-48f7-9506-58a38b3bc496",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "PressESC",
+                    "type": "Button",
+                    "id": "210506bc-e12f-4da6-a1ea-698b86e2ef76",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "33869425-7bce-49c5-8bad-a707ae3e42c4",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressE",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a67e30d1-ea56-4d7f-a534-5723d7e8f874",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressF",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "15a48ff0-cb2e-436c-b90d-efc93b11449a",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressT",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6bab2fb2-3fc7-4a08-89db-8642f6db0167",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressQ",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "907249d5-284c-4931-8f3f-f21a90ffa0a5",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PressESC",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [

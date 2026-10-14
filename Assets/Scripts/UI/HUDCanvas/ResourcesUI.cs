@@ -7,24 +7,29 @@ namespace TapTapGameJam.UI
 {
     public class ResourcesUI : MonoBehaviour
     {
-        [SerializeField] private TMP_Text CoinsNumText;
-        [SerializeField] private TMP_Text NutritionNumText;
-        [SerializeField] private TMP_Text CockroachNumText;
-
+        [SerializeField] private TMP_Text coinsNumText;
+        [SerializeField] private TMP_Text nutritionNumText;
+        [SerializeField] private TMP_Text cockroachNumText;
+        [SerializeField] private TMP_Text talentPointsNumText;
         private CanvasGroup _canvasGroup;
         private void Awake()
         {
-            if(CoinsNumText == null)
+            if(coinsNumText == null)
             {
                 Debug.LogError("[Resources]：没有配置CoinsNumText");
             }
-            if(NutritionNumText == null)
+            if(nutritionNumText == null)
             {
                 Debug.LogError("[Resources]：没有配置NutritionNumText");
             }
-            if (CockroachNumText == null)
+            if (cockroachNumText == null)
             {
                 Debug.LogError("[Cockroach]：没有配置CockroachNumText");
+            }
+
+            if (talentPointsNumText == null)
+            {
+                Debug.LogError("[Cockroach]：没有配置talentPointsNumText");
             }
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null)
@@ -35,9 +40,9 @@ namespace TapTapGameJam.UI
         private void Start()
         {
             // 初始化显示
-            CoinsNumText.text = "0";
-            NutritionNumText.text = "0";
-            CockroachNumText.text = "0";
+            coinsNumText.text = "0";
+            nutritionNumText.text = "0";
+            cockroachNumText.text = "0";
 
         }
         private void OnEnable()
@@ -53,11 +58,16 @@ namespace TapTapGameJam.UI
         }
         private void OnCoinsChange(EventCoinsChange evt)
         {
-            CoinsNumText.text = evt.RemainingCoins.ToString();
+            coinsNumText.text = evt.RemainingCoins.ToString();
         }
         private void OnNutritionChange(EventNutritionChange evt)
         {
-            NutritionNumText.text = evt.RemainingNutrition.ToString();
+            nutritionNumText.text = evt.RemainingNutrition.ToString();
+        }
+
+        private void OnTalentPointChange(EventTalentPointChange evt)
+        {
+            talentPointsNumText.text = evt.RemainingTalentPoint.ToString();
         }
 
 

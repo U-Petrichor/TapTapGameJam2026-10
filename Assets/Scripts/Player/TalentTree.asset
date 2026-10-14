@@ -1,0 +1,1161 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7028276738763079816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u53D7\u4F24-10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent4
+  _displayName: "\u4E2A\u4F53\u53D7\u4F24-10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-6944253372851422959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u91D1\u5E01\u83B7\u53D6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent1
+  _displayName: "\u91D1\u5E01\u83B7\u53D6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects:
+    - rid: 9000000000001001
+  references:
+    version: 2
+    RefIds:
+    - rid: 9000000000001001
+      type: {class: TalentEffect, ns: TalentTree, asm: Assembly-CSharp}
+      data:
+        _effectKey: coin_gain_multiplier
+        _numericValue: 0.1
+        _payload: 
+--- !u!114 &-900000000000034000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u6062\u590D\u4F53\u529B\u901F\u5EA6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent35
+  _displayName: "\u6062\u590D\u4F53\u529B\u901F\u5EA6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000033000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u62B5\u6297\u4E00\u6B21\u81F4\u547D\u4F24"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent34
+  _displayName: "\u62B5\u6297\u4E00\u6B21\u81F4\u547D\u4F24"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000032000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4F53\u529B\u635F\u8017-25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent33
+  _displayName: "\u4F53\u529B\u635F\u8017-25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000031000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4F53\u529B\u635F\u8017-10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent32
+  _displayName: "\u4F53\u529B\u635F\u8017-10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000030000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u89E3\u6BD2\u901F\u5EA6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent31
+  _displayName: "\u89E3\u6BD2\u901F\u5EA6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000029000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2D\u6BD2\u5F71\u54CD-10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent30
+  _displayName: "\u4E2D\u6BD2\u5F71\u54CD-10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000028000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u79FB\u901F+20%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent8
+  _displayName: "\u4E2A\u4F53\u79FB\u901F+20%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000027000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u53D7\u4F24-25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent9
+  _displayName: "\u4E2A\u4F53\u53D7\u4F24-25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000026000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u6012\u6C14\u70B9\u83B7\u53D6+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent27
+  _displayName: "\u6012\u6C14\u70B9\u83B7\u53D6+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000025000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u6012\u6C14\u70B9\u83B7\u53D6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent5
+  _displayName: "\u6012\u6C14\u70B9\u83B7\u53D6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000024000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u91D1\u5E01\u83B7\u53D6+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent25
+  _displayName: "\u91D1\u5E01\u83B7\u53D6+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects:
+    - rid: 9000000000001002
+  references:
+    version: 2
+    RefIds:
+    - rid: 9000000000001002
+      type: {class: TalentEffect, ns: TalentTree, asm: Assembly-CSharp}
+      data:
+        _effectKey: coin_gain_multiplier
+        _numericValue: 0.25
+        _payload: 
+--- !u!114 &-900000000000023000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u8425\u517B\u83B7\u53D6+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent24
+  _displayName: "\u8425\u517B\u83B7\u53D6+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000022000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u8425\u517B\u83B7\u53D6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent23
+  _displayName: "\u8425\u517B\u83B7\u53D6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000021000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u80CC\u5305\u8D1F\u91CD-25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent22
+  _displayName: "\u80CC\u5305\u8D1F\u91CD-25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000020000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u80CC\u5305\u8D1F\u91CD-10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent6
+  _displayName: "\u80CC\u5305\u8D1F\u91CD-10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000019000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u80CC\u5305\u5BB9\u91CF20-25"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent20
+  _displayName: "\u80CC\u5305\u5BB9\u91CF20-25"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000018000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u80CC\u5305\u5BB9\u91CF16-20"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent19
+  _displayName: "\u80CC\u5305\u5BB9\u91CF16-20"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000017000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u88C5\u626E\u52A0\u6210+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent18
+  _displayName: "\u88C5\u626E\u52A0\u6210+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000016000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u83B7\u5F97\u5543\u566C\u5899\u4F53"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent17
+  _displayName: "\u7FA4\u4F53\u83B7\u5F97\u5543\u566C\u5899\u4F53"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000015000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u83B7\u5F97\u540C\u7C7B\u76F8\u98DF"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent16
+  _displayName: "\u7FA4\u4F53\u83B7\u5F97\u540C\u7C7B\u76F8\u98DF"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements:
+    - rid: 7968955992721326654
+    - rid: 7968955992721326661
+    _effects: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 7968955992721326654
+      type: {class: TalentLevelRequirement, ns: TalentTree, asm: Assembly-CSharp}
+      data:
+        _talent: {fileID: -900000000000014000}
+        _requiredLevel: 1
+    - rid: 7968955992721326661
+      type: {class: TalentLevelRequirement, ns: TalentTree, asm: Assembly-CSharp}
+      data:
+        _talent: {fileID: -900000000000004000}
+        _requiredLevel: 1
+--- !u!114 &-900000000000014000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u79FB\u901F+50%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent15
+  _displayName: "\u7FA4\u4F53\u79FB\u901F+50%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000013000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u79FB\u901F+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent14
+  _displayName: "\u7FA4\u4F53\u79FB\u901F+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000012000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u79FB\u901F+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent13
+  _displayName: "\u7FA4\u4F53\u79FB\u901F+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000011000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u83B7\u5F97\u51B2\u523A\u6280\u80FD"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent12
+  _displayName: "\u4E2A\u4F53\u83B7\u5F97\u51B2\u523A\u6280\u80FD"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000010000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u83B7\u5F97\u77AC\u95F4\u5B75\u5316"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent11
+  _displayName: "\u4E2A\u4F53\u83B7\u5F97\u77AC\u95F4\u5B75\u5316"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000009000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u77AC\u95F4\u4EA7\u5375"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent10
+  _displayName: "\u77AC\u95F4\u4EA7\u5375"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000008000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u4E2A\u4F53\u4EA7\u5375\u901F\u5EA6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent09
+  _displayName: "\u4E2A\u4F53\u4EA7\u5375\u901F\u5EA6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000007000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+50%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent08
+  _displayName: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+50%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000006000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent07
+  _displayName: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000005000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent06
+  _displayName: "\u7FA4\u4F53\u4EA7\u5375\u901F\u5EA6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000004000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u8FDB\u98DF\u901F\u5EA6+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent05
+  _displayName: "\u7FA4\u4F53\u8FDB\u98DF\u901F\u5EA6+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000003000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7FA4\u4F53\u8FDB\u98DF\u901F\u5EA6+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent7
+  _displayName: "\u7FA4\u4F53\u8FDB\u98DF\u901F\u5EA6+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000002000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7EB8\u7BB1\u533A\u57DF+100%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent03
+  _displayName: "\u7EB8\u7BB1\u533A\u57DF+100%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &-900000000000001000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7EB8\u7BB1\u533A\u57DF+50%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: ImageTalent02
+  _displayName: "\u7EB8\u7BB1\u533A\u57DF+50%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 049bcad1fbb7973489019a8ff87ec2bc, type: 3}
+  m_Name: TalentTree
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentTreeAsset
+  _nodes:
+  - _data: {fileID: 8934417477304861204}
+    _position: {x: -541.6028, y: 1583.7395}
+    _isRoot: 1
+    _unlockRule: 0
+  - _data: {fileID: 4510617856486047292}
+    _position: {x: 310.85254, y: 1267.1235}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -7028276738763079816}
+    _position: {x: 315.19617, y: 1978.416}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: 3011596460981020844}
+    _position: {x: 305.63754, y: 1623.8632}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -6944253372851422959}
+    _position: {x: 318.3581, y: 943.4778}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000001000}
+    _position: {x: 1764.0798, y: 1598.511}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000002000}
+    _position: {x: 2562.879, y: 1613.011}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000003000}
+    _position: {x: 715.4286, y: 1625.857}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000004000}
+    _position: {x: 2197.3625, y: 1598.6814}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000005000}
+    _position: {x: 1042.3077, y: 1603.5166}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000006000}
+    _position: {x: 1043.7335, y: 1738.4203}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000007000}
+    _position: {x: 1761.6923, y: 1769.7803}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000008000}
+    _position: {x: 1039.0991, y: 1888.7694}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000009000}
+    _position: {x: 1760.1317, y: 1947.4062}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000010000}
+    _position: {x: 2548.2307, y: 1946.9781}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000011000}
+    _position: {x: 1765.8351, y: 2126.099}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000012000}
+    _position: {x: 1044.6814, y: 1449.5933}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000013000}
+    _position: {x: 1435.9562, y: 1433.5386}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000014000}
+    _position: {x: 1437.3186, y: 1269.4507}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000015000}
+    _position: {x: 2199.5383, y: 1401.3846}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000016000}
+    _position: {x: 2561.8904, y: 1394.3407}
+    _isRoot: 0
+    _unlockRule: 1
+  - _data: {fileID: -900000000000017000}
+    _position: {x: 1048.0879, y: 1289.4617}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000018000}
+    _position: {x: 1048.4506, y: 1135.6046}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000019000}
+    _position: {x: 1925.5714, y: 1191.4285}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000020000}
+    _position: {x: 721.7141, y: 1269.143}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000021000}
+    _position: {x: 1437.6924, y: 1073.0989}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000022000}
+    _position: {x: 1440.0109, y: 844.84625}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000023000}
+    _position: {x: 2568.2856, y: 851.7142}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000024000}
+    _position: {x: 1757.9235, y: 844.4176}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000025000}
+    _position: {x: 719.1648, y: 939.4615}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000026000}
+    _position: {x: 1413.4838, y: 629.846}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000027000}
+    _position: {x: 678.901, y: 2347.1316}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000028000}
+    _position: {x: 700.57153, y: 1977.8572}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000029000}
+    _position: {x: 1768.5935, y: 2327.6152}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000030000}
+    _position: {x: 2527.5278, y: 2330.8792}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000031000}
+    _position: {x: 1354.3075, y: 2497.198}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000032000}
+    _position: {x: 1768.198, y: 2535.22}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000033000}
+    _position: {x: 1038.0988, y: 2219.3193}
+    _isRoot: 0
+    _unlockRule: 0
+  - _data: {fileID: -900000000000034000}
+    _position: {x: 2536.1978, y: 2545.4617}
+    _isRoot: 0
+    _unlockRule: 0
+  _edges:
+  - _first: {fileID: 8934417477304861204}
+    _second: {fileID: 4510617856486047292}
+  - _first: {fileID: 8934417477304861204}
+    _second: {fileID: -7028276738763079816}
+  - _first: {fileID: 8934417477304861204}
+    _second: {fileID: -6944253372851422959}
+  - _first: {fileID: 8934417477304861204}
+    _second: {fileID: 3011596460981020844}
+  - _first: {fileID: 8934417477304861204}
+    _second: {fileID: -900000000000027000}
+  - _first: {fileID: 3011596460981020844}
+    _second: {fileID: -900000000000003000}
+  - _first: {fileID: -900000000000003000}
+    _second: {fileID: -900000000000005000}
+  - _first: {fileID: -900000000000003000}
+    _second: {fileID: -900000000000012000}
+  - _first: {fileID: -900000000000005000}
+    _second: {fileID: -900000000000006000}
+  - _first: {fileID: -900000000000006000}
+    _second: {fileID: -900000000000007000}
+  - _first: {fileID: -900000000000001000}
+    _second: {fileID: -900000000000007000}
+  - _first: {fileID: -900000000000001000}
+    _second: {fileID: -900000000000004000}
+  - _first: {fileID: -900000000000004000}
+    _second: {fileID: -900000000000002000}
+  - _first: {fileID: -900000000000004000}
+    _second: {fileID: -900000000000015000}
+  - _first: {fileID: -900000000000015000}
+    _second: {fileID: -900000000000016000}
+  - _first: {fileID: -900000000000014000}
+    _second: {fileID: -900000000000015000}
+  - _first: {fileID: -900000000000014000}
+    _second: {fileID: -900000000000013000}
+  - _first: {fileID: -900000000000013000}
+    _second: {fileID: -900000000000012000}
+  - _first: {fileID: -900000000000012000}
+    _second: {fileID: -900000000000017000}
+  - _first: {fileID: -900000000000017000}
+    _second: {fileID: -900000000000018000}
+  - _first: {fileID: -900000000000018000}
+    _second: {fileID: -900000000000021000}
+  - _first: {fileID: -900000000000021000}
+    _second: {fileID: -900000000000019000}
+  - _first: {fileID: -900000000000018000}
+    _second: {fileID: -900000000000020000}
+  - _first: {fileID: -900000000000020000}
+    _second: {fileID: 4510617856486047292}
+  - _first: {fileID: 3011596460981020844}
+    _second: {fileID: 4510617856486047292}
+  - _first: {fileID: -900000000000022000}
+    _second: {fileID: -900000000000024000}
+  - _first: {fileID: -900000000000024000}
+    _second: {fileID: -900000000000023000}
+  - _first: {fileID: -900000000000022000}
+    _second: {fileID: -900000000000025000}
+  - _first: {fileID: -900000000000025000}
+    _second: {fileID: -900000000000026000}
+  - _first: {fileID: -900000000000025000}
+    _second: {fileID: -900000000000018000}
+  - _first: {fileID: 3011596460981020844}
+    _second: {fileID: -7028276738763079816}
+  - _first: {fileID: -7028276738763079816}
+    _second: {fileID: -900000000000028000}
+  - _first: {fileID: -900000000000007000}
+    _second: {fileID: -900000000000009000}
+  - _first: {fileID: -900000000000009000}
+    _second: {fileID: -900000000000010000}
+  - _first: {fileID: -900000000000009000}
+    _second: {fileID: -900000000000011000}
+  - _first: {fileID: -900000000000009000}
+    _second: {fileID: -900000000000008000}
+  - _first: {fileID: -900000000000011000}
+    _second: {fileID: -900000000000029000}
+  - _first: {fileID: -900000000000029000}
+    _second: {fileID: -900000000000030000}
+  - _first: {fileID: -900000000000029000}
+    _second: {fileID: -900000000000032000}
+  - _first: {fileID: -900000000000032000}
+    _second: {fileID: -900000000000034000}
+  - _first: {fileID: -900000000000027000}
+    _second: {fileID: -900000000000033000}
+  - _first: {fileID: -900000000000008000}
+    _second: {fileID: -900000000000028000}
+  - _first: {fileID: -900000000000027000}
+    _second: {fileID: -900000000000031000}
+  - _first: {fileID: -900000000000031000}
+    _second: {fileID: -900000000000032000}
+  - _first: {fileID: -6944253372851422959}
+    _second: {fileID: -900000000000025000}
+--- !u!114 &3011596460981020844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u7EB8\u7BB1\u533A\u57DF+25%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent3
+  _displayName: "\u7EB8\u7BB1\u533A\u57DF+25%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []
+--- !u!114 &4510617856486047292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u88C5\u626E\u52A0\u6210+10%"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent2
+  _displayName: "\u88C5\u626E\u52A0\u6210+10%"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 4
+    _requirements: []
+    _effects: []
+  - _talentPointCost: 0
+    _requirements:
+    - rid: 7968955992721326275
+    _effects: []
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 7968955992721326275
+      type: {class: TalentLevelRequirement, ns: TalentTree, asm: Assembly-CSharp}
+      data:
+        _talent: {fileID: 0}
+        _requiredLevel: 1
+--- !u!114 &8934417477304861204
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a78a2a9b460f967498eaf63b49890506, type: 3}
+  m_Name: "\u89C9\u9192"
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
+  _id: Talent0
+  _displayName: "\u89C9\u9192"
+  _icon: {fileID: 0}
+  _levels:
+  - _talentPointCost: 0
+    _requirements: []
+    _effects: []
+  references:
+    version: 2
+    RefIds: []

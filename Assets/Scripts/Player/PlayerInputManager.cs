@@ -346,6 +346,11 @@ namespace TapTapGameJam.Player
                         _playerInput.SwitchCurrentActionMap("Backpack");
                         break;
                     }
+                case "TalentTree":
+                    {
+                        _playerInput.SwitchCurrentActionMap("TalentTree");
+                        break;
+                    }
                 default:
                     {
                         Debug.LogError($"InputManager：出现意料之外的ActionMapName，请检查");

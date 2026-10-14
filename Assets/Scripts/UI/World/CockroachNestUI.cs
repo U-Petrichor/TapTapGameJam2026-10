@@ -57,6 +57,11 @@ namespace TapTapGameJam.UI
                 _nest = GetComponentInParent<CockNest>();
             }
             
+            
+        }
+
+        private void OnEnable()
+        {
             EventPipeline.Subscribe<GamePhaseChangedEvent>(SwitchDayNight);
         }
 

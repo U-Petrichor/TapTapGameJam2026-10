@@ -14,7 +14,7 @@ using SortFileQuestCandidate = TapTapGameJam.MiniGame.SortFileQuest;
 public static class SortFileGameSetup
 {
     private static readonly string[] DepartmentObjects =
-        { "HumanResources", "Administration", "Technology", "Development" };
+        { "HumanResources", "Administration", "Talent", "Development" };
     private static readonly Color[] DepartmentColors =
     {
         new Color(0.65f, 0.87f, 0.74f), new Color(1f, 0.83f, 0.61f),

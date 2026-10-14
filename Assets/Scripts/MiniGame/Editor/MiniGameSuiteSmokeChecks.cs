@@ -115,7 +115,7 @@ public static class MiniGameSuiteSmokeChecks
         yield return null;
         // 自动检查单独驱动任务阶段，避免编辑器后台帧较慢时世界倒计时抢先关闭面板。
         foreach (var phase in Object.FindObjectsByType<TapTapGameJam.Core.GamePhaseManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-            phase.CouldWork = false;
+            phase.TimeCouldWork = false;
         _panel = Object.FindFirstObjectByType<MiniGamePanelUI>();
         _player = Object.FindFirstObjectByType<PlayerBasic>();
         Assert(_panel != null && _player != null && _player.PlayerResources != null, "panel/player/resources exist");

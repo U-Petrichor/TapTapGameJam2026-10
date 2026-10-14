@@ -137,6 +137,7 @@ GameObject:
   - component: {fileID: 8733193615808389570}
   - component: {fileID: 1851755165833570048}
   - component: {fileID: 202610100000001}
+  - component: {fileID: 202610100000002}
   m_Layer: 12
   m_Name: Player
   m_TagString: Player
@@ -394,9 +395,26 @@ MonoBehaviour:
   <AnimationManager>k__BackingField: {fileID: 7701233578754936596}
   <PlayerInteractionManager>k__BackingField: {fileID: 7859349262476961609}
   <PlayerResources>k__BackingField: {fileID: 0}
+  <TalentTree>k__BackingField: {fileID: 202610100000002}
   <CarryController>k__BackingField: {fileID: 202610100000001}
   <PlayerBag>k__BackingField: {fileID: 8733193615808389570}
   <PlayerHealth>k__BackingField: {fileID: 0}
+--- !u!114 &202610100000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7966909714225381019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0309922755974e941a36fdc6bbc149f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TalentTree.PlayerTalentTree
+  _talentTreeAsset: {fileID: 11400000, guid: 8055466c359b8b244b5d499f8ca00cff, type: 2}
+  playerResources: {fileID: 4380141553457824572}
+  progress:
+    _entries: []
 --- !u!114 &3136187452460036554
 MonoBehaviour:
   m_ObjectHideFlags: 0

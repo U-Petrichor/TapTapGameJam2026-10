@@ -1,6 +1,7 @@
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Types;
+using TalentTree;
 using UnityEngine;
 
 namespace TapTapGameJam.Player
@@ -14,6 +15,7 @@ namespace TapTapGameJam.Player
         [field: SerializeField] public PlayerAnimationManager AnimationManager { get; private set; }
         [field: SerializeField] public PlayerInteractionManager PlayerInteractionManager { get; private set; }
         [field: SerializeField] public PlayerResources PlayerResources { get; private set; }
+        [field: SerializeField] public PlayerTalentTree TalentTree { get; private set; }
 
         [Tooltip("人形玩家的独立携带状态，不与夜晚 PlayerBag 共用")]
         [field: SerializeField] public PlayerCarryController CarryController { get; private set; }
@@ -45,6 +47,7 @@ namespace TapTapGameJam.Player
             if (AnimationManager == null) AnimationManager = GetComponent<PlayerAnimationManager>();
             if (PlayerInteractionManager == null) PlayerInteractionManager = GetComponent<PlayerInteractionManager>();
             if (PlayerResources == null) PlayerResources = GetComponent<PlayerResources>();
+            if (TalentTree == null) TalentTree = GetComponent<PlayerTalentTree>();
             if (CarryController == null) CarryController = GetComponent<PlayerCarryController>();
             if (PlayerBag == null) PlayerBag = GetComponent<PlayerBag>();
             if (PlayerHealth == null) PlayerHealth = GetComponent<PlayerHealth>();

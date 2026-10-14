@@ -10,21 +10,21 @@ namespace TapTapGameJam.Core
 
         [SerializeField] private const float DAY_DURATION = 90f; // 白天持续时间，单位秒
         [SerializeField] private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
-        public bool CouldWork = false;
+        public bool TimeCouldWork = false;
 
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
         public float RemainingTime = 0f; // 当前阶段剩余时间
-        public int DayIndex = 1; // 当前是第几天，从1开始计数
+        public int DayIndex = 0; // 当前是第几天，从0开始计数，在GameManager中播报第一个白天，然后DayIndex=1
 
-
-        private void Awake()
+        private void Start()
         {
+            Debug.Log($"游戏从此开始，进入第一个白天");
             EnterPhase(GamePhase.Day);
         }
-
         private void Update()
         {
-            if(CouldWork == false)
+            Debug.Log($"当前的TimeCouldWork:{TimeCouldWork}");
+            if(TimeCouldWork == false)
             {
                 return;
             }
@@ -49,7 +49,12 @@ namespace TapTapGameJam.Core
 
         public void NextPhase()
         {
-            EnterPhase(CurrentPhase == GamePhase.Day ? GamePhase.Shopping : CurrentPhase == GamePhase.Shopping ? GamePhase.Night : GamePhase.Day);
+            EnterPhase(CurrentPhase switch
+            {
+                GamePhase.Day => GamePhase.Shopping,
+                GamePhase.Shopping => GamePhase.Night,
+                _ => GamePhase.Day
+            });
         }
         
         /// <summary>
@@ -58,12 +63,32 @@ namespace TapTapGameJam.Core
         /// <param name="phase"></param>
         public void EnterPhase(GamePhase phase)
         {
-            RemainingTime = phase switch
+            switch (phase)
             {
-                GamePhase.Day => DAY_DURATION,
-                GamePhase.Night => NIGHT_DURATION,
-                _ => 0f
-            };
+                case GamePhase.Day:
+                {
+                    DayIndex++;
+                    TimeCouldWork = true;
+                    RemainingTime = DAY_DURATION;
+                    break;
+                }
+                case GamePhase.Shopping:
+                {
+                    TimeCouldWork = false;
+                    break;
+                }
+                case GamePhase.Night:
+                {
+                    TimeCouldWork = true;
+                    RemainingTime = NIGHT_DURATION;
+                    break;
+                }
+                default:
+                {
+                    Debug.LogError($"出现意料之外的阶段");
+                    break;
+                }
+            }
             CurrentPhase = phase;
             EventPipeline.Publish(new GamePhaseChangedEvent(phase));
         }

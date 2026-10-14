@@ -7,7 +7,7 @@ namespace TapTapGameJam.UI
     {
         HumanResources,
         Administration,
-        Technology,
+        Talent,
         Development
     }
 
@@ -73,7 +73,7 @@ namespace TapTapGameJam.UI
             {
                 case SortFileDepartment.HumanResources: return "人事";
                 case SortFileDepartment.Administration: return "行政";
-                case SortFileDepartment.Technology: return "技术";
+                case SortFileDepartment.Talent: return "技术";
                 case SortFileDepartment.Development: return "开发";
                 default: return string.Empty;
             }
