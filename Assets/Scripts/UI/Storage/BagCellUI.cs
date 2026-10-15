@@ -32,7 +32,10 @@ namespace TapTapGameJam.UI
             _background = background;
             _preview = preview;
             _baseColor = baseColor;
+            _hasPreview = false;
+            _previewColor = Color.clear;
             Apply();
+            ApplyPreview();
         }
 
         /// <summary>设置格子底色的基准色（空 / 已占）。值没变就不碰 UI，避免每帧触发 Canvas 重建</summary>
@@ -57,12 +60,19 @@ namespace TapTapGameJam.UI
 
             _hasPreview = active;
             _previewColor = color;
+            ApplyPreview();
+        }
 
-            if (_preview != null)
+        /// <summary>把缓存里的预览状态写进 Image。缓存是唯一真相，Preview 只在这里被写</summary>
+        private void ApplyPreview()
+        {
+            if (_preview == null)
             {
-                _preview.enabled = active;
-                _preview.color = color;
+                return;
             }
+
+            _preview.enabled = _hasPreview;
+            _preview.color = _previewColor;
         }
 
         /// <summary>清空所有预览（每次重算前调用）</summary>

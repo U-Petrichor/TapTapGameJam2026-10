@@ -54,6 +54,8 @@ namespace TapTapGameJam.Items
         [Header("丢弃")]
         [Tooltip("丢弃时物品落在玩家前方多远")]
         [SerializeField, Min(0f)] private float _dropForwardDistance = 1.2f;
+        [Tooltip("丢弃落点的随机散开半径。免得连着丢几件精确叠在同一个点上，之后点不到下面那些")]
+        [SerializeField, Min(0f)] private float _dropScatterRadius = 0.6f;
         [Tooltip("丢弃时从玩家头顶往下打射线贴地，最长距离")]
         [SerializeField, Min(0f)] private float _dropRayLength = 5f;
 
@@ -478,8 +480,10 @@ namespace TapTapGameJam.Items
         #region 丢弃 / 回世界
 
         /// <summary>
-        /// 计算"丢在玩家脚边"的落点：玩家前方一点，再往下打射线贴地。
+        /// 计算"丢在玩家脚边"的落点：玩家前方一点、再加一个随机散开量，然后往下打射线贴地。
         /// 射线打不到（比如脚下没碰撞体）就用原高度，至少不会掉到地底。
+        ///
+        /// 散开是在打射线**之前**加的，所以东西依然是贴在地面上的，只是落点不再重合。
         /// </summary>
         public Vector3 EvaluateDropPosition()
         {
@@ -491,7 +495,12 @@ namespace TapTapGameJam.Items
             }
 
             flatForward.Normalize();
-            Vector3 target = transform.position + flatForward * _dropForwardDistance;
+
+            // 随机偏移：不散开的话连着丢几件会精确叠在一个点上，堆在下面的那件再也点不到
+            Vector2 scatter = UnityEngine.Random.insideUnitCircle * _dropScatterRadius;
+            Vector3 target = transform.position
+                             + flatForward * _dropForwardDistance
+                             + new Vector3(scatter.x, 0f, scatter.y);
 
             if (_dropRayLength > 0f
                 && Physics.Raycast(target + Vector3.up, Vector3.down, out RaycastHit hit, _dropRayLength))

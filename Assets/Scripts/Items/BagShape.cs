@@ -74,6 +74,15 @@ namespace TapTapGameJam.Items
             }
         }
 
+        /// <summary>
+        /// 未旋转的占格偏移（原始配置，已去重、保证非空）。
+        ///
+        /// 表现层排格子和物品图时用这个：先在"标准朝向"下把块排好，最后整体旋转父节点。
+        /// 布局和旋转各做一次才是最终朝向；若拿 <see cref="Offsets"/>（已旋转过的）去排布局、
+        /// 再旋转父节点，两次旋转会互相抵消，格子和图会停在未旋转的位置。
+        /// </summary>
+        public List<Vector2Int> UnrotatedOffsets => Sanitize(initialOffsets);
+
         /// <summary>占格数量（旋转不改变数量，所以直接看缓存）</summary>
         public int Count => Offsets.Count;
 
@@ -95,7 +104,7 @@ namespace TapTapGameJam.Items
             _offsets = null;
         }
 
-        /// <summary>顺时针旋转 90 度（绕抓取格转，(x,y) -&gt; (y,-x)）</summary>
+        /// <summary>顺时针旋转 90 度（绕抓取格转，(x,y) -&gt; (-y,x)。y 向下为正，所以这才是屏幕上的顺时针）</summary>
         public void RotateClockwise()
         {
             RotationSteps += 1;
@@ -132,7 +141,7 @@ namespace TapTapGameJam.Items
 
         /// <summary>
         /// 按当前的 RotationSteps 重算缓存。
-        /// 每一次旋转都是把上一次的结果整体做 (x,y) -&gt; (y,-x)，转 4 次精确回到初始形状。
+        /// 每一次旋转都是把上一次的结果整体做 (x,y) -&gt; (-y,x)，转 4 次精确回到初始形状。
         /// </summary>
         private void RebuildOffsets()
         {
@@ -143,7 +152,7 @@ namespace TapTapGameJam.Items
                 for (int i = 0; i < _offsets.Count; i++)
                 {
                     Vector2Int cell = _offsets[i];
-                    _offsets[i] = new Vector2Int(cell.y, -cell.x);
+                    _offsets[i] = new Vector2Int(-cell.y, cell.x);
                 }
             }
 

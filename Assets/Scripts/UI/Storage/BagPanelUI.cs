@@ -10,6 +10,7 @@ using UnityEngine.UI;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TMPro.EditorUtilities;
 using UnityEditor;
 
 namespace TapTapGameJam.UI
@@ -35,7 +36,7 @@ namespace TapTapGameJam.UI
     /// 【操作】
     /// - 左键按住物品块拖动：落在格子上就试放，放不下回原位；落在格子外就是丢弃
     /// - 左键把块拖到装备槽上：穿上去；槽里原有的那件送回世界并提示玩家
-    /// - R：旋转手持物（块会重建）
+    /// - R：旋转手持物（块不重建，靠父节点整体旋转）
     /// - 右键点装备槽：脱下来
     /// </summary>
     [DisallowMultipleComponent]
@@ -109,7 +110,10 @@ namespace TapTapGameJam.UI
         private readonly HandBagItem _hand = new HandBagItem();
         
         /// <summary>背包中管理的所有block，打开背包统一创建，关闭背包统一清理</summary>
-        private List<BagItemBlock> _blocks = new List<BagItemBlock>();
+        private Dictionary<PickableItem, BagItemBlock> _blocks = new Dictionary<PickableItem, BagItemBlock>();
+        
+        /// <summary>待拾取的物品</summary>
+        private PickableItem _unpickItem = null;
 
         private CanvasGroup _canvasGroup;
         private bool _visible;
@@ -150,10 +154,6 @@ namespace TapTapGameJam.UI
             GameManager.PlayerInputManager.EventOnRotateItemPress -= OnRotateItemPressed;
         }
 
-        #endregion
-
-        #region 对外
-
         /// <summary>
         /// 打开背包。**只监听 BackpackEvent 来触发，不要从别处调**：
         /// 捡东西那条链路是 PlayerBag.PickUp 把物品记成 PendingPickupItem 后自己发 BackpackEvent(true)，
@@ -181,8 +181,12 @@ namespace TapTapGameJam.UI
             {
                 BagItemBlock block = GenerateBagItemBlock(pending);
                 ReturnBlockToPivot(block);
-                _blocks.Add(block);
-                SetItemInfo(pending);
+                _blocks.Add(pending, block);
+                SetUnpickItemInfo(pending);
+            }
+            else
+            {
+                SetUnpickItemInfo(null);
             }
         }
 
@@ -195,9 +199,8 @@ namespace TapTapGameJam.UI
 
             // 界面上的块全部销毁。不销毁的话下次 OpenBag 会为同一件物品再建一个块，
             // 旧的留在网格上重复显示、还压着射线挡拖动
-            for (int i = 0; i < _blocks.Count; i++)
+            foreach (BagItemBlock block in _blocks.Values)
             {
-                BagItemBlock block = _blocks[i];
                 if (block != null)
                 {
                     Destroy(block.gameObject);
@@ -242,6 +245,8 @@ namespace TapTapGameJam.UI
                 Vector2Int cell = new Vector2Int(index % GridColumns, index / GridColumns);
                 _cells.Add(CreateCell(cell));
             }
+
+            HidePreview();
         }
 
         private BagCellUI CreateCell(Vector2Int cell)
@@ -306,14 +311,16 @@ namespace TapTapGameJam.UI
         ///
         /// 步骤（全部在"未旋转"的偏移上排好，最后整体旋转父节点）：
         /// 1. 建一个空物体 BagItemBlock 作为父节点，pivot 居中在抓取格上（= 旋转轴）；
-        /// 2. 按 shape 当前朝向的偏移生成 CellFrame（100x100 纯色 Image），中心放在
+        /// 2. 按 shape 的"未旋转"偏移生成 CellFrame（100x100 纯色 Image），中心放在
         ///    偏移 * 格心间距 处，颜色取 shape.colorInGrid；这样 (0,0)（抓取格）天然在父节点原点；
         /// 3. 给物品图建 Image：anchor/pivot 都居中，大小 = bbox 格数 * 格心间距，
         ///    位置 = bbox 中心相对抓取格的位移，这样图正好盖住整个 bbox；
         /// 4. 按 shape.RotationSteps 整体旋转父节点（UI 里顺时针是 Z 负方向）。
         ///
-        /// 第 2 步和第 4 步必须配套：偏移取"旋转后"的、父节点也转同样的角度，
-        /// 两者算出来的落点才会重合。
+        /// 第 2 步必须用"未旋转"的偏移，第 4 步再整体旋转：布局和旋转各做一次才等于最终朝向。
+        /// 之前第 2 步用的是旋转后的偏移，和父节点旋转互相抵消 ——
+        /// 表现上格子和物品图都停在未旋转的位置，和占格判定（按旋转后的偏移算）对不齐；
+        /// 物品图的 rect 又会先按旋转后的 bbox 定尺寸，preserveAspect 于是一起缩水。
         /// </summary>
         private BagItemBlock GenerateBagItemBlock(PickableItem item)
         {
@@ -333,7 +340,7 @@ namespace TapTapGameJam.UI
             block.boundedItem = item;
             block.Panel = this;
 
-            List<Vector2Int> offsets = item.shape.Offsets;
+            List<Vector2Int> offsets = item.shape.UnrotatedOffsets;
 
             for (int i = 0; i < offsets.Count; i++)
             {
@@ -341,11 +348,8 @@ namespace TapTapGameJam.UI
             }
 
             AddItemSprite(root, item, offsets);
-
-            if (item.shape.RotationSteps != 0)
-            {
-                root.localRotation = Quaternion.Euler(0f, 0f, -90f * item.shape.RotationSteps);
-            }
+            
+            block.SyncRotationWithItem();
 
             return block;
         }
@@ -407,8 +411,8 @@ namespace TapTapGameJam.UI
             foreach (PlayerBag.Placement p in _bag.Placements)
             {
                 BagItemBlock block = GenerateBagItemBlock(p.item);
-                PlacedBlockIntoBag(block, p.origin);
-                _blocks.Add(block);
+                PlaceBlockIntoBag(block, p.origin);
+                _blocks.Add(p.item, block);
             }
         }
         
@@ -436,18 +440,23 @@ namespace TapTapGameJam.UI
                     // 回原来的格子；
                     if (_bag.TryPlace(item, _hand.FromOrigin))
                     {
-                        PlacedBlockIntoBag(block, _hand.FromOrigin);
+                        PlaceBlockIntoBag(block, _hand.FromOrigin);
                         _hand.Clear();
                         return true;
                     }
                     return false;
 
                 case HandItemOrigin.FromSlot:
+                    
+                    Assert.IsTrue(item is DressItem);
+                    DressItem dress = item as DressItem;
+                    EquipSlot slot = dress.ToSlot();
+                    
                     // 穿回原来的槽（正常一定成功，因为槽刚被我们腾空了）
                     if (_bag.TryEquip(item, out _))
                     {
+                        ReturnBlockToSlot(block, slot);
                         _hand.Clear();
-                        SetItemInfo(null);
                         return true;
                     }
 
@@ -465,12 +474,13 @@ namespace TapTapGameJam.UI
             }
         }
 
-        /// <summary>提示框：有手持物就显示它，没有就收起来</summary>
-        private void SetItemInfo(PickableItem item)
+        /// <summary>提示框：显示待拾取的物品，没有就收起来</summary>
+        private void SetUnpickItemInfo(PickableItem item)
         {
             Assert.IsTrue(_infoTextTitle);
             Assert.IsTrue(_infoTextContent);
             Assert.IsTrue(_itemInfoRoot);
+            _unpickItem = item;
 
             if (!item)
             {
@@ -482,6 +492,8 @@ namespace TapTapGameJam.UI
             _infoTextTitle.text = item.name;
             _infoTextContent.text = item.HoverPrompt;
             _itemInfoRoot.gameObject.SetActive(true);
+            
+            ReturnBlockToPivot(_blocks[_unpickItem]);
         }
 
         /// <summary>R 键按下：旋转手持物</summary>
@@ -540,18 +552,17 @@ namespace TapTapGameJam.UI
             {
                 _hand.Origin = HandItemOrigin.Unpicked;
             }
-
-            SetItemInfo(item);
         }
 
         #endregion
 
-        # region Block状态且切换
+        # region Block状态且切换（仅改变block位置）
         
-        public void PlacedBlockIntoBag(BagItemBlock block, Vector2Int origin)
+        ///<summary> Block挪入背包中某处 </summary>
+        public void PlaceBlockIntoBag(BagItemBlock block, Vector2Int origin)
         {
-            Assert.IsTrue(block != null, "PlacedBlockIntoBag：block 是 null");
-            Assert.IsTrue(TryGetCell(origin, out BagCellUI cell), $"PlacedBlockIntoBag：格子 {origin} 不在背包里");
+            Assert.IsTrue(block != null, "PlaceBlockIntoBag：block 是 null");
+            Assert.IsTrue(TryGetCell(origin, out BagCellUI cell), $"PlaceBlockIntoBag：格子 {origin} 不在背包里");
 
             block.transform.SetParent(_gridRoot, false);
 
@@ -561,15 +572,17 @@ namespace TapTapGameJam.UI
             block.transform.position = cell.transform.position;
         }
 
+        ///<summary> Block挪入unpick item的pivot处 </summary>
         public void ReturnBlockToPivot(BagItemBlock block)
         {
             block.transform.SetParent(_dragLayer, false);
             block.transform.position = _itemSpritePivot.position;
         }
 
+        ///<summary> Block挪入某个槽位 </summary>
         public void ReturnBlockToSlot(BagItemBlock block, EquipSlot slot)
         {
-            // TODO ;
+            // TODO 应该以sprite形态进入槽位（隐藏底部格子 or 切换图标？）;
         }
 
         /// <summary>销毁某件物品的表现块。用在"后端已经不要这件东西了"的场合（例如右键用掉）</summary>
@@ -577,23 +590,16 @@ namespace TapTapGameJam.UI
         {
             Assert.IsTrue(item != null, "DestroyBlockOf：item 是 null");
 
-            for (int i = _blocks.Count - 1; i >= 0; i--)
+            if (!_blocks.TryGetValue(item, out BagItemBlock block))
             {
-                BagItemBlock block = _blocks[i];
-                if (block == null)
-                {
-                    _blocks.RemoveAt(i);
-                    continue;
-                }
-
-                if (block.boundedItem != item)
-                {
-                    continue;
-                }
-
-                Destroy(block.gameObject);
-                _blocks.RemoveAt(i);
                 return;
+            }
+
+            _blocks.Remove(item);
+
+            if (block != null)
+            {
+                Destroy(block.gameObject);
             }
         }
         
@@ -602,27 +608,31 @@ namespace TapTapGameJam.UI
         
         #region 拖拽意图指令区
 
-        /// <summary>把手持物送回世界并删掉它的块</summary>
+        /// <summary>把手持物送回世界</summary>
         private void DiscardHandItem()
         {
+            if (!_hand.IsValid) return;
             PickableItem item = _hand.Item;
-            BagItemBlock block = _hand.Block;
 
             _bag?.DropToWorld(item);
-
-            if (block != null)
-            {
-                Destroy(block.gameObject);
-            }
-
             _hand.Clear();
-            SetItemInfo(null);
+
+            if (!_unpickItem || item == _unpickItem)
+            {
+                // 标记点空着（或者本来就是这件）：丢掉的那件停在标记点上，成为待拾取物 —— 还能拖回背包
+                SetUnpickItemInfo(item);
+            }
+            else
+            {
+                // 已经有别的待拾取物占了标记点：这件直接回世界，销毁它的块（字典里那条登记也一起摘掉）
+                DestroyBlockOf(item);
+            }
         }
 
         /// <summary>把手持物穿到槽位上。槽里原有的那件送回世界并提示玩家</summary>
         private bool TryEquipToSlot(BagSlotUI slot)
         {
-            if (slot == null || !_hand.IsValid || _bag == null)
+            if (slot == null || !_hand.IsValid)
             {
                 return false;
             }
@@ -633,23 +643,25 @@ namespace TapTapGameJam.UI
                 return false;
             }
 
-            BagItemBlock block = _hand.Block;
-            if (block != null)
+            if (item == _unpickItem)
             {
-                Destroy(block.gameObject);
+                SetUnpickItemInfo(null);
             }
-
             _hand.Clear();
 
             if (replaced != null)
             {
-                // TODO: 现在是把换下来的那件送回世界并提示；将来若要"放回背包格子"改这里
-                _bag.ReturnToWorld(replaced, _bag.EvaluateDropPosition());
-                // SetItemInfo(replaced);
-            }
-            else
-            {
-                SetItemInfo(null);
+                _bag.DropToWorld(replaced);
+                
+                // 替下来的东西，如果当前没有unpick，它就成为unpick
+                if (!_unpickItem)
+                {
+                    SetUnpickItemInfo(replaced);
+                }
+                else
+                {
+                    DestroyBlockOf(item);
+                }
             }
 
             return true;
@@ -686,9 +698,9 @@ namespace TapTapGameJam.UI
                         return true;
                     }
 
-                    PlacedBlockIntoBag(_hand.Block, cell.Cell);
+                    PlaceBlockIntoBag(_hand.Block, cell.Cell);
                     _hand.Clear();
-                    SetItemInfo(null);
+                    SetUnpickItemInfo(null);
 
                     return true;
 
