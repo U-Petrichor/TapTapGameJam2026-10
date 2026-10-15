@@ -87,6 +87,28 @@ namespace TapTapGameJam.UI
 
             Assert.IsTrue(_dragLayer, "UIManager：没连 DragLayer");
             Assert.IsTrue(_bag, "UIManager：没连 PlayerBag（送回世界要用）");
+
+            EnsureDragLayerOnTop();
+        }
+
+        /// <summary>
+        /// 拖动层必须是"最上面那一层"。
+        ///
+        /// 容器面板是同一个 Canvas 下的兄弟节点，谁在上面靠层级顺序决定 —— 仓库面板就排在背包面板
+        /// 后面，块会被它整个盖住（看起来像"物品放进去就没了"）。而且拖动层原来套在背包面板的
+        /// CanvasGroup 里：背包一关（alpha=0 / blocksRaycasts=false），拖动层上的块会跟着隐形、
+        /// 还收不到射线，仓库单独打开时什么都动不了。
+        ///
+        /// 所以这里把拖动层挪到根 Canvas 的最后一个子物体。想改成在场景里手动摆好也行，
+        /// 把这次调用删掉即可（等价）。
+        /// </summary>
+        private void EnsureDragLayerOnTop()
+        {
+            Canvas canvas = _dragLayer.GetComponentInParent<Canvas>();
+            Assert.IsTrue(canvas != null, "UIManager：DragLayer 不在任何 Canvas 下");
+
+            _dragLayer.SetParent(canvas.rootCanvas.transform, false);
+            _dragLayer.SetAsLastSibling();
         }
 
         private void Start()
@@ -150,12 +172,23 @@ namespace TapTapGameJam.UI
             // 先在"未旋转"的偏移上把块排好，朝向由父节点旋转表达（见 BagShape.UnrotatedOffsets）
             List<Vector2Int> offsets = item.shape.UnrotatedOffsets;
 
+            // 格子框单独放一层：仓库要把整层隐藏、只留物品图
+            GameObject framesRoot = new GameObject("CellFrames", typeof(RectTransform));
+            RectTransform framesRect = (RectTransform)framesRoot.transform;
+            framesRect.SetParent(root, false);
+            framesRect.anchorMin = new Vector2(0.5f, 0.5f);
+            framesRect.anchorMax = new Vector2(0.5f, 0.5f);
+            framesRect.pivot = new Vector2(0.5f, 0.5f);
+            framesRect.sizeDelta = Vector2.zero;
+            framesRect.anchoredPosition = Vector2.zero;
+
             for (int i = 0; i < offsets.Count; i++)
             {
-                AddCellFrame(root, offsets[i], item.shape.colorInGrid);
+                AddCellFrame(framesRect, offsets[i], item.shape.colorInGrid);
             }
 
-            AddItemSprite(root, item, offsets);
+            RectTransform icon = AddItemSprite(root, item, offsets);
+            block.AttachVisuals(framesRect, icon);
             block.SyncRotationWithItem();
 
             _blocks.Add(item, block);
@@ -199,6 +232,17 @@ namespace TapTapGameJam.UI
         {
             block = null;
             return item != null && _blocks.TryGetValue(item, out block);
+        }
+
+        /// <summary>
+        /// 物品被从容器里拿起来（按下开始拖）：本体回到世界。
+        /// "拿起 = 脱离原容器"是 UI 侧的统一规则，所以各容器的 OnPickUpItem 都调这里；
+        /// 拖动期间物品就算 OnMap（老规矩，先不管隐藏），放不下时块会带着 CurrentSlot 回退。
+        /// </summary>
+        public void DetachItemToWorld(PickableItem item)
+        {
+            Assert.IsTrue(item != null, "DetachItemToWorld：item 是 null");
+            _bag.DropToWorld(item);
         }
 
         /// <summary>把块对应的物品送回世界，然后销毁块（拖到面板外松手 / 落在拒绝的槽位上时走这里）</summary>
@@ -268,15 +312,12 @@ namespace TapTapGameJam.UI
             image.raycastTarget = false; // 点选留给物品图，格子框不参与射线
         }
 
-        private void AddItemSprite(Transform parent, PickableItem item, List<Vector2Int> offsets)
+        /// <summary>
+        /// 建"物品图"那一层并返回它（没配图时用形状色画一个占位块 —— 仓库只显示这一层，
+        /// 没有它物品在仓库里就完全看不见）。返回的 rect 就是占格 bbox 的尺寸，仓库靠它缩放/居中。
+        /// </summary>
+        private RectTransform AddItemSprite(Transform parent, PickableItem item, List<Vector2Int> offsets)
         {
-            Sprite icon = item.BagIcon;
-            if (icon == null)
-            {
-                // 还没配图：只显示格子框。TODO: 需要的话在这里画一个占位色块
-                return;
-            }
-
             BagShape.GetBounds(offsets, out Vector2Int min, out Vector2Int max);
             Vector2Int sizeInCells = max - min + Vector2Int.one;
 
@@ -297,10 +338,21 @@ namespace TapTapGameJam.UI
             rect.anchoredPosition = new Vector2(center.x * CellPitch, -center.y * CellPitch);
 
             Image image = go.AddComponent<Image>();
-            image.sprite = icon;
-            image.preserveAspect = true;
+            if (item.BagIcon != null)
+            {
+                image.sprite = item.BagIcon;
+                image.preserveAspect = true;
+            }
+            else
+            {
+                // 还没配图：用形状色兜底，至少看得见、也拖得动
+                image.color = item.shape.colorInGrid;
+                image.preserveAspect = false;
+            }
+
             // 拖拽的射线必须打中物品图（块的空物体和格子框都不参与射线）
             image.raycastTarget = true;
+            return rect;
         }
 
         #endregion

@@ -36,6 +36,38 @@ namespace TapTapGameJam.UI
         /// <summary>正在被拖着</summary>
         public bool IsDragging { get; private set; }
 
+        /// <summary>格子框那一层。仓库要整层隐藏，只留物品图</summary>
+        public RectTransform CellFrames { get; private set; }
+
+        /// <summary>物品图那一层的 RectTransform（没配图时是占位色块）。它的 rect 就是占格 bbox 的尺寸</summary>
+        public RectTransform Icon { get; private set; }
+
+        /// <summary>由 <see cref="UIManager"/> 造块时注入两层物料</summary>
+        public void AttachVisuals(RectTransform cellFrames, RectTransform icon)
+        {
+            Assert.IsTrue(cellFrames != null && icon != null, "BagItemBlock.AttachVisuals：传进来的层是 null");
+            CellFrames = cellFrames;
+            Icon = icon;
+        }
+
+        /// <summary>格子框的显隐（背包要，仓库只看图不要）</summary>
+        public void SetCellFramesVisible(bool visible)
+        {
+            Assert.IsTrue(CellFrames != null, "BagItemBlock：格子框层还没注入");
+            CellFrames.gameObject.SetActive(visible);
+        }
+
+        /// <summary>
+        /// 恢复成"背包那套表现"：显示格子框、缩放归 1、朝向跟物品形状一致。
+        /// 从仓库（隐藏格子框 + 缩放过）转到背包 / 装备槽 / 待拾取位之前必须来这一下。
+        /// </summary>
+        public void ApplyBagPresentation()
+        {
+            SetCellFramesVisible(true);
+            transform.localScale = Vector3.one;
+            SyncRotationWithItem();
+        }
+
         /// <summary>上一次命中的槽位。换目标 / 松手时要靠它把预览收掉</summary>
         private IItemSlot _previewSlot;
 

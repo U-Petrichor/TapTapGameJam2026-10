@@ -285,7 +285,7 @@ namespace TapTapGameJam.UI
         public void OnItemPickedUp(BagItemBlock block)
         {
             Assert.IsTrue(block != null, "OnItemPickedUp：block 是 null");
-            _bag.DropToWorld(block.boundedItem);
+            UIManager.Instance.DetachItemToWorld(block.boundedItem);
         }
 
         /// <summary>
@@ -314,7 +314,14 @@ namespace TapTapGameJam.UI
 
             if (replaced != null)
             {
-                // 换下来的那件：送回世界，然后停在待拾取位上等玩家处理
+                // 换下来的那件：先把它在装备槽上的块收掉 —— 一件物品只能有一个块，
+                // 待拾取位待会儿会为它重新建一个；不收掉就会撞上 CreateBlock 的"已经有块了"
+                if (UIManager.Instance.TryGetBlock(replaced, out BagItemBlock replacedBlock))
+                {
+                    UIManager.Instance.DestroyBlock(replacedBlock);
+                }
+
+                // 送回世界，然后停在待拾取位上等玩家处理
                 _bag.DropToWorld(replaced);
                 _unpickItemSlot.OpenWithItem(replaced);
             }
@@ -347,6 +354,8 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(block != null, "LayoutBlockToCell：block 是 null");
             Assert.IsTrue(TryGetCell(origin, out BagCell cell), $"LayoutBlockToCell：格子 {origin} 不在背包里");
 
+            // 从仓库（隐藏格子框 + 缩放过）过来的块要先恢复成背包形态
+            block.ApplyBagPresentation();
             block.CurrentSlot = cell;
             block.transform.SetParent(UIManager.Instance.DragLayer, false);
             block.transform.position = cell.transform.position;
@@ -358,6 +367,7 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(block != null, "LayoutBlockToEquipSlot：block 是 null");
             Assert.IsTrue(slot != null, "LayoutBlockToEquipSlot：slot 是 null");
 
+            block.ApplyBagPresentation();
             block.CurrentSlot = slot;
             block.transform.SetParent(UIManager.Instance.DragLayer, false);
             block.transform.position = slot.transform.position;

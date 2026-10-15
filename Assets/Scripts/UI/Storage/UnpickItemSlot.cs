@@ -123,6 +123,8 @@ namespace TapTapGameJam.UI
             _infoTextContent.text = _item.HoverPrompt;
             _infoTextTitle.text = _item.name;
 
+            // 从仓库过来的块要先恢复成背包形态（显示格子框、缩放归 1）
+            block.ApplyBagPresentation();
             block.CurrentSlot = this;
             block.transform.SetParent(UIManager.Instance.DragLayer, false);
             block.transform.position = _itemSpritePivot.position;
