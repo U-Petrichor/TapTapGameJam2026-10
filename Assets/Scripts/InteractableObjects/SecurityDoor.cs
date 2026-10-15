@@ -20,6 +20,12 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
 
     [Header("填入预计第几天开放，-1就是永远不开放")]
     [SerializeField] private int _whichDayOpen=1;
+    [Header("开放特写（留空时使用阻挡碰撞体中心）")]
+    [SerializeField] private Transform _revealFocus;
+    [Tooltip("可选的世界机位，特殊门可用它绕开墙体遮挡。")]
+    [SerializeField] private Transform _revealCameraPose;
+    [Tooltip("0 使用运镜管理器的默认距离。")]
+    [SerializeField, Min(0f)] private float _revealDistance;
     private bool _canIOpen = false;
     private static readonly int OpenSecurityDoorHash = Animator.StringToHash("Base Layer.OpenSecurityDoor");
 
@@ -31,6 +37,10 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     private float _animationNormalizedTime;
 
     public bool IsAvailable => _canIOpen;
+    public Vector3 RevealFocus => _revealFocus != null ? _revealFocus.position
+        : _blockCollider != null ? _blockCollider.bounds.center : transform.position;
+    public Transform RevealCameraPose => _revealCameraPose;
+    public float RevealDistance => _revealDistance;
     public string UnavailableReason => _canIOpen ? string.Empty : "门尚未开放";
 
     private void Awake()
@@ -68,15 +78,10 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     }
     private void TimeToUnlock(EventNewDay evt)
     {
-        if (_whichDayOpen >= 0 && evt.DayCount >= _whichDayOpen)
-        {
-            // 是时候开门了
-            _canIOpen = true;
-        }
-        else
-        {
-            _canIOpen = false;
-        }
+        bool wasAvailable = _canIOpen;
+        _canIOpen = _whichDayOpen >= 0 && evt.DayCount >= _whichDayOpen;
+        if (_canIOpen && !wasAvailable)
+            EventPipeline.Publish(new EventSecurityDoorAvailable(this));
     }
     public override bool CanInteract(PlayerBasic player)
     {

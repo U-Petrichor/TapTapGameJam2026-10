@@ -67,7 +67,7 @@ namespace TapTapGameJam.Events
     }
 
     /// <summary>
-    /// 这个事件在GameManager当中发布，每次到白天时会更新，区间为[1,+无穷]
+    /// GamePhaseManager 每次进入白天后发布，第一天为 1。
     /// </summary>
     public readonly struct EventNewDay : IEvent
     {
@@ -77,6 +77,13 @@ namespace TapTapGameJam.Events
             DayCount = dayCount;
         }
     }
+    /// <summary>门首次达到开放日期；此时仍需要玩家交互开门。</summary>
+    public readonly struct EventSecurityDoorAvailable : IEvent
+    {
+        public SecurityDoor Door { get; }
+        public EventSecurityDoorAvailable(SecurityDoor door) => Door = door;
+    }
+
     public readonly struct BackpackEvent : IEvent
     {
         public bool IsOpen { get; }

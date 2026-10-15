@@ -14,7 +14,7 @@ namespace TapTapGameJam.Core
 
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
         public float RemainingTime = 0f; // 当前阶段剩余时间
-        public int DayIndex = 0; // 当前是第几天，从0开始计数，在GameManager中播报第一个白天，然后DayIndex=1
+        public int DayIndex = 0; // 已开始的白天数；进入首日后为 1，与门的开放日期一致。
 
         private void Start()
         {
@@ -90,6 +90,8 @@ namespace TapTapGameJam.Core
             }
             CurrentPhase = phase;
             EventPipeline.Publish(new GamePhaseChangedEvent(phase));
+            if (phase == GamePhase.Day)
+                EventPipeline.Publish(new EventNewDay(DayIndex));
         }
         /// <summary>
         /// 购物时点击按钮主动结束，触发阶段切换事件

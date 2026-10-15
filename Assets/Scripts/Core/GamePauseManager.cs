@@ -14,10 +14,17 @@ namespace TapTapGameJam.Core
 
         private bool _escOpen;
         private bool _backpackOpen;
+        private bool _doorRevealPlaying;
 
         // 任意一个暂停原因存在，游戏就保持暂停。
         public bool IsPaused =>
-            _escOpen || _backpackOpen;
+            _escOpen || _backpackOpen || _doorRevealPlaying;
+
+        public void SetDoorRevealPlaying(bool playing)
+        {
+            _doorRevealPlaying = playing;
+            RefreshPause();
+        }
 
         private void Awake()
         {
