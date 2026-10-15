@@ -12,7 +12,6 @@ namespace TapTapGameJam.Core
         private static GameManager _instance;
         [SerializeField] private PlayerBasic _player;
         [SerializeField] private PlayerInputManager _playerInputManager;
-        [SerializeField] private ShopMenu _shopMenu;
         [SerializeField] private GamePhaseManager _gamePhaseManager;
         
         public static bool IsDay => _instance._gamePhaseManager.CurrentPhase == GamePhase.Day;
