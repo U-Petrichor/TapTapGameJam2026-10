@@ -23,7 +23,6 @@ namespace TapTapGameJam.Core
         }
         private void Update()
         {
-            Debug.Log($"当前的TimeCouldWork:{TimeCouldWork}");
             if(TimeCouldWork == false)
             {
                 return;

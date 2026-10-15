@@ -128,6 +128,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 14625823}
+  - component: {fileID: 14625824}
   m_Layer: 5
   m_Name: Info
   m_TagString: Untagged
@@ -158,6 +159,21 @@ RectTransform:
   m_AnchoredPosition: {x: -150, y: 14}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &14625824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 14625822}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62e6253aaaf44d72a87a0c59b3dec121, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.UnpickItemSlot
+  _itemSpritePivot: {fileID: 1673450427}
+  _infoTextTitle: {fileID: 128533856}
+  _infoTextContent: {fileID: 688181913}
 --- !u!1 &125808976
 GameObject:
   m_ObjectHideFlags: 0
@@ -622,9 +638,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   _player: {fileID: 4853131174117530461}
   _playerInputManager: {fileID: 4853131174117530459}
-  _shopMenu: {fileID: 1583590499}
   _gamePhaseManager: {fileID: 1844864082}
-  _bagPanel: {fileID: 1955856715526313587}
 --- !u!114 &147810221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4628,6 +4642,7 @@ GameObject:
   - component: {fileID: 1706588791}
   - component: {fileID: 1706588793}
   - component: {fileID: 1706588792}
+  - component: {fileID: 1706588794}
   m_Layer: 5
   m_Name: Foot
   m_TagString: Untagged
@@ -4692,6 +4707,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1706588790}
   m_CullTransparentMesh: 1
+--- !u!114 &1706588794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706588790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6925a60e8b54045a4b7030db666758, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.EquipSlot
+  _slot: 2
+  bagPanelUI: {fileID: 1955856715526313587}
 --- !u!1001 &1732096683
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4805,6 +4834,7 @@ GameObject:
   - component: {fileID: 1743955154}
   - component: {fileID: 1743955153}
   - component: {fileID: 1743955152}
+  - component: {fileID: 1743955156}
   m_Layer: 5
   m_Name: HUDCanvas
   m_TagString: Untagged
@@ -4900,6 +4930,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1743955156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1743955151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8416763c0ee048e5bffd31380e4f8beb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.UIManager
+  _cellSize: 100
+  _cellSpacing: 3
+  _dragLayer: {fileID: 216682730}
+  _bag: {fileID: 4853131174117530477}
 --- !u!1 &1804842103
 GameObject:
   m_ObjectHideFlags: 0
@@ -4911,6 +4957,7 @@ GameObject:
   - component: {fileID: 1804842104}
   - component: {fileID: 1804842106}
   - component: {fileID: 1804842105}
+  - component: {fileID: 1804842107}
   m_Layer: 5
   m_Name: Body
   m_TagString: Untagged
@@ -4975,6 +5022,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1804842103}
   m_CullTransparentMesh: 1
+--- !u!114 &1804842107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1804842103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6925a60e8b54045a4b7030db666758, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.EquipSlot
+  _slot: 1
+  bagPanelUI: {fileID: 1955856715526313587}
 --- !u!1 &1815458188
 GameObject:
   m_ObjectHideFlags: 0
@@ -5380,7 +5441,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30da974a48fcce04ead1871104946390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.GamePhaseManager
-  CouldWork: 0
+  TimeCouldWork: 0
   <CurrentPhase>k__BackingField: 2
   RemainingTime: 0
   DayIndex: 1
@@ -6075,6 +6136,7 @@ GameObject:
   - component: {fileID: 2081115379}
   - component: {fileID: 2081115381}
   - component: {fileID: 2081115380}
+  - component: {fileID: 2081115382}
   m_Layer: 5
   m_Name: Head
   m_TagString: Untagged
@@ -6139,6 +6201,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2081115378}
   m_CullTransparentMesh: 1
+--- !u!114 &2081115382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2081115378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b6925a60e8b54045a4b7030db666758, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.EquipSlot
+  _slot: 0
+  bagPanelUI: {fileID: 1955856715526313587}
 --- !u!1 &2085038564
 GameObject:
   m_ObjectHideFlags: 0
@@ -6192,9 +6268,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa11224194b7b7540843ffa50af2ba2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.Resources
-  CoinsNumText: {fileID: 762898338}
-  NutritionNumText: {fileID: 1431126853}
-  CockroachNumText: {fileID: 1816421693}
+  coinsNumText: {fileID: 762898338}
+  nutritionNumText: {fileID: 1431126853}
+  cockroachNumText: {fileID: 1816421693}
+  talentPointsNumText: {fileID: 1816421693}
 --- !u!225 &2085038567
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -6295,6 +6372,18 @@ PrefabInstance:
       propertyPath: _bagIcon
       value: 
       objectReference: {fileID: -8003429182311451799, guid: 7caee75026f552c49afa38a00c82b5ea, type: 3}
+    - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
+      propertyPath: shape.colorInGrid.a
+      value: 0.49019608
+      objectReference: {fileID: 0}
+    - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
+      propertyPath: shape.colorInGrid.b
+      value: 0.81646943
+      objectReference: {fileID: 0}
+    - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
+      propertyPath: shape.colorInGrid.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
       propertyPath: shape.initialOffsets.Array.size
       value: 3
@@ -6522,14 +6611,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.BagPanelUI
   _bagRoot: {fileID: 233826778}
   _gridRoot: {fileID: 6575292632729008459}
-  _itemInfoRoot: {fileID: 14625823}
-  _itemSpritePivot: {fileID: 1673450427}
-  _dragLayer: {fileID: 216682730}
-  _infoTextTitle: {fileID: 128533856}
-  _infoTextContent: {fileID: 688181913}
-  _slotHead: {fileID: 2081115380}
-  _slotBody: {fileID: 1804842105}
-  _slotLegs: {fileID: 1706588792}
+  _slotHead: {fileID: 2081115382}
+  _slotBody: {fileID: 1804842107}
+  _slotLegs: {fileID: 1706588794}
+  _unpickItemSlot: {fileID: 14625824}
   _bag: {fileID: 4853131174117530477}
 --- !u!1001 &2018583602889578030
 PrefabInstance:
@@ -6636,6 +6721,10 @@ PrefabInstance:
       propertyPath: _bagIcon
       value: 
       objectReference: {fileID: -4997364478461474463, guid: 0dd3e7fe730760745a544a2dc182714c, type: 3}
+    - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
+      propertyPath: shape.colorInGrid.a
+      value: 0.49019608
+      objectReference: {fileID: 0}
     - target: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
       propertyPath: shape.initialOffsets.Array.size
       value: 5

@@ -85,6 +85,25 @@ namespace TapTapGameJam.Events
             IsOpen = isOpen;
         }
     }
+    
+    public readonly struct RepoOnOffEvent : IEvent
+    {
+        public bool IsOpen { get; }
+        public RepoOnOffEvent(bool isOpen)
+        {
+            IsOpen = isOpen;
+        }
+    }
+    
+    public readonly struct StoreOnOffEvent : IEvent
+    {
+        public bool IsOpen { get; }
+        public StoreOnOffEvent(bool isOpen)
+        {
+            IsOpen = isOpen;
+        }
+    }
+    
     public readonly struct ESCMenuEvent : IEvent
     {
         // 负责通知打开游戏内ESC的菜单，此时应该停止游戏进行，直到菜单关闭

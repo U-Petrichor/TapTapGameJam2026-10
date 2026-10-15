@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using TapTapGameJam.Items;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,13 +7,15 @@ using UnityEngine.UI;
 namespace TapTapGameJam.UI
 {
     /// <summary>
-    /// 背包里的一个格子。只负责"显示自己处于什么状态"和"把指针事件转发给 BagPanelUI"。
+    /// 背包里的一个格子。它是个 <see cref="IItemSlot"/>，但自己不做任何判定 ——
+    /// 能不能放、放进去之后怎么摆，全部转发给所属容器 <see cref="BagPanelUI"/>。
     ///
-    /// 格子本身不画物品 —— 物品由 <see cref="TapTapGameJam.Items.BagItemBlock"/> 整体表现，
+    /// 格子本身不画物品 —— 物品由 <see cref="BagItemBlock"/> 整体表现，
     /// 这里只有底色和试放预览两层：Background → Preview（raycastTarget=false）。
     /// </summary>
     [DisallowMultipleComponent]
-    public class BagCellUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IItemSlot
+    public class BagCell : MonoBehaviour,
+        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IItemSlot, ICellItemClick
     {
         public Vector2Int Cell { get; private set; }
 
@@ -35,8 +38,49 @@ namespace TapTapGameJam.UI
             _hasPreview = false;
             _previewColor = Color.clear;
             Apply();
+            // 新建出来的 Image 默认是 enabled + 构造时那个颜色，必须按缓存状态写一次把它关掉，
+            // 否则这一格会一直顶着一层预览色
             ApplyPreview();
         }
+
+        #region IItemSlot（全部转发给容器）
+
+        public bool TryDropItemBlock(BagItemBlock block)
+        {
+            Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
+            return bagPanelUI.TryDropToCell(block, Cell);
+        }
+
+        public bool DropItemBlock(BagItemBlock block)
+        {
+            Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
+            return bagPanelUI.DropToCell(block, Cell);
+        }
+
+        public void OnPickUpItem(BagItemBlock block)
+        {
+            Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
+            bagPanelUI.OnItemPickedUp(block);
+        }
+
+        /// <summary>预览是整个形状一起刷在若干格子上的，所以收的时候也是容器统一收</summary>
+        public void ClearDropPreview()
+        {
+            Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
+            bagPanelUI.HidePreview();
+        }
+
+        #endregion
+
+        #region ICellItemClick
+
+        public void OnClickItem(BagItemBlock block, PointerEventData.InputButton button)
+        {
+            Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
+            bagPanelUI.NotifyCellClicked(this, block, button);
+        }
+
+        #endregion
 
         /// <summary>设置格子底色的基准色（空 / 已占）。值没变就不碰 UI，避免每帧触发 Canvas 重建</summary>
         public void SetBaseColor(Color color)
@@ -85,19 +129,18 @@ namespace TapTapGameJam.UI
         {
             _isHovered = true;
             Apply();
-            bagPanelUI.NotifyCellHovered(this, true);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             _isHovered = false;
             Apply();
-            bagPanelUI.NotifyCellHovered(this, false);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            bagPanelUI.NotifyCellClicked(this, eventData.button);
+            // 点击落在格子上，格子自己去问容器"这一格上是谁"，再把块交给 OnClickItem
+            OnClickItem(bagPanelUI.GetBlockAt(Cell), eventData.button);
         }
 
         private void Apply()
