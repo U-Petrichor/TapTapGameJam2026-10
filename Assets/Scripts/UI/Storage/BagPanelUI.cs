@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Core;
@@ -81,7 +83,27 @@ namespace TapTapGameJam.UI
 
         private readonly List<BagCell> _cells = new List<BagCell>();
 
-        private CanvasGroup _canvasGroup;
+        /// <summary>停留位置 = 场景里摆好的位置 + _shownOffset</summary>
+        private Vector2 _shownPosition;
+
+        private Coroutine _anim;
+
+        /// <summary>离场动画还没播完（收尾还没跑）</summary>
+        private bool _closePending;
+
+        #endregion
+
+        #region 出场 / 离场动画
+
+        [Header("出场 / 离场动画")]
+        [Tooltip("动画时长（秒，真实时间，不受暂停影响）。填 0 = 不播动画、直接到位")]
+        [SerializeField] private float _animDuration = 0.25f;
+
+        [Tooltip("停留位置：相对场景里摆好的位置偏移，一般留 (0,0)")]
+        [SerializeField] private Vector2 _shownOffset = Vector2.zero;
+
+        [Tooltip("藏起来时的位置：相对停留位置的偏移。背包从屏幕右侧进来 → 填正 x（面板宽 850，所以 ≈900,0）")]
+        [SerializeField] private Vector2 _hiddenOffset = new Vector2(900f, 0f);
 
         #endregion
 
@@ -95,13 +117,13 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(_unpickItemSlot, "BagPanelUI：没连 _unpickItemSlot");
             Assert.IsTrue(_bag, "BagPanelUI：没连 PlayerBag");
 
-            _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null)
-            {
-                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            }
+            _shownPosition = ((RectTransform)transform).anchoredPosition + _shownOffset;
 
-            ApplyVisibility(false);
+            // 一开始就缩在角落（留 ToggleButton 在外面），但**不隐藏**：
+            // 背包面板故意不碰 alpha / blocksRaycasts / interactable ——
+            // 一旦把 alpha 抹成 0 或者 blocksRaycasts 关掉，面板上的拉开按钮就跟着看不见 / 点不到了。
+            // 隐藏的部分靠 _hiddenOffset 缩到屏幕外（按面板宽度和按钮宽度调）。
+            ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
         }
 
         private void Start()
@@ -124,15 +146,6 @@ namespace TapTapGameJam.UI
         #region ItemContainer
 
         /// <summary>
-        /// 背包面板上那个"拉开按钮"绑的就是这个方法名（场景里的 UnityEvent），别改名。
-        /// 开↔关的逻辑在基类。
-        /// </summary>
-        public void ToggleOpen()
-        {
-            ToggleContainer();
-        }
-
-        /// <summary>
         /// 打开：为容器持有的每一件物品建块并摆好位置，最后把自己显示出来。
         /// 可安全重复调用；状态与 ActionMap 由基类负责（base 里翻 IsOpen 并通知 UIManager）。
         /// 持有的物品 = 背包格子里的 + 装备中的三件；待拾取那件是 UnpickItemSlot 自己的事。
@@ -143,6 +156,9 @@ namespace TapTapGameJam.UI
             {
                 return;
             }
+
+            // 上一次离场动画还没播完：先把它的收尾（销毁块）补掉，否则下面 CreateBlock 会撞"已经有块了"
+            FinishPendingClose();
 
             base.OpenContainer();
 
@@ -156,9 +172,11 @@ namespace TapTapGameJam.UI
             OpenEquippedBlock(_slotBody);
             OpenEquippedBlock(_slotLegs);
 
-            ApplyVisibility(true);
             HidePreview();
             _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 0);
+
+            // 块已经在这一帧建好了，接着从隐藏位滑进来
+            PlayEnterAnimation();
 
             PickableItem pending = _bag.PendingPickupItem;
             if (pending != null)
@@ -171,7 +189,10 @@ namespace TapTapGameJam.UI
             }
         }
 
-        /// <summary>关闭：把自己持有的每件物品对应的块交给 UIManager 销毁，然后把自己藏起来。可安全重复调用</summary>
+        /// <summary>
+        /// 关闭：立刻停掉拖拽、断输入、翻状态，然后播离场动画。
+        /// 块的销毁通过回调传进动画协程 —— 放在这里的话物品会在面板滑出去之前先凭空消失。
+        /// </summary>
         public override void CloseContainer()
         {
             if (!IsOpen)
@@ -179,11 +200,20 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            base.CloseContainer();
-
             // 拖到一半就关：这块已经不属于任何容器了，按约定直接销毁
             UIManager.Instance.DestroyDraggingBlock();
 
+            _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 180);
+
+            _unpickItemSlot.CloseContainer();
+            base.CloseContainer();
+
+            PlayExitAnimation(FinishClose);
+        }
+
+        /// <summary>离场动画播完之后的收尾：把块交回 UIManager 销毁，清掉 pending 和预览</summary>
+        private void FinishClose()
+        {
             foreach (PlayerBag.Placement p in _bag.Placements)
             {
                 UIManager.Instance.DestroyBlock(p.item);
@@ -193,12 +223,83 @@ namespace TapTapGameJam.UI
             DestroyEquippedBlock(_slotBody);
             DestroyEquippedBlock(_slotLegs);
 
-            _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 180);
             _bag.ClearPendingPickupItem();
-            _unpickItemSlot.CloseContainer();
             HidePreview();
-            ApplyVisibility(false);
+
+            // 注意：这里**不隐藏面板** —— 背包只是缩进去，拉开按钮要留在屏幕外面（见 Awake 的注释）
         }
+
+        #region 出场 / 离场动画（实现）
+
+        /// <summary>从隐藏位滑到停留位。打开时调（块已经在这一帧建好了）</summary>
+        private void PlayEnterAnimation()
+        {
+            StopAnimation();
+
+            ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
+            _anim = StartCoroutine(Animate(_shownPosition, null));
+        }
+
+        /// <summary>从当前位置滑回隐藏位，滑完调 onDone（子类自己的收尾从这里进去）</summary>
+        private void PlayExitAnimation(Action onDone)
+        {
+            StopAnimation();
+
+            _closePending = true;
+            _anim = StartCoroutine(Animate(_shownPosition + _hiddenOffset, () =>
+            {
+                _closePending = false;
+                onDone?.Invoke();
+            }));
+        }
+
+        /// <summary>先快后慢（三次缓出）地滑到 to。用真实时间，游戏暂停时也能播完</summary>
+        private IEnumerator Animate(Vector2 to, Action onDone)
+        {
+            RectTransform rect = (RectTransform)transform;
+            Vector2 from = rect.anchoredPosition;
+            float elapsed = 0f;
+
+            while (elapsed < _animDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+
+                float k = Mathf.Clamp01(elapsed / _animDuration);
+                rect.anchoredPosition = Vector2.LerpUnclamped(from, to, 1f - Mathf.Pow(1f - k, 3f));
+
+                yield return null;
+            }
+
+            rect.anchoredPosition = to;
+            _anim = null;
+            onDone?.Invoke();
+        }
+
+        /// <summary>上一次离场还没播完就把收尾补上（重开时用），免得块的销毁被跳过</summary>
+        private void FinishPendingClose()
+        {
+            if (!_closePending)
+            {
+                return;
+            }
+
+            StopAnimation();
+            _closePending = false;
+            FinishClose();
+        }
+
+        private void StopAnimation()
+        {
+            if (_anim == null)
+            {
+                return;
+            }
+
+            StopCoroutine(_anim);
+            _anim = null;
+        }
+
+        #endregion
 
         /// <summary>部位用槽位自己记的那个（slot.Slot，Inspector 里指定的），不按字段顺序假设</summary>
         private void OpenEquippedBlock(EquipSlot slot)
@@ -383,6 +484,9 @@ namespace TapTapGameJam.UI
         /// <summary>
         /// 把块的抓取格中心对齐到格心，并把它登记到这个格子上。
         /// 直接拿格子的 position 对齐：块和格子的 anchor/pivot 都不一样，手算 anchoredPosition 一定错位。
+        ///
+        /// 块挂在**容器自己**下面（不是拖动层）：这样面板滑进滑出时物品跟着一起走，
+        /// 而且容器关闭（CanvasGroup 全关）的时候它的射线也一起没了。拖动中才临时挪到拖动层。
         /// </summary>
         public void LayoutBlockToCell(BagItemBlock block, Vector2Int origin)
         {
@@ -392,7 +496,7 @@ namespace TapTapGameJam.UI
             // 从仓库（隐藏格子框 + 缩放过）过来的块要先恢复成背包形态
             block.ApplyBagPresentation();
             block.CurrentSlot = cell;
-            block.transform.SetParent(UIManager.Instance.DragLayer, false);
+            block.transform.SetParent(transform, false);
             block.transform.position = cell.transform.position;
         }
 
@@ -404,7 +508,7 @@ namespace TapTapGameJam.UI
 
             block.ApplyBagPresentation();
             block.CurrentSlot = slot;
-            block.transform.SetParent(UIManager.Instance.DragLayer, false);
+            block.transform.SetParent(transform, false);
             block.transform.position = slot.transform.position;
         }
 
@@ -442,23 +546,9 @@ namespace TapTapGameJam.UI
 
         #region 表现 / 工具
 
-        private void ApplyVisibility(bool visible)
-        {
-            if (_canvasGroup == null)
-            {
-                return;
-            }
-
-            _canvasGroup.alpha = visible ? 1f : 0f;
-
-            // 关键：alpha = 0 只影响渲染，不影响射线。
-            // BagPanel 是铺满全屏的（anchor 0,0 → 1,1），底图又开着 RaycastTarget，
-            // 所以隐藏时必须把 blocksRaycasts 关掉 —— 否则这张看不见的挡板会把
-            // 场景里所有 UI（按钮、格子、其它面板）的点击全部吃掉。
-            // 打开时才恢复成挡板，这样"点背包外面 = 丢弃物品"才能生效。
-            _canvasGroup.blocksRaycasts = visible;
-            _canvasGroup.interactable = visible;
-        }
+        // 背包**不做**显隐（alpha / blocksRaycasts / interactable）：
+        // 它只缩进屏幕外、把 ToggleButton 留在外面，所以那三样必须一直保持"可见 + 可点"。
+        // 需要真正隐藏的容器（仓库 / 待拾取位）各自去管自己的 CanvasGroup。
 
         /// <summary>清掉所有格子的试放预览</summary>
         public void HidePreview()

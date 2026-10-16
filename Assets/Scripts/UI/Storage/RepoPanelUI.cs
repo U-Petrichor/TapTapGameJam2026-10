@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Events;
@@ -60,6 +62,28 @@ namespace TapTapGameJam.UI
 
         private CanvasGroup _canvasGroup;
 
+        /// <summary>停留位置 = 场景里摆好的位置 + _shownOffset</summary>
+        private Vector2 _shownPosition;
+
+        private Coroutine _anim;
+
+        /// <summary>离场动画还没播完（收尾还没跑）</summary>
+        private bool _closePending;
+
+        #endregion
+
+        #region 出场 / 离场动画
+
+        [Header("出场 / 离场动画")]
+        [Tooltip("动画时长（秒，真实时间，不受暂停影响）。填 0 = 不播动画、直接到位")]
+        [SerializeField] private float _animDuration = 0.25f;
+
+        [Tooltip("停留位置：相对场景里摆好的位置偏移，一般留 (0,0)")]
+        [SerializeField] private Vector2 _shownOffset = Vector2.zero;
+
+        [Tooltip("藏起来时的位置：相对停留位置的偏移。仓库从屏幕左侧进来 → 填负 x（按面板宽度调，≈-1100,0）")]
+        [SerializeField] private Vector2 _hiddenOffset = new Vector2(-1100f, 0f);
+
         #endregion
 
         #region 生命周期
@@ -75,8 +99,14 @@ namespace TapTapGameJam.UI
                 _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
 
-            BuildGrid();
+            _shownPosition = ((RectTransform)transform).anchoredPosition + _shownOffset;
+
+            // 一开始就停在隐藏位、透明、不吃射线：不然第一次打开之前它会亮在屏幕中间
+            ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
+            _canvasGroup.alpha = 0f;
             ApplyVisibility(false);
+
+            BuildGrid();
         }
 
         public void OpenRepoTemp()
@@ -109,6 +139,9 @@ namespace TapTapGameJam.UI
                 return;
             }
 
+            // 上一次离场动画还没播完：先把它的收尾（销毁块）补掉，否则下面 CreateBlock 会撞"已经有块了"
+            FinishPendingClose();
+
             base.OpenContainer();
 
             for (int i = 0; i < _cells.Count; i++)
@@ -123,11 +156,17 @@ namespace TapTapGameJam.UI
                 LayoutBlockToCell(block, _cells[i]);
             }
 
-            ApplyVisibility(true);
             HidePreview();
+            ApplyVisibility(true);
+
+            // 块已经在这一帧建好了，接着从隐藏位滑进来
+            PlayEnterAnimation();
         }
 
-        /// <summary>关闭：把自己持有的每件物品对应的块销毁，然后把自己藏起来。可安全重复调用</summary>
+        /// <summary>
+        /// 关闭：立刻停掉拖拽、断输入、翻状态，然后播离场动画。
+        /// 块的销毁通过回调传进动画协程 —— 放在这里的话物品会在面板滑出去之前先凭空消失。
+        /// </summary>
         public override void CloseContainer()
         {
             if (!IsOpen)
@@ -135,19 +174,101 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            base.CloseContainer();
-
             // 拖到一半就关：这块已经不属于任何容器了，按约定直接销毁
             UIManager.Instance.DestroyDraggingBlock();
 
+            ApplyVisibility(false);
+
+            base.CloseContainer();
+
+            PlayExitAnimation(FinishClose);
+        }
+
+        /// <summary>离场动画播完之后的收尾：把仓库持有的块交回 UIManager 销毁、清预览</summary>
+        private void FinishClose()
+        {
             foreach (PickableItem item in _repo.Items)
             {
                 UIManager.Instance.DestroyBlock(item);
             }
 
             HidePreview();
-            ApplyVisibility(false);
+
+            // 滑完了才真的藏起来（滑动期间要看得见）
+            _canvasGroup.alpha = 0f;
         }
+
+        #region 出场 / 离场动画（实现）
+
+        /// <summary>从隐藏位滑到停留位。打开时调（块已经在这一帧建好了）</summary>
+        private void PlayEnterAnimation()
+        {
+            StopAnimation();
+
+            ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
+            _anim = StartCoroutine(Animate(_shownPosition, null));
+        }
+
+        /// <summary>从当前位置滑回隐藏位，滑完调 onDone（收尾从自己的回调里进去）</summary>
+        private void PlayExitAnimation(Action onDone)
+        {
+            StopAnimation();
+
+            _closePending = true;
+            _anim = StartCoroutine(Animate(_shownPosition + _hiddenOffset, () =>
+            {
+                _closePending = false;
+                onDone?.Invoke();
+            }));
+        }
+
+        /// <summary>先快后慢（三次缓出）地滑到 to。用真实时间，游戏暂停时也能播完</summary>
+        private IEnumerator Animate(Vector2 to, Action onDone)
+        {
+            RectTransform rect = (RectTransform)transform;
+            Vector2 from = rect.anchoredPosition;
+            float elapsed = 0f;
+
+            while (elapsed < _animDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+
+                float k = Mathf.Clamp01(elapsed / _animDuration);
+                rect.anchoredPosition = Vector2.LerpUnclamped(from, to, 1f - Mathf.Pow(1f - k, 3f));
+
+                yield return null;
+            }
+
+            rect.anchoredPosition = to;
+            _anim = null;
+            onDone?.Invoke();
+        }
+
+        /// <summary>上一次离场还没播完就把收尾补上（重开时用），免得块的销毁被跳过</summary>
+        private void FinishPendingClose()
+        {
+            if (!_closePending)
+            {
+                return;
+            }
+
+            StopAnimation();
+            _closePending = false;
+            FinishClose();
+        }
+
+        private void StopAnimation()
+        {
+            if (_anim == null)
+            {
+                return;
+            }
+
+            StopCoroutine(_anim);
+            _anim = null;
+        }
+
+        #endregion
 
         #endregion
 
@@ -265,7 +386,9 @@ namespace TapTapGameJam.UI
 
             block.CurrentSlot = cell;
             block.SetCellFramesVisible(false);
-            block.transform.SetParent(UIManager.Instance.DragLayer, false);
+            // 块挂在**容器自己**下面：面板滑进滑出时物品跟着走，容器关闭时射线也一起关掉。
+            // 拖动中才会临时挪到拖动层。
+            block.transform.SetParent(transform, false);
             block.transform.localRotation = Quaternion.identity; // 仓库按"标准朝向"看，不吃背包里的旋转
 
             // 先归位再量尺寸：bbox 的长边塞满格子，短边按比例
@@ -282,6 +405,10 @@ namespace TapTapGameJam.UI
 
         #region 表现 / 工具
 
+        /// <summary>
+        /// 可交互性（射线 / 点选）立刻生效；alpha 只在"显示"时立刻拉满 ——
+        /// 隐藏的 alpha 要等离场动画播完（<see cref="FinishClose"/> 里），不然看不到它滑出去。
+        /// </summary>
         private void ApplyVisibility(bool visible)
         {
             if (_canvasGroup == null)
@@ -289,12 +416,13 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            _canvasGroup.alpha = visible ? 1f : 0f;
-
-            // 和背包同理：alpha = 0 不影响射线，隐藏时必须关掉 blocksRaycasts，
-            // 否则这张看不见的面板会把别的 UI 的点击吃掉
             _canvasGroup.blocksRaycasts = visible;
             _canvasGroup.interactable = visible;
+
+            if (visible)
+            {
+                _canvasGroup.alpha = 1f;
+            }
         }
 
         /// <summary>

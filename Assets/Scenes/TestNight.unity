@@ -175,6 +175,9 @@ MonoBehaviour:
   _itemSpritePivot: {fileID: 1673450427}
   _infoTextTitle: {fileID: 128533856}
   _infoTextContent: {fileID: 688181913}
+  _animDuration: 0.25
+  _shownOffset: {x: 0, y: 0}
+  _hiddenOffset: {x: 0, y: -900}
 --- !u!1 &125808976
 GameObject:
   m_ObjectHideFlags: 0
@@ -2323,6 +2326,7 @@ GameObject:
   - component: {fileID: 901970753}
   - component: {fileID: 901970755}
   - component: {fileID: 901970754}
+  - component: {fileID: 901970756}
   m_Layer: 5
   m_Name: RepoPanel
   m_TagString: Untagged
@@ -2364,6 +2368,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.RepoPanelUI
   _gridRoot: {fileID: 1768378448}
   _repo: {fileID: 4853131174117530499}
+  _animDuration: 0.25
+  _shownOffset: {x: 0, y: 0}
+  _hiddenOffset: {x: -900, y: 0}
 --- !u!222 &901970755
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2372,6 +2379,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 901970752}
   m_CullTransparentMesh: 1
+--- !u!114 &901970756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 901970752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a2cdf1a61124b69b9c3da11d350ef9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.FloorSlot
 --- !u!1 &937303738
 GameObject:
   m_ObjectHideFlags: 0
@@ -5859,7 +5878,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1955856715526313587}
         m_TargetAssemblyTypeName: TapTapGameJam.UI.BagPanelUI, Assembly-CSharp
-        m_MethodName: ToggleOpen
+        m_MethodName: ToggleContainer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7259,6 +7278,9 @@ MonoBehaviour:
   _slotLegs: {fileID: 1706588794}
   _unpickItemSlot: {fileID: 14625824}
   _bag: {fileID: 4853131174117530477}
+  _animDuration: 0.25
+  _shownOffset: {x: 0, y: 0}
+  _hiddenOffset: {x: 820, y: 0}
 --- !u!1001 &2018583602889578030
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7551,6 +7573,7 @@ GameObject:
   - component: {fileID: 6947878891983786892}
   - component: {fileID: 1955856715526313587}
   - component: {fileID: 1591737902}
+  - component: {fileID: 8812027121864878243}
   m_Layer: 5
   m_Name: BagPanel
   m_TagString: Untagged
@@ -7705,6 +7728,10 @@ PrefabInstance:
       propertyPath: _camTransform
       value: 
       objectReference: {fileID: 1652861764}
+    - target: {fileID: 7701233578754936596, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
+      propertyPath: IsHappyIdleFinished
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7966909714225381019, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: m_Name
       value: Player
@@ -7954,6 +7981,18 @@ RectTransform:
   m_AnchoredPosition: {x: 121, y: 0}
   m_SizeDelta: {x: 850, y: 600}
   m_Pivot: {x: 0, y: 0.5}
+--- !u!114 &8812027121864878243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3065059956210578848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a2cdf1a61124b69b9c3da11d350ef9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.FloorSlot
 --- !u!1001 &8830923686708275691
 PrefabInstance:
   m_ObjectHideFlags: 0
