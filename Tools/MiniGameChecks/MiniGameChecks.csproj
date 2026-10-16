@@ -41,6 +41,7 @@
     <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockPriceGenerator.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/StockTradeGame/Common/StockAxisRange.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/FixPrinterGame/PrinterRepairRound.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/ParcelCutGame/ParcelCutRound.cs" />
     <Compile Include="Program.cs" /><Compile Include="StockChecks.cs" /><Compile Include="StockAxisChecks.cs" /><Compile Include="TestDoubles.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

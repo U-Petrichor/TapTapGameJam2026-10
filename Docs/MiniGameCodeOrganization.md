@@ -12,6 +12,7 @@
 | `MiniGame/PourDogFoodGame/` | 倒狗粮任务；迁入 `PourDogFoodGame.cs`、`DogFoodShakeProgress.cs` |
 | `MiniGame/SortFileGame/` | 分拣文件任务；迁入 `SortFileGame.cs`、`SortFileCard.cs`、`SortFileRound.cs`；配置工具迁入 `Editor/SortFileGameSetup.cs` |
 | `MiniGame/FixPrinterGame/` | 修理打印机任务；迁入 `PrinterRepairGame.cs`、`PrinterRepairRound.cs`；配置工具迁入 `Editor/PrinterRepairSetup.cs` |
+| `MiniGame/ParcelCutGame/` | 拆快递任务、随机胶带路径规则和拆胶带 UI；配置工具迁入 `Editor/ParcelCutGameSetup.cs` |
 | `MiniGame/StockTradeGame/Common/` | 两个版本共用的交易、任务入口、价格生成和动态坐标轴：`StockRound.cs`、`StockPriceGenerator.cs`、`StockAxisRange.cs`、`StockQuest.cs`、`StockInstance.cs`、`StockPoint.cs` |
 | `MiniGame/StockTradeGame/V2/` | 新点线版：`StockPointGame.cs`、`StockPointChart.cs`、`StockPointPlotGraphic.cs` |
 | `MiniGame/StockTradeGame/Common/Editor/` | 两个版本的切换配置：`StockPointVersionSetup.cs` |

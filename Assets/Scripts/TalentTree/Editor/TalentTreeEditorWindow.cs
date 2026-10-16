@@ -1,4 +1,5 @@
 using System;
+using TalentTree.Effects;
 using UnityEditor;
 using UnityEngine;
 
@@ -170,11 +171,13 @@ namespace TalentTree.Editor
             EditorGUILayout.LabelField("Talent", EditorStyles.boldLabel);
             string id = EditorGUILayout.TextField("ID", data.Id);
             string displayName = EditorGUILayout.TextField("名称", data.DisplayName);
+            string talentType = EditorGUILayout.TextField("天赋类型", data.TalentType);
             Sprite icon = (Sprite)EditorGUILayout.ObjectField("图标", data.Icon, typeof(Sprite), false);
-            if (id != data.Id || displayName != data.DisplayName || icon != data.Icon)
+            if (id != data.Id || displayName != data.DisplayName || talentType != data.TalentType || icon != data.Icon)
             {
                 Undo.RecordObject(data, "Edit Talent");
                 data.SetIdentity(id, displayName);
+                data.SetTalentType(talentType);
                 SerializedObject serialized = new(data);
                 serialized.FindProperty("_icon").objectReferenceValue = icon;
                 serialized.ApplyModifiedPropertiesWithoutUndo();

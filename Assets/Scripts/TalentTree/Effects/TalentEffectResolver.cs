@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace TalentTree
+namespace TalentTree.Effects
 {
     /// <summary>
     /// 解析玩家当前等级下有效的效果。

@@ -300,6 +300,8 @@ public static class MiniGameSuiteSmokeChecks
         yield return null;
         Capture("coffee.png");
         yield return null;
+        DragCoffee(coffee, "_beans", "_beansZone");
+        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.Grind, "coffee beans enter grinder before grinding");
         var grindRect = Field<RectTransform>(coffee, "_grindButton");
         var grindGraphic = grindRect.GetComponent<Graphic>();
         Vector2 grindScreen = RectTransformUtility.WorldToScreenPoint(EventCamera(grindGraphic), grindRect.position);
@@ -339,7 +341,7 @@ public static class MiniGameSuiteSmokeChecks
         _panel.OnEscKeyPressed();
         Assert(!coffeeTask.IsFinished && coffeePoint.CanInteract(_player), "coffee early exit retains task for retry");
         coffeePoint.Interact(_player, InteractKey.E);
-        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.Grind, "coffee retry starts fresh recipe");
+        Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.LoadBeans, "coffee retry starts with loading beans");
         coffeeTask.Cancel();
         Assert(coffeeTask.IsFinished && !_panel.GetComponent<CanvasGroup>().blocksRaycasts, "task cancellation closes its panel");
         Assert(_player.PlayerResources.CoffeeCount == coffeeBefore + 1, "coffee cancellation gives no extra coffee");
@@ -415,6 +417,10 @@ public static class MiniGameSuiteSmokeChecks
             }
             InputSystem.QueueStateEvent(_keyboard, new KeyboardState()); yield return null;
         }
+        // 最后一击需要等敲下、闪光和收手全部结束，才结算任务。
+        float finishDeadline = Time.realtimeSinceStartup + 5;
+        while (!task.IsFinished)
+        { Assert(Time.realtimeSinceStartup < finishDeadline, "printer final animation timeout"); yield return null; }
         Assert(task.IsFinished && task.WasSuccessful && !arrows.ContainsKey(task.Id) && !point.CanInteract(_player),
             "fifth printer hit completes task and removes guide and interaction");
         Assert(_player.PlayerResources.Coins == coins + task.RewardCoins && _player.PlayerResources.TalentPoint == talent + task.RewardTalentPoints,

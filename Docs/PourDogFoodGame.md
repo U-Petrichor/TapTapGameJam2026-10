@@ -1,80 +1,62 @@
 # 倒狗粮小游戏配置
 
-玩法已经写入 `PourDogFoodGame`：按住狗粮袋拖到盆上方，左右反向晃动达到指定距离才增加粮食；停止移动、单向拖动、在盆外晃动都不会增加进度。松手后袋子回到初始位置，已倒入的粮食保留；重新打开小游戏清空进度。
+拖住粮袋，使倾倒姿态下的袋口进入 PourArea 后持续朝左下方出粮，不需要左右晃动。出袋只赋予初速度，之后由重力和碰撞决定轨迹，不自动瞄准碗内随机落点。移出接粮区或松手后停止生成，已经生成的颗粒继续落下。三种图案共同计数，累计 100 颗落入碗中后只回调一次成功。洒在碗外的颗粒不计数，清理后可继续倒满。重新打开小游戏清空颗粒及进度。
 
-公共 `MiniGamePanelUI` 已接上 Index 映射，弹出动画结束调用 `Begin`，通过返回 `true`、关闭返回 `false`，收回动画结束重置并隐藏内容。代码尚未替你搭建和绑定场景中的狗粮 UI，以下设置完成后才能在 Play 模式使用。
+## 场景与绑定
 
-## 场景层级
+`Assets/Scenes/GameScene.unity` 的 PourDogFoodGame 已绑定 FoodContent 及 `Assets/Model/MiniGame/PourDogFood` 下的 Food1、Food2、Food3 Sprite，无需创建颗粒预制体。
 
-```text
-DayMiniGamePanel                       MiniGamePanelUI + CanvasGroup
-├── Background
-├── ContentRoot                       调整到背景内部的内容区域，不要保留默认 100×100
-│   └── PourDogFoodGame                挂 PourDogFoodGame，RectTransform 铺满 ContentRoot
-│       ├── Bowl                      Image，显示盆
-│       ├── FoodFill                  Image，可选，显示逐渐增加的粮食
-│       ├── BowlFront                 Image，可选，盆前沿遮挡粮食
-│       ├── PourArea                  空 RectTransform，位于盆口上方
-│       ├── FoodBag                   Image，狗粮袋，可以被拖动
-│       │   ├── PourOrigin            空 RectTransform，摆在袋口
-│       │   └── PourEffect            可选粮食流图片
-│       └── ProgressBar               可选 Slider
-└── ExitButton
-```
+- Food Bag：粮袋的 RectTransform，直接放在小游戏根区域下。
+- Pour Origin：粮袋子物体，放在倾倒时的袋口。
+- Pour Area：盆口上方的逻辑接粮区域，不需要 Image 或 Collider。
+- Food Content：位于碗后层与前沿之间的 RectTransform。所有颗粒均在此物体下创建；矩形下边作为碗底、左右边作为碗壁，上边作为碗口。调整它的位置和宽高，使矩形覆盖碗内部可堆粮区域。不要挂 LayoutGroup 或 Mask，否则会干扰颗粒运动或裁掉下落过程。进入碗内的颗粒会保持在左右边界之间，粮堆可以高于碗口。
+- Food Sprites：狗粮图案列表，当前已绑定三张 Sprite，每颗随机选择一种。
+- Progress Bar、Food Fill、Pour Effect：可选显示，已有进度条可继续使用。Pour Effect 在有效出粮时持续显示。
 
-所有装饰图片取消 `Raycast Target`；只有 FoodBag 的 Image 开启它。袋子不要挂 Button、EventTrigger 或其他拖拽脚本，让根物体接收拖拽事件。Canvas 需要 GraphicRaycaster，场景需要 EventSystem 和项目正在使用的 InputSystemUIInputModule。
+所有装饰图片和动态狗粮 Image 均不接收射线，只有粮袋 Image 开启 Raycast Target。Canvas 需要 GraphicRaycaster，场景需要 EventSystem 及项目使用的 InputSystemUIInputModule。
 
-## 素材与绑定
+## 可调参数
 
-项目素材目录：`Assets/Model/MiniGame/MiniGameConponent/小游戏组件/倒狗粮-摇晃狗粮袋子倒进碗里面`。
+| 参数 | 默认值 | 用途 |
+| --- | --- | --- |
+| Target Food Count | 100 | 完成需要的落地数量 |
+| Foods Per Second | 15 | 每秒生成颗粒数，默认约七秒完成 |
+| Pour Angle | -25 | 倾倒时粮袋附加旋转角度 |
+| Food Size | 16 | 颗粒最长边，使用 FoodContent 局部 UI 单位 |
+| Size Variation | 0.2 | 尺寸随机浮动比例 |
+| Fall Duration | 0.45 | 用于换算重力的参考下落时长（秒），接触粮堆后实际时长会变化 |
+| Mouth Spread | 5 | 袋口横向生成范围的半宽 |
+| Pour Velocity | (-120, -60) | 出袋初速度（UI 单位/秒），负 X 朝左、负 Y 朝下 |
+| Pour Speed Variation | 0.15 | 初速度大小随机浮动比例，保持左下方向 |
+| Collision Radius Scale | 0.45 | 圆形碰撞半径与图片最长边的比例，越大堆积越蓬松 |
 
-- `1.png` 是空盆，`2.png` 是粮袋，`5.png` 是盆的前沿图；参考图可用来摆放。
-- 当前这些 PNG 还是普通 Texture。需要在 Import Settings 将 Texture Type 改成 Sprite (2D and UI)，Sprite Mode 选 Single，点击 Apply，再拖到 Image 的 Source Image。
-- `FoodBag` 必须直接放在尺寸合适的小游戏根 RectTransform 下；代码使用它的父区域限制拖动范围。不要用 LayoutGroup 或 Animator 同时驱动袋子位置。
-- `PourOrigin` 必须是 FoodBag 的子物体，摆在倾倒时粮食离开袋子的位置。
-- `PourArea` 是逻辑接粮区域，无需 Image，也不需要 Collider。建议从约 220×140 的区域开始调，摆在盆口上方，使袋口左右晃动时始终留在区域内。
-- `FoodFill` 可用一张粮食堆图片，Image Type 设置为 Filled、Fill Method 设置 Vertical、Fill Origin 设置 Bottom。没有粮食图片时，先只用 ProgressBar 展示进度即可。
-- `ProgressBar` 的 Interactable 取消勾选；显示值由 normalizedValue 控制。
-- `PourEffect` 是可选粮食流图片，默认禁用且不接收射线，每次有效晃动短暂显示；它不是模拟真实颗粒的物理系统。
+狗粮使用 UI Image 和 UI 局部坐标中的圆形碰撞模拟，不需要手动添加 Rigidbody2D 或 Collider2D。颗粒受重力下落，彼此碰撞、挤开并在碗底逐层堆叠；接触后仍会继续参与模拟，不会固定在随机落点。使用固定小步长、碰撞分离和接触摩擦保持稳定，不受 Canvas 世界缩放和全局 Physics2D 设置影响。碰撞形状为近似圆形，不逐像素贴合三种图案。FoodContent 中非本组件创建的物体不会被清理。
 
-选中 PourDogFoodGame 根物体，在脚本中拖入 Food Bag、Pour Origin、Pour Area；Food Fill、Progress Bar、Pour Effect 可以留空。
+停止输入只停止新颗粒，空中颗粒继续下落、粮堆继续沉降。接触碗底或由碗底支撑的粮堆时首次计数，每颗只计一次；碗内数量与仍在下落的数量合计封顶 100，洒到碗外并清理后释放名额，避免任务卡住。只有实际进入碗内才启用碗底和内壁约束，碗外颗粒不会瞬移进碗。粮堆高于碗口也能正常完成。End 冻结当前画面，供公共面板收回；ResetView 或禁用内容时清理颗粒。
 
-默认 Shake Distance = 20（UI 单位），Food Per Shake = 0.1（每次有效反向晃动增加 10%），Pour Angle = -25。素材 `2.png` 自带倾斜，最终角度可在 Play 模式按画面效果调节。
+## 任务接入
 
-## 接入公共 Panel
+继续沿用 PourDogFoodPoint、PourDogFoodQuest、PourDogFoodInstance 和公共 MiniGamePanelUI 的现有接入，无需改变任务奖励逻辑。交互点使用 MiniGameKind.PourDogFood，任务组件放入 MiniGameTaskManager 的 Candidate Pool。
 
-选中 DayMiniGamePanel，在 Mini Games 列表中新增一项：Index 填未占用编号，例如 1，Content 拖入 PourDogFoodGame 的组件。编号不要重复。保持 Panel 本身启用，子内容由它控制显隐。不要将尚未实现、仍抛出 NotImplementedException 的内容用于测试。
-
-交互物体发送：
-
-```csharp
-EventPipeline.Publish(new EventSwitchMiniGamePanel(true, 1, OnFinish));
-
-private void OnFinish(bool success)
-{
-    if (!success) return;
-    // 在这里推进喂狗任务或结算奖励。
-}
-```
-
-原有 CleanPoint 发送的是 `MiniGameKind.Clean`；它不会自动打开 `MiniGameKind.PourDogFood` 的喂狗游戏，需要由对应交互物体声明自己的玩法类型。
-
-Panel 会发送 EventPlayMiniGame，使现有资源栏和交互提示隐藏/恢复；这个事件目前不等于锁住玩家移动，也不会暂停世界时间。如希望玩家喂狗期间站在原地，需要另行接入玩家输入管理。
-
-## 接入随机任务生成器
-
-在固定的喂狗物体上挂 PourDogFoodPoint，再添加 PourDogFoodQuest。把场景中的所有 PourDogFoodPoint 放入 Quest 的点位列表，再把 Quest 拖进 MiniGameTaskManager 的 Candidate Pool。不要把 UI 中的 PourDogFoodGame 或交互组件 PourDogFoodPoint 拖进任务池。
-
-PourDogFoodPoint 的 Detect Collider 需要绑定检测用 Trigger Collider，点位的 `MiniGameKind` 使用 `MiniGameKind.PourDogFood`。初始化时检测器自动关闭，随机生成任务后才开启。Quest 同时只保存一个当前任务，未完成时不能重复生成。窗口中途关闭保留任务，成功后取消注册、关闭检测、通知任务管理器移除并发放奖励；随后可以再次随机生成。默认奖励为 30 金币、1 天赋点，可在 Quest 的 Inspector 中修改，设为 0 可不奖励该资源。
-
-阶段切换或禁用组件会取消旧任务，不发奖，并关闭对应窗口。使用现有 NotifyFinished 事件将取消的任务从管理器中移除；该事件本身没有成功/取消结果字段，奖励仍只在成功回调里处理。
-
-额外修复了 MiniGameTaskManager 新一天清理列表时的遍历问题，并允许 CreateTask 失败返回 null；Panel 忙碌拒绝打开时会返回 false，让交互能够重试。DeliverFileQuest 相关脚本未修改。
-
-任务生命周期检查：`dotnet run --project Tools/PourDogFoodQuestChecks/PourDogFoodQuestChecks.csproj`。这些检查运行真实的任务/交互代码，使用最小替身代替 Unity 对象、资源和触发器注册，不替代 Play 模式中的物理/UI 验证。
+关闭窗口保留未完成任务；重新打开从零开始倒粮。成功后由现有任务回调关闭检测、移除任务并发奖。阶段切换或禁用组件会取消旧任务，不发奖。
 
 ## 验证
 
-在 Play 模式确认：打开后空盆；拖到盆外左右晃动不增长；盆上方停住不增长；在盆上方左右往返增长；松手保留进度并复位袋子；达到 100% 只返回一次成功；关闭后返回一次取消；重新打开清空进度。还要检查不同分辨率的鼠标拖动，以及收回动画期间不能重复打开。
+- Play 模式打开后为空盆，进度为零。
+- 盆外拖动或静止按住不出粮；袋口对准盆后静止按住持续出粮，三种图案混合出现。
+- 松手后粮袋复位且不再生成，空中颗粒继续落下；再次拖回可接着倒。
+- 颗粒在 FoodContent 下且被碗前沿正确遮挡，不挡粮袋拖动。
+- 狗粮在碗底及其他狗粮上堆叠，彼此不直接穿过；调整 FoodContent 的下边和左右边使碰撞边界贴合碗内壁。
+- 从袋口朝左下方出粮，再自然下落；碗外狗粮不会横向吸附或瞬移进碗。
+- 碗内第 100 颗落下后成功一次，任务奖励一次；洒落不计数，仍可继续倒满。
+- 中途退出及重新打开无残留；不同分辨率下袋口及下落起点正确。
 
-独立逻辑检查命令：`dotnet run --project Tools/DogFoodShakeChecks/DogFoodShakeChecks.csproj`。
+逻辑检查（包含碗底碰撞、相互堆叠、高速下落、100 颗粮堆、持续生成、停止恢复、帧率、数量上限、落地完成及旧晃动模型回归检查）：
+
+`dotnet run --project Tools/DogFoodShakeChecks/DogFoodShakeChecks.csproj`
+
+任务生命周期检查：
+
+`dotnet run --project Tools/PourDogFoodQuestChecks/PourDogFoodQuestChecks.csproj`
+
+这些检查不替代 Unity Play 模式的视觉和输入验证。

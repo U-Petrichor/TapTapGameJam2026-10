@@ -36,6 +36,7 @@ namespace TapTapGameJam.UI
             SetupStock(panel, parent, font);
             SetupCoffee(panel, parent, font);
             SetupPrinter(panel, parent, font);
+            SetupParcelCut(panel, parent, font);
             SetupPoints(panel);
         }
 
@@ -162,39 +163,27 @@ namespace TapTapGameJam.UI
 
         private static void SetupCoffee(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)
         {
-            var root = Root(parent, "MakeCoffeeGame");
-            var game = root.GetComponent<CoffeeGame>() ?? root.gameObject.AddComponent<CoffeeGame>();
-            bool threeStepLayout = root.Find("ThreeStepGrinder") != null;
-            if (!threeStepLayout)
+            var existing = parent.Find("MakeCoffeeGame")?.GetComponent<CoffeeGame>();
+            if (existing != null && existing.IsConfigured)
             {
-                // 旧八步面板可能仍保存在场景中；禁用整套旧布局后生成新的三步布局。
-                foreach (string legacy in new[] { "Table", "Steps", "Instruction", "Progress" })
-                {
-                    var old = root.Find(legacy);
-                    if (old != null) old.gameObject.SetActive(false);
-                }
-                Label(root, "Title", "制作咖啡", new Vector2(900, 50), new Vector2(0, 250), font, 32);
-                var steps = Label(root, "ThreeStepSteps", "制作步骤", new Vector2(310, 250), new Vector2(-390, 0), font, 21);
-                steps.alignment = TextAlignmentOptions.TopLeft;
-                var table = Rect(root, "ThreeStepTable", new Vector2(760, 400), new Vector2(150, 0));
-                var tableImage = table.GetComponent<Image>() ?? table.gameObject.AddComponent<Image>();
-                tableImage.color = new Color(0.86f, 0.89f, 0.86f);
-                tableImage.raycastTarget = false;
-                var grinder = Icon(table, "ThreeStepGrinder", "研磨机\n（长按）", new Vector2(-250, 85), new Vector2(180, 110), new Color(0.51f, 0.59f, 0.58f), font);
-                var grind = grinder;
-                var grounds = Icon(table, "ThreeStepGrounds", "粉杯\n已扣在研磨机下", new Vector2(-250, -75), new Vector2(180, 80), new Color(0.42f, 0.30f, 0.21f), font);
-                var cupZone = Icon(table, "ThreeStepCup", "中央咖啡杯\n粉杯放到这里", new Vector2(0, -10), new Vector2(210, 150), new Color(0.51f, 0.59f, 0.58f), font);
-                var kettle = Icon(table, "ThreeStepKettle", "热水壶\n拖到杯子上方", new Vector2(250, 85), new Vector2(180, 110), new Color(0.28f, 0.43f, 0.61f), font);
-                var pourZone = Rect(table, "ThreeStepPourZone", new Vector2(230, 180), new Vector2(0, -5));
-                var water = Icon(table, "ThreeStepWaterEffect", "注水中…", new Vector2(0, 75), new Vector2(140, 28), new Color(0.28f, 0.58f, 0.76f), font);
-                grinder.GetComponent<Image>().raycastTarget = true;
-                cupZone.GetComponent<Image>().raycastTarget = false;
-                water.GetComponent<Image>().raycastTarget = false;
-                water.gameObject.SetActive(false);
-                Label(root, "ThreeStepInstruction", "按住左侧研磨机 → 拖粉杯到中央 → 按住右侧热水壶在杯子上方浇水 2 秒", new Vector2(1050, 40), new Vector2(0, -235), font, 20);
-                var progress = Progress(root, "ThreeStepProgress", new Vector2(1000, 14), new Vector2(0, -275));
-                game.Configure(grind, grounds, kettle, cupZone, pourZone, water.gameObject, steps, progress);
+                existing.gameObject.SetActive(false);
+                panel.RegisterContent(TapTapGameJam.Types.MiniGameKind.MakeCoffee, existing);
+                return;
             }
+            // 同一个完整预制体用于场景及空面板，避免再次生成旧三步布局。
+            var prefab = Resources.Load<GameObject>("MiniGame/CoffeeGame");
+            if (prefab == null) throw new System.InvalidOperationException("缺少 Resources/MiniGame/CoffeeGame 预制体。");
+            if (existing != null)
+            {
+                existing.gameObject.SetActive(false);
+                existing.name = "LegacyCoffeeGame";
+            }
+            var instance = Object.Instantiate(prefab, parent, false);
+            instance.name = "MakeCoffeeGame";
+            instance.SetActive(false);
+            var game = instance.GetComponent<CoffeeGame>();
+            if (font != null)
+                foreach (var text in instance.GetComponentsInChildren<TMP_Text>(true)) text.font = font;
             panel.RegisterContent(TapTapGameJam.Types.MiniGameKind.MakeCoffee, game);
         }
 
@@ -211,7 +200,18 @@ namespace TapTapGameJam.UI
 
         private static void SetupPrinter(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)
         {
+            // 优先使用手工配置的美术版，不让旧的默认 PrintFileGame 覆盖面板映射。
+            var authored = parent.Find("PrintRepairGame")?.GetComponent<PrinterRepairGame>();
+            if (authored != null && authored.IsConfigured)
+            {
+                authored.gameObject.SetActive(false);
+                panel.RegisterContent(TapTapGameJam.Types.MiniGameKind.PrinterRepair, authored);
+                return;
+            }
             var root = Root(parent, "PrintFileGame");
+            // 旧场景可能留有默认进度显示；不再展示或重新创建这些控件。
+            foreach (string obsolete in new[] { "ProgressText", "Progress" })
+                if (root.Find(obsolete) is Transform oldProgress) oldProgress.gameObject.SetActive(false);
             var game = root.GetComponent<PrinterRepairGame>() ?? root.gameObject.AddComponent<PrinterRepairGame>();
             if (!game.IsConfigured)
             {
@@ -232,13 +232,78 @@ namespace TapTapGameJam.UI
                 var pointer = Icon(bar, "Pointer", "", Vector2.zero, new Vector2(8, 68), Color.white, font);
                 pointer.anchorMin = pointer.anchorMax = new Vector2(0, 0.5f);
                 var feedback = Label(root, "Feedback", "等待指针进入黄色区域，再按空格", new Vector2(1000, 40), new Vector2(0, -197), font, 22);
-                var count = Label(root, "ProgressText", "修复进度：0 / 5", new Vector2(600, 40), new Vector2(0, -240), font, 24);
-                var progress = Progress(root, "Progress", new Vector2(900, 12), new Vector2(0, -276));
                 foreach (var graphic in root.GetComponentsInChildren<Graphic>(true))
                     if (graphic.gameObject != root.gameObject) graphic.raycastTarget = false;
-                game.Configure(bar, zone, pointer, printer, count, feedback, progress);
+                game.Configure(bar, zone, pointer, printer, feedback);
             }
             panel.RegisterContent(TapTapGameJam.Types.MiniGameKind.PrinterRepair, game);
+        }
+
+        private static void SetupParcelCut(MiniGamePanelUI panel, RectTransform parent, TMP_FontAsset font)
+        {
+            var root = Root(parent, "ParcelCutGame");
+            var game = root.GetComponent<ParcelCutGame>() ?? root.gameObject.AddComponent<ParcelCutGame>();
+            if (!game.IsConfigured)
+            {
+                root.sizeDelta = new Vector2(1100, 600);
+                Label(root, "Title", "拆快递", new Vector2(800, 50), new Vector2(0, 255), font, 34);
+                Label(root, "Instruction", "按住鼠标左键，沿黄色胶带拖动剪刀", new Vector2(900, 40), new Vector2(0, 210), font, 22);
+
+                var box = Raw(root, "Box", new Vector2(800, 408), new Vector2(0, -5), LoadParcelTexture("1.png"), false);
+                var tapeImages = new RawImage[ParcelCutRound.TapeCount];
+                var tapeNames = new[] { "Rectangle 289", "Rectangle 290", "Rectangle 291", "Rectangle 292", "Rectangle 293", "Rectangle 294" };
+                var tapeSizes = new[]
+                {
+                    new Vector2(760, 110), new Vector2(310, 128), new Vector2(310, 128),
+                    new Vector2(82, 365), new Vector2(150, 365), new Vector2(110, 365)
+                };
+                var tapePositions = new[]
+                {
+                    new Vector2(0, 0), new Vector2(-250, 98), new Vector2(250, 98),
+                    new Vector2(-238, -10), new Vector2(210, -8), new Vector2(0, -10)
+                };
+                for (int i = 0; i < tapeImages.Length; i++)
+                {
+                    tapeImages[i] = Raw(root, tapeNames[i], tapeSizes[i], tapePositions[i],
+                        LoadParcelTexture(tapeNames[i] + ".png"), true);
+                }
+
+                var blade = Raw(root, "CutterBlade", new Vector2(78, 180), new Vector2(420, 115),
+                    LoadParcelTexture("2.png"), false);
+                var handle = Raw(root, "CutterHandle", new Vector2(205, 165), new Vector2(430, 65),
+                    LoadParcelTexture("3.png"), false);
+                blade.rectTransform.localEulerAngles = new Vector3(0, 0, -18f);
+                handle.rectTransform.localEulerAngles = new Vector3(0, 0, -18f);
+
+                var progress = Label(root, "ProgressText", "已拆 0 / 3", new Vector2(420, 34), new Vector2(-290, -260), font, 24);
+                var instruction = Label(root, "StatusText", "按住鼠标左键，沿黄色胶带拖动剪刀", new Vector2(700, 34), new Vector2(120, -260), font, 19);
+                var bar = Progress(root, "Progress", new Vector2(240, 12), new Vector2(390, -260));
+                game.Configure(box, blade, handle, tapeImages, progress, instruction, bar);
+                foreach (var graphic in root.GetComponentsInChildren<Graphic>(true))
+                    if (graphic.gameObject != root.gameObject) graphic.raycastTarget = false;
+                foreach (var tape in tapeImages) tape.raycastTarget = true;
+            }
+            panel.RegisterContent(TapTapGameJam.Types.MiniGameKind.ParcelCut, game);
+        }
+
+        private static RawImage Raw(RectTransform parent, string name, Vector2 size, Vector2 position,
+            Texture2D texture, bool raycastTarget)
+        {
+            var rect = Rect(parent, name, size, position);
+            var raw = rect.GetComponent<RawImage>() ?? rect.gameObject.AddComponent<RawImage>();
+            raw.texture = texture;
+            raw.color = Color.white;
+            raw.raycastTarget = raycastTarget;
+            return raw;
+        }
+
+        private static Texture2D LoadParcelTexture(string fileName)
+        {
+#if UNITY_EDITOR
+            return AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Model/MiniGame/NewGame/" + fileName);
+#else
+            return null;
+#endif
         }
 
         private static void RegisterPrinterPoints(MiniGamePanelUI panel)
@@ -313,6 +378,33 @@ namespace TapTapGameJam.UI
                 if (stockQuest == null) stockQuest = stockPoints[0].gameObject.AddComponent<StockQuest>();
                 stockQuest.ConfigurePoints(stockPoints);
                 Register(managers, stockQuest);
+            }
+
+            var parcelPoints = new List<ParcelCutPoint>();
+            foreach (var point in Object.FindObjectsByType<ParcelCutPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (point.gameObject.scene == scene)
+                {
+                    point.ConfigureGameKind(TapTapGameJam.Types.MiniGameKind.ParcelCut);
+                    parcelPoints.Add(point);
+                }
+            if (parcelPoints.Count == 0 && coffee != null)
+            {
+                var go = new GameObject("ParcelCutPoint");
+                go.transform.SetParent(coffee.transform.parent, false);
+                go.transform.position = coffee.transform.position + Vector3.back * 3f;
+                var collider = go.AddComponent<CapsuleCollider>();
+                collider.isTrigger = true;
+                collider.radius = 1.2f;
+                collider.height = 2.2f;
+                go.AddComponent<ParcelCutPoint>();
+                parcelPoints.Add(go.GetComponent<ParcelCutPoint>());
+            }
+            var parcelQuest = FindQuest<ParcelCutQuest>(panel);
+            if (parcelPoints.Count > 0)
+            {
+                if (parcelQuest == null) parcelQuest = parcelPoints[0].gameObject.AddComponent<ParcelCutQuest>();
+                parcelQuest.ConfigurePoints(parcelPoints);
+                Register(managers, parcelQuest);
             }
         }
 

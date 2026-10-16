@@ -87,7 +87,7 @@ public static class MiniGameSuiteSetup
             AssetDatabase.SaveAssets();
         }
         foreach (var text in panel.GetComponentsInChildren<TMP_Text>(true))
-            if (text.GetComponentInParent<global::CleanGame>(true) != null || text.GetComponentInParent<StockPointGame>(true) != null || text.GetComponentInParent<CoffeeGame>(true) != null || text.GetComponentInParent<PrinterRepairGame>(true) != null)
+            if (text.GetComponentInParent<global::CleanGame>(true) != null || text.GetComponentInParent<StockPointGame>(true) != null || text.GetComponentInParent<CoffeeGame>(true) != null || text.GetComponentInParent<PrinterRepairGame>(true) != null || text.GetComponentInParent<ParcelCutGame>(true) != null)
             { Undo.RecordObject(text, "配置小游戏中文字库"); text.font = font; }
     }
 }

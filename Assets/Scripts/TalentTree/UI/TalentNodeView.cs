@@ -15,6 +15,10 @@ namespace TalentTree
         [SerializeField] private TMP_Text _titleText;
         [SerializeField] private TMP_Text _levelText;
         [SerializeField] private Image _stateImage;
+        [SerializeField] private Sprite _lockedSprite;
+        [SerializeField] private Sprite _unlockedSprite;
+        [SerializeField] private Image _selectedIndicator;
+        [SerializeField] private Image _iconImage;
 
         private TalentTreeUI _owner;
 
@@ -23,9 +27,11 @@ namespace TalentTree
         internal void Bind(TalentTreeUI owner)
         {
             _owner = owner;
-            if (_button == null) _button = GetComponent<Button>();
+            if (_button == null) _button = GetComponentInChildren<Button>(true);
             if (_titleText == null) _titleText = GetComponentInChildren<TMP_Text>(true);
-            if (_stateImage == null) _stateImage = GetComponent<Image>();
+            if (_stateImage == null) _stateImage = _button != null ? _button.targetGraphic as Image : GetComponent<Image>();
+            if (_lockedSprite == null && _stateImage != null) _lockedSprite = _stateImage.sprite;
+            SetSelected(false);
             if (_button != null)
             {
                 _button.onClick.RemoveAllListeners();
@@ -33,19 +39,27 @@ namespace TalentTree
             }
         }
 
+        internal void SetSelected(bool selected)
+        {
+            if (_selectedIndicator != null) _selectedIndicator.gameObject.SetActive(selected);
+        }
+
         internal void Refresh(PlayerTalentTree playerTalentTree, TalentData data)
         {
             if (data == null || playerTalentTree == null) return;
             int level = playerTalentTree.GetLevel(data);
-            bool canUpgrade = playerTalentTree.CanUpgrade(data, out _);
             if (_titleText != null) _titleText.text = data.DisplayName;
             if (_levelText != null) _levelText.text = level > 0 ? "已解锁" : "未解锁";
+            if (_iconImage != null)
+            {
+                _iconImage.sprite = data.Icon;
+                _iconImage.enabled = data.Icon != null;
+            }
             if (_stateImage != null)
-                _stateImage.color = level > 0
-                    ? new Color(0.25f, 0.55f, 0.3f, 1f)
-                    : canUpgrade
-                        ? new Color(0.65f, 0.55f, 0.2f, 1f)
-                        : new Color(0.2f, 0.25f, 0.22f, 1f);
+            {
+                _stateImage.sprite = level > 0 ? _unlockedSprite : _lockedSprite;
+                _stateImage.color = Color.white;
+            }
         }
     }
 }

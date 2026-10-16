@@ -1,6 +1,7 @@
 using System;
 using TapTapGameJam.Events;
 using TalentTree;
+using TalentTree.Effects;
 using UnityEngine;
 
 namespace TapTapGameJam.Player

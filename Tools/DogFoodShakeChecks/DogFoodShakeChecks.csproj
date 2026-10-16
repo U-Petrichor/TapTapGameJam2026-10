@@ -10,6 +10,8 @@
     <OutputPath>../../Temp/DogFoodShakeChecks/bin/</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/DogFoodPileSimulation.cs" Link="DogFoodPileSimulation.cs" />
+    <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/DogFoodPourProgress.cs" Link="DogFoodPourProgress.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/PourDogFoodGame/DogFoodShakeProgress.cs" Link="DogFoodShakeProgress.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>

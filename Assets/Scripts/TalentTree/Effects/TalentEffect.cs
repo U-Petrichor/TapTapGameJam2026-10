@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace TalentTree
+namespace TalentTree.Effects
 {
     /// <summary>
     /// 天赋效果的数据基类。具体玩法可以继承它，使用 SerializeReference 保存自定义参数。

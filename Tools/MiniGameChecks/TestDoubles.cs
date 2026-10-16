@@ -4,6 +4,18 @@ using System.Collections.Generic;
 // 只替代 Unity 对象和钱包；测试直接编译项目的任务、配方、擦除和交易代码。
 namespace UnityEngine
 {
+    public struct Vector2
+    {
+        public float x, y;
+        public Vector2(float x, float y) { this.x = x; this.y = y; }
+        public static Vector2 operator +(Vector2 a, Vector2 b) => new(a.x + b.x, a.y + b.y);
+        public static Vector2 operator -(Vector2 a, Vector2 b) => new(a.x - b.x, a.y - b.y);
+        public static Vector2 operator *(Vector2 a, float value) => new(a.x * value, a.y * value);
+        public float sqrMagnitude => x * x + y * y;
+        public static float Distance(Vector2 a, Vector2 b) => (float)Math.Sqrt((a - b).sqrMagnitude);
+        public static float Dot(Vector2 a, Vector2 b) => a.x * b.x + a.y * b.y;
+        public static Vector2 Lerp(Vector2 a, Vector2 b, float t) => a + (b - a) * t;
+    }
     public class MonoBehaviour
     {
         public bool isActiveAndEnabled = true;
@@ -19,7 +31,13 @@ namespace UnityEngine
     public class MinAttribute : Attribute { public MinAttribute(float value) { } }
     public class HeaderAttribute : Attribute { public HeaderAttribute(string value) { } }
     public class TooltipAttribute : Attribute { public TooltipAttribute(string value) { } }
-    public static class Mathf { public static int Max(int a, int b) => Math.Max(a, b); }
+    public static class Mathf
+    {
+        public static int Max(int a, int b) => Math.Max(a, b);
+        public static int CeilToInt(float value) => (int)Math.Ceiling(value);
+        public static float Clamp01(float value) => Math.Clamp(value, 0f, 1f);
+        public static float Clamp(float value, float min, float max) => Math.Clamp(value, min, max);
+    }
     public static class Time { public static float deltaTime = 1; }
     public static class Random
     {

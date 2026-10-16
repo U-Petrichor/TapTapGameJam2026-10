@@ -56,6 +56,12 @@ namespace TapTapGameJam.Events
         public EventRequestCloseMiniGamePanel(object owner = null) => Owner = owner;
     }
 
+    /// <summary>House 的出口请求结束购物，由 GamePhaseManager 更新真正的阶段。</summary>
+    public readonly struct ShoppingFinishedEvent : IEvent { }
+
+    /// <summary>夜晚渐亮完成，允许开始夜晚倒计时。</summary>
+    public readonly struct NightTransitionCompletedEvent : IEvent { }
+
     public readonly struct GamePhaseChangedEvent : IEvent
     {
         public GamePhase NewPhase { get; }

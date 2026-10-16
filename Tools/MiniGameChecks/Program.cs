@@ -228,14 +228,14 @@ internal static class Program
         });
         StockChecks.Run(Run);
         StockAxisChecks.Run(Run);
-        Run("Coffee recipe has three steps and a fresh retry", () =>
+        Run("Coffee recipe has five stages and a fresh retry", () =>
         {
             var recipe = new CoffeeRecipe(1.5f, 2f);
-            Check(recipe.Step == CoffeeStep.Grind && recipe.StartGrinding());
+            Check(recipe.Step == CoffeeStep.LoadBeans && recipe.LoadBeans() && recipe.StartGrinding());
             recipe.Grind(1.5f); Check(recipe.Step == CoffeeStep.PlaceGrounds);
             Check(recipe.PlaceGrounds() && recipe.StartPouringWater());
             recipe.PourWater(2f); Check(recipe.Step == CoffeeStep.Complete);
-            Check(new CoffeeRecipe(1.5f, 2f).Step == CoffeeStep.Grind);
+            Check(new CoffeeRecipe(1.5f, 2f).Step == CoffeeStep.LoadBeans);
         });
         Run("Printer pointer bounces continuously and handles large frame steps", () =>
         {
@@ -266,6 +266,26 @@ internal static class Program
             var retry = new PrinterRepairRound(5, 1, 0.25, () => 0);
             Check(retry.Successes == 0 && retry.IsRunning); retry.Stop();
             Check(retry.Hit() == PrinterHitResult.Ignored); retry.Tick(0.5); Check(retry.Position == 0);
+        });
+        Run("Parcel cutting selects three unique tapes and requires their paths", () =>
+        {
+            var paths = new List<IReadOnlyList<Vector2>>();
+            for (int i = 0; i < ParcelCutRound.TapeCount; i++)
+                paths.Add(new[] { new Vector2(0f, 0f), new Vector2(1f, 1f) });
+            var round = new ParcelCutRound(paths, new System.Random(7), 0.13f);
+            Check(round.TargetIndices.Count == ParcelCutRound.RequiredTapeCount);
+            Check(new HashSet<int>(round.TargetIndices).Count == ParcelCutRound.RequiredTapeCount);
+            int nonTarget = -1;
+            for (int i = 0; i < ParcelCutRound.TapeCount; i++)
+                if (!round.IsTarget(i)) { nonTarget = i; break; }
+            Check(nonTarget >= 0 && !round.TryCutSegment(nonTarget, new Vector2(0f, 0f), new Vector2(1f, 1f)));
+            foreach (int tape in round.TargetIndices)
+            {
+                Check(round.TryCutSegment(tape, new Vector2(0f, 0f), new Vector2(1f, 1f)));
+                Check(round.IsCompleted(tape));
+            }
+            Check(round.IsComplete && round.CompletedCount == ParcelCutRound.RequiredTapeCount);
+            Check(!round.TryCutSegment(round.TargetIndices[0], new Vector2(0f, 0f), new Vector2(1f, 1f)));
         });
         Console.WriteLine($"Passed {_checks} scenarios. Unity rendering/input/physics need the editor smoke checks.");
     }

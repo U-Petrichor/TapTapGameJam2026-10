@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using TapTapGameJam.Events;
@@ -18,7 +18,8 @@ namespace TapTapGameJam.Player
         private bool _isESCMenuOpen = false; // 当前是否打开了ESC菜单
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
-        public bool HasMoveInput => MoveInput.sqrMagnitude > 0.0001f;
+        public bool WorldInputBlocked { get; set; }
+        public bool HasMoveInput => !WorldInputBlocked && MoveInput.sqrMagnitude > 0.0001f;
 
         /// <summary>交互键按下，参数是这一次按的是哪个键（E / F）</summary>
         public event Action<InteractKey> EventOnInteractPress;
@@ -65,6 +66,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public bool? ReadSprintHeld()
         {
+            if (WorldInputBlocked) return false;
             if (_sprintAction == null)
             {
                 return null;
@@ -85,6 +87,7 @@ namespace TapTapGameJam.Player
 
         private void Update()
         {
+            if (WorldInputBlocked) return;
             // 跟随 ActionMap 的启停，打开背包或 ESC 菜单时不响应相机旋转。
             if (_rotateCameraLeft != null && _rotateCameraLeft.enabled
                 && _playerInput.currentActionMap == _rotateCameraLeft.actionMap
@@ -111,6 +114,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnMove(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) { MoveInput = Vector2.zero; return; }
             MoveInput = context.canceled
                 ? Vector2.zero
                 : Vector2.ClampMagnitude(context.ReadValue<Vector2>(), 1f);
@@ -123,6 +127,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnInteract(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;
@@ -151,6 +156,7 @@ namespace TapTapGameJam.Player
         }
         public void OnMouseScroll(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;
@@ -168,6 +174,7 @@ namespace TapTapGameJam.Player
         }
         public void OnSwitchInteraction(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed) return;
 
             EventOnInteractionSwitchPress?.Invoke();
@@ -179,6 +186,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnSprint(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (context.performed)
             {
                 EventOnSprintChanged?.Invoke(true);
@@ -198,6 +206,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnToggleBackpack(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;
@@ -208,6 +217,7 @@ namespace TapTapGameJam.Player
 
         public void OnRotateItem(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;
@@ -222,6 +232,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OpenBackpack()
         {
+            if (WorldInputBlocked) return;
             EventPipeline.Publish(new BackpackEvent(true));
         }
 

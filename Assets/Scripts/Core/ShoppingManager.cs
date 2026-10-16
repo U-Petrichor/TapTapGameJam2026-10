@@ -1,289 +1,245 @@
 using System.Collections;
 using TapTapGameJam.Events;
 using TapTapGameJam.Player;
+using TapTapGameJam.Types;
+using TapTapGameJam.UI;
+using TalentTree;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using TMPro;
-using Unity.Cinemachine;
 
 namespace TapTapGameJam.Core
 {
-    /// <summary>
-    /// 当切换到商店时的管理中心，管理所有在商店阶段应该处理的事件
-    /// </summary>
+    /// <summary>Shopping 的 2D 房间和入场过渡，不传送玩家或切换相机。</summary>
     public class ShoppingManager : MonoBehaviour
     {
-        [Header("Transition references")]
         [SerializeField] private PlayerBasic _player;
-        [SerializeField] private Transform _houseSpawn;
-        [SerializeField] private CinemachineCamera _houseCamera;
-        [SerializeField] private CinemachineBrain _cinemachineBrain;
+        [SerializeField] private ShoppingRoomView _shoppingRoom;
         [SerializeField] private GameObject _fadeOverlayCanvas;
         [SerializeField] private Image _fadeImage;
         [SerializeField] private TMP_Text _fadeText;
-
-        [Header("Transition timing")]
+        [SerializeField] private TalentTreeUI _talentTreeUI;
+        [Header("过渡时间（秒）")]
         [SerializeField, Min(0f)] private float _textDisplayDuration = 0.5f;
         [SerializeField, Min(0f)] private float _fadeDuration = 0.5f;
-        [SerializeField, Min(0f)] private float _postCameraBlackDuration = 0.5f;
 
-        private Coroutine _transitionCoroutine;
+        private Coroutine _transition;
+        private bool _shopping;
+        private bool _nightExitPending;
+        private bool _controlsCaptured;
         private PlayerInput _playerInput;
-        private Rigidbody _playerRigidbody;
-        private bool _playerInputWasActive;
+        private Rigidbody _body;
+        private bool _inputWasActive;
+        private string _previousActionMap;
+        private bool _movementWasEnabled;
+        private bool _interactionWasEnabled;
+        private bool _worldInputWasBlocked;
+        private bool _bodyWasKinematic;
+        private CursorLockMode _previousCursorLock;
+        private bool _previousCursorVisible;
 
         private void Awake()
         {
-            ResolveReferences();
-            SetFadeAlpha(0f);
-            if (_fadeOverlayCanvas != null)
+            if (_player == null) _player = FindFirstObjectByType<PlayerBasic>();
+            if (_player != null)
             {
-                _fadeOverlayCanvas.SetActive(false);
+                _playerInput = _player.GetComponent<PlayerInput>();
+                _body = _player.GetComponent<Rigidbody>();
             }
+            if (_shoppingRoom != null) _shoppingRoom.gameObject.SetActive(false);
+            if (_talentTreeUI != null) _talentTreeUI.enabled = false;
+            HideOverlay();
         }
 
-        private void OnEnable()
-        {
-            EventPipeline.Subscribe<GamePhaseChangedEvent>(HandleGamePhaseChange);
-        }
+        private void OnEnable() => EventPipeline.Subscribe<GamePhaseChangedEvent>(HandleGamePhaseChange);
 
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<GamePhaseChangedEvent>(HandleGamePhaseChange);
-            if (_transitionCoroutine != null)
-            {
-                StopCoroutine(_transitionCoroutine);
-                _transitionCoroutine = null;
-            }
+            LeaveShopping();
         }
 
-        /// <summary>
-        /// 接受到GamePhaseChangeEvnet之后，如果是Shopping阶段，处理初始化的内容
-        /// </summary>
         private void HandleGamePhaseChange(GamePhaseChangedEvent evt)
         {
-            if (evt.NewPhase != TapTapGameJam.Types.GamePhase.Shopping ||
-                _transitionCoroutine != null)
+            // NightManager 在全黑时隐藏房间，在渐亮结束时才释放世界控制。
+            if (evt.NewPhase == GamePhase.Night) return;
+            if (evt.NewPhase != GamePhase.Shopping)
             {
+                LeaveShopping();
                 return;
             }
-
-            _transitionCoroutine = StartCoroutine(EnterShoppingRoutine());
+            if (_nightExitPending) LeaveShopping();
+            if (_shopping) return;
+            if (_shoppingRoom == null || _fadeOverlayCanvas == null || _fadeImage == null || _fadeText == null)
+            {
+                Debug.LogError("[ShoppingManager] 请配置 2D 房间、FadeOverlayCanvas、FadeImage 和 Text。", this);
+                return;
+            }
+            _shopping = true;
+            CaptureControls();
+            _transition = StartCoroutine(EnterShoppingRoutine());
         }
 
-        private void ResolveReferences()
+        public void OpenTalentTree()
         {
-            if (_player == null)
-            {
-                _player = FindFirstObjectByType<PlayerBasic>();
-            }
-
-            if (_houseSpawn == null)
-            {
-                foreach (Transform child in transform.GetComponentsInChildren<Transform>(true))
-                {
-                    if (child == transform)
-                    {
-                        continue;
-                    }
-
-                    if (child.name == "HouseSpawnPoint" ||
-                        child.name == "HouseSpawn" ||
-                        child.name == "ShoppingSpawn")
-                    {
-                        _houseSpawn = child;
-                        break;
-                    }
-                }
-            }
-
-            if (_houseCamera == null)
-            {
-                _houseCamera = GetComponentInChildren<CinemachineCamera>(true);
-            }
-
-            if (_cinemachineBrain == null)
-            {
-                _cinemachineBrain = FindFirstObjectByType<CinemachineBrain>();
-            }
-
-            if (_fadeOverlayCanvas == null)
-            {
-                Transform overlay = transform.Find("FadeOverlayCanvas");
-                _fadeOverlayCanvas = overlay != null ? overlay.gameObject : null;
-            }
-
-            if (_fadeImage == null && _fadeOverlayCanvas != null)
-            {
-                _fadeImage = _fadeOverlayCanvas.GetComponentInChildren<Image>(true);
-            }
-
-            if (_fadeText == null && _fadeOverlayCanvas != null)
-            {
-                _fadeText = _fadeOverlayCanvas.GetComponentInChildren<TMP_Text>(true);
-            }
-
-            if (_player != null)
-            {
-                _playerInput = _player.GetComponent<PlayerInput>();
-                _playerRigidbody = _player.GetComponent<Rigidbody>();
-            }
+            if (_shopping && !_nightExitPending && _transition == null && _talentTreeUI != null)
+                _talentTreeUI.Open();
         }
+
+        public void FinishShopping()
+        {
+            if (!_shopping || _nightExitPending || _transition != null ||
+                (_talentTreeUI != null && _talentTreeUI.IsOpen)) return;
+            _nightExitPending = true;
+            _shoppingRoom.SetInteractionEnabled(false);
+            EventPipeline.Publish(new ShoppingFinishedEvent());
+        }
+
+        public void BeginNightTransition()
+        {
+            _nightExitPending = true;
+            if (_transition != null) StopCoroutine(_transition);
+            _transition = null;
+            if (!_controlsCaptured) CaptureControls();
+            if (_shoppingRoom != null) _shoppingRoom.SetInteractionEnabled(false);
+            if (_talentTreeUI != null) _talentTreeUI.enabled = false;
+            if (_playerInput != null) _playerInput.DeactivateInput();
+        }
+
+        public void HideRoomForNight()
+        {
+            if (_shoppingRoom != null) _shoppingRoom.gameObject.SetActive(false);
+        }
+
+        public void CompleteNightTransition() => LeaveShopping();
 
         private IEnumerator EnterShoppingRoutine()
         {
-            SetPlayerInputActive(false);
-
-            if (_fadeOverlayCanvas != null)
-            {
-                _fadeOverlayCanvas.SetActive(true);
-            }
-
-            if (_fadeText != null)
-            {
-                _fadeText.gameObject.SetActive(true);
-            }
-
+            _shoppingRoom.SetInteractionEnabled(false);
             SetFadeAlpha(0f);
-            yield return WaitRealtime(_textDisplayDuration);
-            yield return FadeImage(0f, 1f, _fadeDuration);
+            _fadeText.text = "下班！";
+            _fadeText.gameObject.SetActive(true);
+            _fadeOverlayCanvas.SetActive(true);
+            yield return new WaitForSecondsRealtime(_textDisplayDuration);
+            yield return Fade(0f, 1f);
 
-            MovePlayerToHouseSpawn();
+            // Fade 最后一帧已经以 alpha=1 绘制过，在全黑下替换界面。
+            _fadeText.gameObject.SetActive(false);
+            _shoppingRoom.gameObject.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+            yield return Fade(1f, 0f);
 
-            if (_houseCamera != null)
-            {
-                // Priority is configured in the scene. Enabling the camera lets
-                // Cinemachine select it without changing that configured value.
-                _houseCamera.enabled = true;
-            }
-
-            yield return WaitForCameraBlend();
-            yield return WaitRealtime(_postCameraBlackDuration);
-            yield return FadeImage(1f, 0f, _fadeDuration);
-
-            if (_fadeOverlayCanvas != null)
-            {
-                _fadeOverlayCanvas.SetActive(false);
-            }
-
-            SetPlayerInputActive(true);
-            _transitionCoroutine = null;
+            HideOverlay();
+            _shoppingRoom.SetInteractionEnabled(true);
+            if (_talentTreeUI != null) _talentTreeUI.enabled = true;
+            // UI 接收鼠标，世界操作保持锁定，直到离开 Shopping。
+            if (_playerInput != null && _inputWasActive) _playerInput.ActivateInput();
+            _transition = null;
         }
 
-        private void MovePlayerToHouseSpawn()
+        private void CaptureControls()
         {
-            if (_player == null || _houseSpawn == null)
+            _controlsCaptured = true;
+            _previousCursorLock = Cursor.lockState;
+            _previousCursorVisible = Cursor.visible;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            if (_playerInput != null)
             {
-                return;
-            }
-
-            if (_playerRigidbody == null)
-            {
-                _playerRigidbody = _player.GetComponent<Rigidbody>();
-            }
-
-            if (_playerRigidbody != null)
-            {
-                _playerRigidbody.position = _houseSpawn.position;
-                _playerRigidbody.rotation = _houseSpawn.rotation;
-                _playerRigidbody.linearVelocity = Vector3.zero;
-                _playerRigidbody.angularVelocity = Vector3.zero;
-            }
-            else
-            {
-                _player.transform.SetPositionAndRotation(
-                    _houseSpawn.position,
-                    _houseSpawn.rotation);
-            }
-        }
-
-        private void SetPlayerInputActive(bool active)
-        {
-            if (_playerInput == null && _player != null)
-            {
-                _playerInput = _player.GetComponent<PlayerInput>();
-            }
-
-            if (_playerInput == null)
-            {
-                return;
-            }
-
-            if (!active)
-            {
-                _playerInputWasActive = _playerInput.enabled;
-                if (_player != null && _player.InputManager != null)
-                {
-                    _player.InputManager.MoveInput = Vector2.zero;
-                }
-
+                _inputWasActive = _playerInput.inputIsActive;
+                _previousActionMap = _playerInput.currentActionMap?.name;
                 _playerInput.DeactivateInput();
             }
-            else if (_playerInputWasActive)
+            if (_player == null) return;
+            if (_player.InputManager != null)
             {
-                _playerInput.ActivateInput();
+                _worldInputWasBlocked = _player.InputManager.WorldInputBlocked;
+                _player.InputManager.WorldInputBlocked = true;
+                _player.InputManager.MoveInput = Vector2.zero;
+            }
+            if (_player.PlayerMovement != null)
+            {
+                _movementWasEnabled = _player.PlayerMovement.enabled;
+                _player.PlayerMovement.SetMoveInput(Vector2.zero);
+                _player.PlayerMovement.IsSprinting = false;
+                _player.PlayerMovement.enabled = false;
+            }
+            if (_player.PlayerInteractionManager != null)
+            {
+                _interactionWasEnabled = _player.PlayerInteractionManager.enabled;
+                _player.PlayerInteractionManager.enabled = false;
+            }
+            if (_body != null)
+            {
+                _bodyWasKinematic = _body.isKinematic;
+                if (!_body.isKinematic)
+                {
+                    _body.linearVelocity = Vector3.zero;
+                    _body.angularVelocity = Vector3.zero;
+                    _body.isKinematic = true;
+                }
             }
         }
 
-        private IEnumerator FadeImage(float from, float to, float duration)
+        private void LeaveShopping()
         {
-            if (_fadeImage == null || duration <= 0f)
+            if (_transition != null) StopCoroutine(_transition);
+            _transition = null;
+            _shopping = false;
+            _nightExitPending = false;
+            if (_talentTreeUI != null) _talentTreeUI.enabled = false;
+            if (_shoppingRoom != null)
             {
-                SetFadeAlpha(to);
-                yield break;
+                _shoppingRoom.SetInteractionEnabled(false);
+                _shoppingRoom.gameObject.SetActive(false);
             }
+            HideOverlay();
+            if (!_controlsCaptured) return;
+            _controlsCaptured = false;
+            Cursor.lockState = _previousCursorLock;
+            Cursor.visible = _previousCursorVisible;
+            if (_body != null) _body.isKinematic = _bodyWasKinematic;
+            if (_player != null)
+            {
+                if (_player.InputManager != null)
+                {
+                    _player.InputManager.MoveInput = Vector2.zero;
+                    _player.InputManager.WorldInputBlocked = _worldInputWasBlocked;
+                }
+                if (_player.PlayerMovement != null) _player.PlayerMovement.enabled = _movementWasEnabled;
+                if (_player.PlayerInteractionManager != null) _player.PlayerInteractionManager.enabled = _interactionWasEnabled;
+            }
+            if (_playerInput != null)
+            {
+                if (!string.IsNullOrEmpty(_previousActionMap)) _playerInput.SwitchCurrentActionMap(_previousActionMap);
+                if (_inputWasActive) _playerInput.ActivateInput();
+                else _playerInput.DeactivateInput();
+            }
+        }
 
+        private IEnumerator Fade(float from, float to)
+        {
             float elapsed = 0f;
-            while (elapsed < duration)
+            SetFadeAlpha(from);
+            while (elapsed < _fadeDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                SetFadeAlpha(Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration)));
+                SetFadeAlpha(Mathf.Lerp(from, to, elapsed / _fadeDuration));
                 yield return null;
             }
-
             SetFadeAlpha(to);
         }
 
-        private IEnumerator WaitForCameraBlend()
+        private void HideOverlay()
         {
-            // Let Cinemachine process the newly enabled camera before reading
-            // the blend state, then wait until any configured blend is complete.
-            yield return null;
-            while (_cinemachineBrain != null && _cinemachineBrain.IsBlending)
-            {
-                yield return null;
-            }
-        }
-
-        private static IEnumerator WaitRealtime(float duration)
-        {
-            if (duration <= 0f)
-            {
-                yield break;
-            }
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                yield return null;
-            }
+            SetFadeAlpha(0f);
+            if (_fadeOverlayCanvas != null) _fadeOverlayCanvas.SetActive(false);
         }
 
         private void SetFadeAlpha(float alpha)
         {
-            if (_fadeImage == null)
-            {
-                return;
-            }
-
-            Color color = _fadeImage.color;
-            color.r = 0f;
-            color.g = 0f;
-            color.b = 0f;
-            color.a = Mathf.Clamp01(alpha);
-            _fadeImage.color = color;
+            if (_fadeImage != null) _fadeImage.color = new Color(0f, 0f, 0f, Mathf.Clamp01(alpha));
         }
     }
 }

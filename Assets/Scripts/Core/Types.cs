@@ -24,7 +24,8 @@ namespace TapTapGameJam.Types
         SortFile = 2,
         StockTrade = 3,
         MakeCoffee = 4,
-        PrinterRepair = 5
+        PrinterRepair = 5,
+        ParcelCut = 6
     }
 
 }

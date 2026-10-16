@@ -27,6 +27,7 @@ PanelTaskPoint
 | `MiniGame/CleanGame/` | 清洁任务与擦除规则 |
 | `MiniGame/DeliverFileGame/` | 送文件任务与两个世界交互点 |
 | `MiniGame/FixPrinterGame/` | 打印机 QTE、任务和编辑器配置 |
+| `MiniGame/ParcelCutGame/` | 拆快递随机胶带路径玩法、任务和编辑器配置 |
 | `MiniGame/MakeCoffeeGame/` | 新咖啡 UI 玩法、配方和器具交互 |
 | `MiniGame/PourDogFoodGame/` | 倒狗粮玩法、任务和晃动规则 |
 | `MiniGame/SortFileGame/` | 分拣玩法、文件卡片、任务和编辑器配置 |

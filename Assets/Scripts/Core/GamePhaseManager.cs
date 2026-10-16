@@ -16,6 +16,28 @@ namespace TapTapGameJam.Core
         public float RemainingTime = 0f; // 当前阶段剩余时间
         public int DayIndex = 0; // 已开始的白天数；进入首日后为 1，与门的开放日期一致。
 
+        private void OnEnable()
+        {
+            EventPipeline.Subscribe<ShoppingFinishedEvent>(HandleShoppingFinished);
+            EventPipeline.Subscribe<NightTransitionCompletedEvent>(HandleNightReady);
+        }
+
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<ShoppingFinishedEvent>(HandleShoppingFinished);
+            EventPipeline.UnSubscribe<NightTransitionCompletedEvent>(HandleNightReady);
+        }
+
+        private void HandleShoppingFinished(ShoppingFinishedEvent evt)
+        {
+            if (CurrentPhase == GamePhase.Shopping) EnterPhase(GamePhase.Night);
+        }
+
+        private void HandleNightReady(NightTransitionCompletedEvent evt)
+        {
+            if (CurrentPhase == GamePhase.Night) TimeCouldWork = true;
+        }
+
         private void Start()
         {
             Debug.Log($"游戏从此开始，进入第一个白天");

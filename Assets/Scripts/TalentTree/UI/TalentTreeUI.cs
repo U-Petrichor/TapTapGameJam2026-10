@@ -20,6 +20,9 @@ namespace TalentTree
         [SerializeField] private TMP_Text _talentPoints;
         [SerializeField] private TMP_Text _introduceTitleText;
         [SerializeField] private TMP_Text _introduceDescriptionText;
+        [SerializeField] private TMP_Text _introduceTypeText;
+        [SerializeField] private TMP_Text _introduceUnlockText;
+        [SerializeField] private Image _introduceIcon;
 
         [Header("Talent tree navigation")]
         [SerializeField, Min(0.1f)] private float _minimumZoom = 0.75f;
@@ -35,6 +38,7 @@ namespace TalentTree
         private Button _upgradeButton;
         private TalentData _selected;
         private TalentNodeView[] _authoredNodes = System.Array.Empty<TalentNodeView>();
+        private TalentConnectionView[] _authoredConnections = System.Array.Empty<TalentConnectionView>();
         private bool _usingAuthoredUi;
         private PlayerInput _playerInput;
         private TapTapGameJam.Player.PlayerInputManager _playerInputManager;
@@ -73,6 +77,7 @@ namespace TalentTree
             if (_talentTreeAsset == null) _talentTreeAsset = _playerTalentTree?.TalentTreeAsset;
             InitializeTalentTreeInput();
             _authoredNodes = GetComponentsInChildren<TalentNodeView>(true);
+            _authoredConnections = GetComponentsInChildren<TalentConnectionView>(true);
             _usingAuthoredUi = _authoredNodes.Length > 0;
             if (_usingAuthoredUi)
             {
@@ -84,22 +89,26 @@ namespace TalentTree
                 if (_upgradeButton != null) _upgradeButton.onClick.AddListener(UpgradeSelected);
                 if (_talentTreeCloseButton != null) _talentTreeCloseButton.onClick.AddListener(() => SetVisible(false));
                 InitializeTreeNavigation();
+                SetVisible(false);
                 Refresh();
                 return;
             }
             BuildUi();
             InitializeTreeNavigation();
-            SetVisible(true);
+            SetVisible(false);
         }
 
-        private void Start()
+        private void OnEnable()
         {
-            if (_panel != null && _panel.activeSelf) EnableTalentTreeInput();
+            EventPipeline.Subscribe<TalentLevelChangedEvent>(OnTalentChanged);
+            Refresh();
         }
 
-        private void OnEnable() => EventPipeline.Subscribe<TalentLevelChangedEvent>(OnTalentChanged);
-
-        private void OnDisable() => EventPipeline.UnSubscribe<TalentLevelChangedEvent>(OnTalentChanged);
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<TalentLevelChangedEvent>(OnTalentChanged);
+            SetVisible(false);
+        }
 
         private void Update()
         {
@@ -209,6 +218,8 @@ namespace TalentTree
                 TalentData data = _talentTreeAsset.FindTalent(node.TalentId);
                 node.Refresh(_playerTalentTree, data);
             }
+            foreach (TalentConnectionView connection in _authoredConnections)
+                connection.Refresh(_playerTalentTree, _talentTreeAsset);
             Select(_selected);
         }
 
@@ -221,6 +232,9 @@ namespace TalentTree
         private void Select(TalentData data)
         {
             _selected = data;
+            foreach (TalentNodeView node in _authoredNodes)
+                node.SetSelected(data != null && node.TalentId == data.Id);
+            RefreshIntroduction();
             if (_selected == null || _playerTalentTree == null)
             {
                 if (_titleText != null) _titleText.text = "选择一个天赋";
@@ -239,10 +253,24 @@ namespace TalentTree
             {
                 string state = level > 0 ? "已解锁" : "未解锁";
                 string hint = level > 0 ? "按 F 解除当前天赋" : $"按 E 解锁\n解锁状态：{ReasonOrReady(reason)}";
-                _detailText.text = $"当前状态：{state}\n\n{hint}\n\n按 Q 全部重置。" +
+                _detailText.text = $"消耗：{_selected.GetLevelData(1)?.TalentPointCost ?? 0} 天赋点\n当前状态：{state}\n\n{hint}\n\n按 Q 全部重置。" +
                                    (string.IsNullOrEmpty(_operationMessage) ? string.Empty : $"\n\n{_operationMessage}");
             }
             if (_upgradeButton != null) _upgradeButton.interactable = canUnlock;
+        }
+
+        private void RefreshIntroduction()
+        {
+            if (_introduceTypeText != null)
+                _introduceTypeText.text = _selected != null ? _selected.TalentType : string.Empty;
+            if (_introduceUnlockText != null)
+                _introduceUnlockText.text = _selected != null && _playerTalentTree != null &&
+                    _playerTalentTree.GetLevel(_selected) > 0 ? "1/1" : "0/1";
+            if (_introduceIcon != null)
+            {
+                _introduceIcon.sprite = _selected != null ? _selected.Icon : null;
+                _introduceIcon.enabled = _introduceIcon.sprite != null;
+            }
         }
 
         private void UpgradeSelected()
@@ -290,8 +318,13 @@ namespace TalentTree
 
         private void OnTalentChanged(TalentLevelChangedEvent _) => Refresh();
 
+        public bool IsOpen => _panel != null && _panel.activeInHierarchy;
+        public void Open() => SetVisible(true);
+        public void Close() => SetVisible(false);
+
         private void SetVisible(bool visible)
         {
+            if (visible && !isActiveAndEnabled) return;
             if (_panel == null) return;
             if (!visible)
             {

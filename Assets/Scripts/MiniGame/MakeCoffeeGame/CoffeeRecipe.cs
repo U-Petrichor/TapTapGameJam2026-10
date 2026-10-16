@@ -4,13 +4,14 @@ namespace TapTapGameJam.Coffee
 {
     public enum CoffeeStep
     {
+        LoadBeans,
         Grind,
         PlaceGrounds,
         PourWater,
         Complete
     }
 
-    // 三步咖啡规则：研磨、把粉杯放到杯子上、持续注水 2 秒。
+    // 放豆、长按研磨、放粉、注水、完成。输入及 UI 不参与配方规则。
     // 不引用 Unity、输入或 Canvas，便于独立测试。
     public sealed class CoffeeRecipe
     {
@@ -18,7 +19,8 @@ namespace TapTapGameJam.Coffee
         private readonly float _waterSeconds;
         private float _elapsed;
 
-        public CoffeeStep Step { get; private set; } = CoffeeStep.Grind;
+        public CoffeeStep Step { get; private set; } = CoffeeStep.LoadBeans;
+        private bool _stopped;
         public bool IsProcessing { get; private set; }
         public event Action<CoffeeStep> StepChanged;
 
@@ -39,10 +41,19 @@ namespace TapTapGameJam.Coffee
 
         public bool StartGrinding()
         {
-            if (Step != CoffeeStep.Grind || IsProcessing) return false;
+            if (_stopped || Step != CoffeeStep.Grind || IsProcessing) return false;
             IsProcessing = true;
             return true;
         }
+
+        public bool LoadBeans()
+        {
+            if (_stopped || Step != CoffeeStep.LoadBeans) return false;
+            SetStep(CoffeeStep.Grind);
+            return true;
+        }
+
+        public void Stop() { _stopped = true; IsProcessing = false; }
 
         public void StopGrinding()
         {
@@ -58,14 +69,14 @@ namespace TapTapGameJam.Coffee
 
         public bool PlaceGrounds()
         {
-            if (Step != CoffeeStep.PlaceGrounds) return false;
+            if (_stopped || Step != CoffeeStep.PlaceGrounds) return false;
             SetStep(CoffeeStep.PourWater);
             return true;
         }
 
         public bool StartPouringWater()
         {
-            if (Step != CoffeeStep.PourWater || IsProcessing) return false;
+            if (_stopped || Step != CoffeeStep.PourWater || IsProcessing) return false;
             IsProcessing = true;
             return true;
         }
