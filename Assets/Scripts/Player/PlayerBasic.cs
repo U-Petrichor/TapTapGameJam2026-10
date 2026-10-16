@@ -9,6 +9,7 @@ namespace TapTapGameJam.Player
     [RequireComponent(typeof(PlayerCarryController))]
     public class PlayerBasic : MonoBehaviour
     {
+        
         public PlayerStateMachine StateMachine { get; private set; }
         [field: SerializeField] public PlayerInputManager InputManager { get; private set; }
         [field: SerializeField] public PlayerMovement PlayerMovement { get; private set; }
@@ -26,7 +27,10 @@ namespace TapTapGameJam.Player
         [Tooltip("玩家体力：冲刺消耗、受伤/中毒/负重占据上限")]
         [field: SerializeField] public PlayerHealth PlayerHealth { get; private set; }
 
-
+        [Tooltip("玩家当前状态：是否为人类")]
+        [field: SerializeField] public bool IsHuman { get; private set; }
+        
+        
         public IdleState Idle { get; private set; }
         public HappyIdleState HappyIdle { get; private set; }
         public MoveState Move { get; private set; }
@@ -129,16 +133,16 @@ namespace TapTapGameJam.Player
         private void HandleGamePhaseChangedEvent(GamePhaseChangedEvent evt)
         {
             ;
-            // if (evt.NewPhase == GamePhase.Day)
-            // {
-            //     // 如果接下来要到来的是白天，那么将PlayerTag切换为Player
-            //     gameObject.tag = ("Player");
-            // }
-            // else if(evt.NewPhase == GamePhase.Shopping|| evt.NewPhase == GamePhase.Night)
-            // {
-            //     // 如果接下来要到来的是商店或者是夜晚，则切换为Cockroach
-            //     gameObject.tag = ("Cockroach");
-            // }
+            if (evt.NewPhase == GamePhase.Day || evt.NewPhase == GamePhase.Shopping)
+            {
+                IsHuman = true;
+                
+            }
+            else if(evt.NewPhase == GamePhase.Night)
+            {
+                IsHuman = false;
+                
+            }
         }
     }
 }
