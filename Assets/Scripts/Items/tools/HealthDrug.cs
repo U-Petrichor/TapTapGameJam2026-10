@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TapTapGameJam.Items.tools
 {
-    public class HealthDrug : PickableItem
+    public class HealthDrug : ToolItem
     {
         // 药品案例：使用时回复玩家一定生命值
 

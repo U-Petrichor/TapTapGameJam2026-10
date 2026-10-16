@@ -52,6 +52,13 @@ namespace TapTapGameJam.Items
         [SerializeField] protected bool _isUseAble = true;
         public virtual bool IsUseAble => _isUseAble;
 
+        /// <summary>
+        /// 这件物品属于哪个大类（仓库 / 商店分页用）。
+        /// 由子类决定：FoodItem → Food，ToolItem → Tool，DressItem → Dress；
+        /// 直接挂在 PickableItem 上的东西兜底算 Tool。
+        /// </summary>
+        public virtual ItemCategory Category => ItemCategory.Tool;
+
         public ItemLocation Location { get; private set; } = ItemLocation.OnMap;
 
         public bool IsOnMap => Location == ItemLocation.OnMap;

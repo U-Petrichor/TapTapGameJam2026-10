@@ -15,6 +15,9 @@ namespace TapTapGameJam.Items
 
         [Tooltip("可交互半径")] public float interactRaius = 0.5f;
 
+        /// <summary>仓库分页：食物归 Food 页</summary>
+        public override ItemCategory Category => ItemCategory.Food;
+
         
         /// <summary>还有没有吃的价值，没有的话 ItemManager 不应该再返回它</summary>
         public bool HasNutrition => remainingNutrition > 0f;

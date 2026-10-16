@@ -19,6 +19,9 @@ namespace TapTapGameJam.Items
         [Tooltip("装饰类别（头甲足）")]
         public DressType dressType;
 
+        /// <summary>仓库分页：饰品归 Dress 页</summary>
+        public override ItemCategory Category => ItemCategory.Dress;
+
         /// <summary>本饰品对应的装备槽</summary>
         public EquipSlot ToSlot()
         {
