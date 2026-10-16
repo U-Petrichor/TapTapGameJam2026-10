@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
+using TapTapGameJam.UI;
 using System;
 
 namespace TapTapGameJam.Player
@@ -73,22 +74,14 @@ namespace TapTapGameJam.Player
         }
 
         /// <summary>
-        /// 背包是否处于打开状态。
-        /// 不看自己缓存的 bool，而是看当前 ActionMap —— 这样和 ActionMap 的切换永远一致，
-        /// 不会被"某次没走到赋值"搞脏。
+        /// UI 面板（背包 / 仓库 / 待拾取位…）统一用的 ActionMap：
+        /// 只要有一个受监控的容器开着就用它，全关了才回 <see cref="DefaultActionMapName"/>。
+        /// 切换由 <see cref="TapTapGameJam.UI.UIManager"/> 负责，这里只提供名字。
         /// </summary>
-        public bool IsBackpackOpen
-        {
-            get
-            {
-                return _playerInput != null
-                       && _playerInput.actions != null
-                       && _playerInput.currentActionMap != null
-                       && _playerInput.currentActionMap.name == BackpackActionMapName;
-            }
-        }
+        public const string UIActionMapName = "Backpack";
 
-        private const string BackpackActionMapName = "Backpack";
+        /// <summary>没有 UI 面板开着时的默认（走位 / 交互）ActionMap</summary>
+        public const string DefaultActionMapName = "DayPlayer";
 
         private void Update()
         {
@@ -106,7 +99,9 @@ namespace TapTapGameJam.Player
         #region 打开和关闭MiniGame的时候切换ActionMap
         private void OnCloseMiniGame(EventCloseMiniGamePanel evt)
         {
-            SwitchActionMap("DayPlayer");
+            // TODO: 这里和 ESC 一样是硬编码切回游戏：如果那时还有受监控的容器开着，
+            // 应该改成让 UIManager 重算（UIManager.Instance.RefreshActionMap()）
+            SwitchActionMap(DefaultActionMapName);
         }
         #endregion
         #region 玩家移动
@@ -196,7 +191,8 @@ namespace TapTapGameJam.Player
         #endregion
         #region 控制背包
         /// <summary>
-        /// 按 B 打开/关闭背包。
+        /// 按 B。这里**只发事件**：到底是开还是关由容器自己判断（持有"当前开/关"的是容器），
+        /// ActionMap 由 UIManager 按"有没有受监控容器开着"统一处理。
         /// 注意：Player 预制体里 `Player/Backpack[/Keyboard/b]` 绑定的就是这个名字，
         /// 不要随手改名，否则预制体上的 UnityEvent 会变成 Missing。
         /// </summary>
@@ -207,14 +203,7 @@ namespace TapTapGameJam.Player
                 return;
             }
 
-            if (IsBackpackOpen)
-            {
-                CloseBackpack();
-            }
-            else
-            {
-                OpenBackpack();
-            }
+            EventPipeline.Publish(new EventToggleBackpack());
         }
 
         public void OnRotateItem(InputAction.CallbackContext context)
@@ -227,32 +216,25 @@ namespace TapTapGameJam.Player
             EventOnRotateItemPress?.Invoke();
         }
 
-        /// <summary>打开背包唯一入口：切 ActionMap + 发事件（UI 与暂停都靠这个事件驱动）</summary>
+        /// <summary>
+        /// 请求打开背包：只发事件（UI 与暂停都靠这个事件驱动）。
+        /// 重复调用是安全的 —— 容器自己用 IsOpen 去重，ActionMap 由 UIManager 统一处理。
+        /// </summary>
         public void OpenBackpack()
         {
-            if (IsBackpackOpen)
-            {
-                // 已经开着就不要再发一次事件，否则 UI 会重复刷新、暂停计数也会被重复置位
-                return;
-            }
-
-            SwitchActionMap(BackpackActionMapName);
             EventPipeline.Publish(new BackpackEvent(true));
         }
 
-        /// <summary>关闭背包唯一入口</summary>
+        /// <summary>请求关闭背包：只发事件</summary>
         public void CloseBackpack()
         {
-            if (!IsBackpackOpen)
-            {
-                return;
-            }
-
-            SwitchActionMap("DayPlayer");
             EventPipeline.Publish(new BackpackEvent(false));
         }
 
-        /// <summary>Backpack ActionMap 下的 ESC：关闭背包</summary>
+        /// <summary>
+        /// Backpack ActionMap 下的 ESC：退出所有 UI —— 直接找 UIManager 关掉全部受监控容器
+        /// （容器的开关会自动把 ActionMap 和暂停收回到 DayPlayer）。
+        /// </summary>
         public void OnCloseBackpack(InputAction.CallbackContext context)
         {
             if (!context.performed)
@@ -260,7 +242,7 @@ namespace TapTapGameJam.Player
                 return;
             }
 
-            CloseBackpack();
+            UIManager.Instance.CloseAllContainer();
         }
         #endregion
         #region 打开ESC菜单
@@ -273,7 +255,8 @@ namespace TapTapGameJam.Player
             if (_isESCMenuOpen)
             {
                 // 如果ESC菜单打开着，就切换回玩家操作模式
-                SwitchActionMap("DayPlayer");
+                // TODO: 如果那时还有受监控的容器开着，这里应该走 UIManager.Instance.RefreshActionMap()
+                SwitchActionMap(DefaultActionMapName);
                 _isESCMenuOpen = !_isESCMenuOpen;
                 // 发送事件，告诉其他系统现在ESC是关闭状态
                 EventPipeline.Publish(new ESCMenuEvent(_isESCMenuOpen));
@@ -291,7 +274,8 @@ namespace TapTapGameJam.Player
         {
             // 这是打开时的UI按钮调用的函数，直接切换回玩家操作模式。
             // 注意要发"目标状态"：原来先发旧值再翻转，订阅方会收到反的状态。
-            SwitchActionMap("DayPlayer");
+            // TODO: 同上，有容器开着的话该走 UIManager.Instance.RefreshActionMap()
+            SwitchActionMap(DefaultActionMapName);
             _isESCMenuOpen = false;
             EventPipeline.Publish(new ESCMenuEvent(false));
         }
@@ -311,9 +295,9 @@ namespace TapTapGameJam.Player
             Debug.Log($"切换为ActionMap：{actionMapName}");
             switch (actionMapName)
             {
-                case "DayPlayer":
+                case DefaultActionMapName:
                     {
-                        _playerInput.SwitchCurrentActionMap("DayPlayer");
+                        _playerInput.SwitchCurrentActionMap(DefaultActionMapName);
                         break;
                     }
                 case "MiniGame":
@@ -327,9 +311,9 @@ namespace TapTapGameJam.Player
                         _playerInput.SwitchCurrentActionMap("ESCMenu");
                         break;
                     }
-                case "Backpack":
+                case UIActionMapName:
                     {
-                        _playerInput.SwitchCurrentActionMap("Backpack");
+                        _playerInput.SwitchCurrentActionMap(UIActionMapName);
                         break;
                     }
                 case "TalentTree":

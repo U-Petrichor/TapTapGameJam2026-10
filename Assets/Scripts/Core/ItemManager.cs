@@ -75,46 +75,6 @@ namespace TapTapGameJam.Core
 
         #endregion
 
-        #region 拾取
-
-        /// <summary>
-        /// 【已废弃】把地图上的物品粗略收进背包。
-        /// 摆放算法现在归 PlayerBag 管，正常路径请调用 <see cref="TapTapGameJam.Items.PlayerBag.PickUp"/>。
-        /// 这里只作为"场景里没有 PlayerBag"时的兜底，不做任何格子检查。
-        /// </summary>
-        [System.Obsolete("拾取请走 PlayerBag.PickUp，本方法只作无 PlayerBag 场景的兜底")]
-        public bool TryAddToBag(PickableItem item)
-        {
-            if (item == null || !item.IsOnMap)
-            {
-                return false;
-            }
-
-            item.SetLocation(PickableItem.ItemLocation.InBag);
-            item.gameObject.SetActive(false); // 进背包后不再出现在世界里
-            return true;
-        }
-
-        /// <summary>
-        /// 把物品从背包放回地图（丢弃）。真正的实现在 PlayerBag.ReturnToWorld，
-        /// 这里保留一个入口是为了兼容还没改完的调用方。
-        /// </summary>
-        [System.Obsolete("请使用 PlayerBag.ReturnToWorld")]
-        public bool TryDropToMap(PickableItem item, Vector3 worldPos)
-        {
-            if (item == null || item.IsOnMap)
-            {
-                return false;
-            }
-
-            item.transform.position = worldPos;
-            item.SetLocation(PickableItem.ItemLocation.OnMap);
-            item.gameObject.SetActive(true);
-            return true;
-        }
-
-        #endregion
-
         #region 只读查询
 
         public IReadOnlyList<PickableItem> GetItemsOnMap()

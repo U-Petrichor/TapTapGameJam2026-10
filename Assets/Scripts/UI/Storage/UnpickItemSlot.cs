@@ -8,12 +8,12 @@ namespace TapTapGameJam.UI
     /// <summary>
     /// "待拾取物"位：一个只装一件东西的小容器 + 槽位。
     ///
-    /// - 作为容器（<see cref="IItemContainer"/>）：持有那一件，打开时给它建块、关掉时销毁它的块；
+    /// - 作为容器（<see cref="ItemContainer"/>）：持有那一件，打开时给它建块、关掉时销毁它的块；
     /// - 作为槽位（<see cref="IItemSlot"/>）：可以往上丢（标记点空着就行），也可以把这件再拖走。
     ///
     /// 它和背包是独立容器：背包关掉时把它一起关掉即可，不需要谁去记录它的块。
     /// </summary>
-    public class UnpickItemSlot : MonoBehaviour, IItemSlot, IItemContainer
+    public class UnpickItemSlot : ItemContainer, IItemSlot
     {
         [Tooltip("物品标记点：待拾取物停在这里。放在提示框中心")]
         [SerializeField] private RectTransform _itemSpritePivot;
@@ -68,46 +68,66 @@ namespace TapTapGameJam.UI
 
         #endregion
 
-        #region IItemContainer
+        #region ItemContainer
 
-        /// <summary>换一件停在标记点上（比如装备槽换下来的那件）</summary>
+        /// <summary>
+        /// 换一件停在标记点上（比如装备槽换下来的那件）。
+        /// 换件 = 先关掉再开，所以重复调用、连着换都是安全的。
+        /// </summary>
         public void OpenWithItem(PickableItem item)
         {
             Assert.IsTrue(item != null, "UnpickItemSlot.OpenWithItem：item 是 null");
 
-            if (_item != null && _item != item)
+            if (_item == item)
             {
-                // 原来那件的块先收掉，不然它会留在拖动层上
-                UIManager.Instance.DestroyBlock(_item);
-                _item = null;
+                OpenContainer(); // 就是当前这件：确保它开着
+                return;
             }
+
+            // 把那件（它的块 + 提示）收掉；没开着也安全
+            CloseContainer();
 
             _item = item;
             OpenContainer();
         }
 
-        public void OpenContainer()
+        /// <summary>
+        /// 打开：可安全重复调用。
+        /// 手里没东西就没什么可开的（这时不翻状态，免得"开着但没有物品"）。
+        /// </summary>
+        public override void OpenContainer()
         {
-            if (_item == null)
+            if (IsOpen || _item == null)
             {
-                // TODO: 这里该把这个提示框收起来（换一种显隐方式，别直接 SetActive 整块面板）
                 return;
             }
+
+            base.OpenContainer();
 
             BagItemBlock block = UIManager.Instance.CreateBlock(_item);
             SetItemBlock(block);
         }
 
-        public void CloseContainer()
+        /// <summary>
+        /// 关闭：可安全重复调用。
+        /// 注意 _item 可能已经是 null —— 东西被拖走了、还没放回来就关容器，这时它的块归别人管，
+        /// 这里只是把状态收干净。
+        /// </summary>
+        public override void CloseContainer()
         {
-            if (_item == null)
+            if (!IsOpen)
             {
                 return;
             }
 
-            UIManager.Instance.DestroyBlock(_item);
+            base.CloseContainer();
 
-            _item = null;
+            if (_item != null)
+            {
+                UIManager.Instance.DestroyBlock(_item);
+                _item = null;
+            }
+
             _infoTextTitle.text = "";
             _infoTextContent.text = "";
 

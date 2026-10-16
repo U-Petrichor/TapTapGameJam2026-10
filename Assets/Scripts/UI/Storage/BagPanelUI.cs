@@ -15,7 +15,7 @@ namespace TapTapGameJam.UI
     /// 【分层】
     /// - <see cref="PlayerBag"/> 是后端：只管物品真正存进/移出背包、以及 OnMap / InBag / Equipped 的变换。
     ///   它不知道"界面上正被拖着什么"。
-    /// - 本类是容器（<see cref="IItemContainer"/>）：持有"网格里的物品 + 装备中的三件"，
+    /// - 本类是容器（<see cref="ItemContainer"/>）：持有"网格里的物品 + 装备中的三件"，
     ///   负责开关时向 <see cref="UIManager"/> 申请/销毁块，以及把块**定位**到格子上
     ///   （布局逻辑在容器里，不在槽位里）。
     /// - <see cref="BagCell"/> / <see cref="EquipSlot"/> 是槽位（<see cref="IItemSlot"/>）：
@@ -32,7 +32,7 @@ namespace TapTapGameJam.UI
     /// - 右键点格子：使用该格物品
     /// </summary>
     [DisallowMultipleComponent]
-    public class BagPanelUI : MonoBehaviour, IItemContainer
+    public class BagPanelUI : ItemContainer
     {
         #region 配置常量
 
@@ -53,6 +53,9 @@ namespace TapTapGameJam.UI
         [Tooltip("背包根节点，右侧拉开")]
         [SerializeField] private RectTransform _bagRoot;
 
+        [Tooltip("拉开按钮")]
+        [SerializeField] private Image _toggleButton;
+        
         [Header("网格 / 物料")]
         [Tooltip("背包网格根节点，应当是 512x512（100*5 + 3*4），pivot 在左上角 (0,0)。格子由代码生成在这里")]
         [SerializeField] private RectTransform _gridRoot;
@@ -67,6 +70,7 @@ namespace TapTapGameJam.UI
         [Tooltip("待拾取物品的slot（独立小容器）")]
         [SerializeField] private UnpickItemSlot _unpickItemSlot;
 
+        
         [Header("背包组件")]
         [Tooltip("玩家的 PlayerBag。在 Inspector 里从场景里的 Player 预制体实例上拖过来")]
         [SerializeField] private PlayerBag _bag;
@@ -78,7 +82,6 @@ namespace TapTapGameJam.UI
         private readonly List<BagCell> _cells = new List<BagCell>();
 
         private CanvasGroup _canvasGroup;
-        private bool _visible;
 
         #endregion
 
@@ -98,7 +101,7 @@ namespace TapTapGameJam.UI
                 _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
 
-            ApplyVisibility();
+            ApplyVisibility(false);
         }
 
         private void Start()
@@ -107,23 +110,42 @@ namespace TapTapGameJam.UI
             BuildGrid();
 
             EventPipeline.Subscribe<BackpackEvent>(OnBackpackEvent);
+            EventPipeline.Subscribe<EventToggleBackpack>(OnToggleBackpackEvent);
         }
 
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<BackpackEvent>(OnBackpackEvent);
+            EventPipeline.UnSubscribe<EventToggleBackpack>(OnToggleBackpackEvent);
         }
 
         #endregion
 
-        #region IItemContainer
+        #region ItemContainer
 
         /// <summary>
-        /// 打开：为容器持有的每一件物品建块并摆好位置。
+        /// 背包面板上那个"拉开按钮"绑的就是这个方法名（场景里的 UnityEvent），别改名。
+        /// 开↔关的逻辑在基类。
+        /// </summary>
+        public void ToggleOpen()
+        {
+            ToggleContainer();
+        }
+
+        /// <summary>
+        /// 打开：为容器持有的每一件物品建块并摆好位置，最后把自己显示出来。
+        /// 可安全重复调用；状态与 ActionMap 由基类负责（base 里翻 IsOpen 并通知 UIManager）。
         /// 持有的物品 = 背包格子里的 + 装备中的三件；待拾取那件是 UnpickItemSlot 自己的事。
         /// </summary>
-        public void OpenContainer()
+        public override void OpenContainer()
         {
+            if (IsOpen)
+            {
+                return;
+            }
+
+            base.OpenContainer();
+
             foreach (PlayerBag.Placement p in _bag.Placements)
             {
                 BagItemBlock block = UIManager.Instance.CreateBlock(p.item);
@@ -133,6 +155,10 @@ namespace TapTapGameJam.UI
             OpenEquippedBlock(_slotHead);
             OpenEquippedBlock(_slotBody);
             OpenEquippedBlock(_slotLegs);
+
+            ApplyVisibility(true);
+            HidePreview();
+            _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 0);
 
             PickableItem pending = _bag.PendingPickupItem;
             if (pending != null)
@@ -145,9 +171,16 @@ namespace TapTapGameJam.UI
             }
         }
 
-        /// <summary>关闭：把自己持有的每件物品对应的块交给 UIManager 销毁</summary>
-        public void CloseContainer()
+        /// <summary>关闭：把自己持有的每件物品对应的块交给 UIManager 销毁，然后把自己藏起来。可安全重复调用</summary>
+        public override void CloseContainer()
         {
+            if (!IsOpen)
+            {
+                return;
+            }
+
+            base.CloseContainer();
+
             // 拖到一半就关：这块已经不属于任何容器了，按约定直接销毁
             UIManager.Instance.DestroyDraggingBlock();
 
@@ -160,9 +193,11 @@ namespace TapTapGameJam.UI
             DestroyEquippedBlock(_slotBody);
             DestroyEquippedBlock(_slotLegs);
 
+            _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 180);
             _bag.ClearPendingPickupItem();
             _unpickItemSlot.CloseContainer();
             HidePreview();
+            ApplyVisibility(false);
         }
 
         /// <summary>部位用槽位自己记的那个（slot.Slot，Inspector 里指定的），不按字段顺序假设</summary>
@@ -407,22 +442,22 @@ namespace TapTapGameJam.UI
 
         #region 表现 / 工具
 
-        private void ApplyVisibility()
+        private void ApplyVisibility(bool visible)
         {
             if (_canvasGroup == null)
             {
                 return;
             }
 
-            _canvasGroup.alpha = _visible ? 1f : 0f;
+            _canvasGroup.alpha = visible ? 1f : 0f;
 
             // 关键：alpha = 0 只影响渲染，不影响射线。
             // BagPanel 是铺满全屏的（anchor 0,0 → 1,1），底图又开着 RaycastTarget，
             // 所以隐藏时必须把 blocksRaycasts 关掉 —— 否则这张看不见的挡板会把
             // 场景里所有 UI（按钮、格子、其它面板）的点击全部吃掉。
             // 打开时才恢复成挡板，这样"点背包外面 = 丢弃物品"才能生效。
-            _canvasGroup.blocksRaycasts = _visible;
-            _canvasGroup.interactable = _visible;
+            _canvasGroup.blocksRaycasts = visible;
+            _canvasGroup.interactable = visible;
         }
 
         /// <summary>清掉所有格子的试放预览</summary>
@@ -456,16 +491,9 @@ namespace TapTapGameJam.UI
         private void OnBackpackEvent(BackpackEvent evt)
         {
             bool isOpen = evt.IsOpen;
-            if (_visible == isOpen)
-            {
-                return;
-            }
-
-            _visible = isOpen;
 
             if (isOpen)
             {
-                HidePreview();
                 OpenContainer();
             }
             else
@@ -473,7 +501,15 @@ namespace TapTapGameJam.UI
                 CloseContainer();
             }
 
-            ApplyVisibility();
+        }
+
+        /// <summary>
+        /// 背包键（B）。事件只表示"键被按了"，到底是开还是关由容器自己判断
+        /// （持有"当前开/关"的是容器，不再是输入层去读 ActionMap 猜）。
+        /// </summary>
+        private void OnToggleBackpackEvent(EventToggleBackpack evt)
+        {
+            ToggleContainer();
         }
 
         private bool TryGetCell(Vector2Int cell, out BagCell result)

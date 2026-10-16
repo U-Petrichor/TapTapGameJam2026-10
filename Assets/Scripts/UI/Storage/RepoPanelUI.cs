@@ -12,7 +12,7 @@ namespace TapTapGameJam.UI
     /// 仓库界面容器：一格一件（格数由 <see cref="PlayerRepo.Width"/> × Height 决定，不再自己写死常量）。
     ///
     /// 【和 BagPanelUI 一致】
-    /// - 实现 <see cref="IItemContainer"/>：打开时为仓库持有的每件物品建块并摆好，关闭时销毁这些块；
+    /// - 派生自 <see cref="ItemContainer"/>：打开时为仓库持有的每件物品建块并摆好，关闭时销毁这些块；
     /// - 不记录自己持有哪些块 —— 块跟着物品走，物品转到别的容器后由那个容器负责销毁；
     /// - 布局在容器里（槽位只转发）；拖拽由 <see cref="BagItemBlock"/> 自己射线找落点。
     ///
@@ -23,7 +23,7 @@ namespace TapTapGameJam.UI
     /// 开关走独立事件 <see cref="RepoOnOffEvent"/>（和背包的 BackpackEvent 互不影响）。
     /// </summary>
     [DisallowMultipleComponent]
-    public class RepoPanelUI : MonoBehaviour, IItemContainer
+    public class RepoPanelUI : ItemContainer
     {
         #region 配置常量
 
@@ -59,7 +59,6 @@ namespace TapTapGameJam.UI
         private readonly List<RepoCellUI> _cells = new List<RepoCellUI>();
 
         private CanvasGroup _canvasGroup;
-        private bool _visible;
 
         #endregion
 
@@ -77,7 +76,7 @@ namespace TapTapGameJam.UI
             }
 
             BuildGrid();
-            ApplyVisibility();
+            ApplyVisibility(false);
         }
 
         public void OpenRepoTemp()
@@ -97,10 +96,21 @@ namespace TapTapGameJam.UI
 
         #endregion
 
-        #region IItemContainer
+        #region ItemContainer
 
-        public void OpenContainer()
+        /// <summary>
+        /// 打开：为仓库持有的每件物品建块并摆好，最后把自己显示出来。
+        /// 可安全重复调用；状态与 ActionMap 由基类负责。
+        /// </summary>
+        public override void OpenContainer()
         {
+            if (IsOpen)
+            {
+                return;
+            }
+
+            base.OpenContainer();
+
             for (int i = 0; i < _cells.Count; i++)
             {
                 PickableItem item = _repo.ItemAt(i);
@@ -112,10 +122,21 @@ namespace TapTapGameJam.UI
                 BagItemBlock block = UIManager.Instance.CreateBlock(item);
                 LayoutBlockToCell(block, _cells[i]);
             }
+
+            ApplyVisibility(true);
+            HidePreview();
         }
 
-        public void CloseContainer()
+        /// <summary>关闭：把自己持有的每件物品对应的块销毁，然后把自己藏起来。可安全重复调用</summary>
+        public override void CloseContainer()
         {
+            if (!IsOpen)
+            {
+                return;
+            }
+
+            base.CloseContainer();
+
             // 拖到一半就关：这块已经不属于任何容器了，按约定直接销毁
             UIManager.Instance.DestroyDraggingBlock();
 
@@ -125,6 +146,7 @@ namespace TapTapGameJam.UI
             }
 
             HidePreview();
+            ApplyVisibility(false);
         }
 
         #endregion
@@ -260,42 +282,35 @@ namespace TapTapGameJam.UI
 
         #region 表现 / 工具
 
-        private void ApplyVisibility()
+        private void ApplyVisibility(bool visible)
         {
             if (_canvasGroup == null)
             {
                 return;
             }
 
-            _canvasGroup.alpha = _visible ? 1f : 0f;
+            _canvasGroup.alpha = visible ? 1f : 0f;
 
             // 和背包同理：alpha = 0 不影响射线，隐藏时必须关掉 blocksRaycasts，
             // 否则这张看不见的面板会把别的 UI 的点击吃掉
-            _canvasGroup.blocksRaycasts = _visible;
-            _canvasGroup.interactable = _visible;
+            _canvasGroup.blocksRaycasts = visible;
+            _canvasGroup.interactable = visible;
         }
 
+        /// <summary>
+        /// 事件只负责触发：开关的全部动作都在 <see cref="OpenContainer"/> / <see cref="CloseContainer"/> 里，
+        /// 去重也在那两个方法里（重复的事件不会重复建块 / 重复销毁）。
+        /// </summary>
         private void OnRepoEvent(RepoOnOffEvent evt)
         {
-            bool isOpen = evt.IsOpen;
-            if (_visible == isOpen)
+            if (evt.IsOpen)
             {
-                return;
-            }
-
-            _visible = isOpen;
-
-            if (isOpen)
-            {
-                HidePreview();
                 OpenContainer();
             }
             else
             {
                 CloseContainer();
             }
-
-            ApplyVisibility();
         }
 
         /// <summary>清掉所有格子的试放预览</summary>

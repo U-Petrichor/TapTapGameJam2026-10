@@ -92,6 +92,31 @@ namespace TapTapGameJam.Events
             IsOpen = isOpen;
         }
     }
+
+    /// <summary>
+    /// 按下了背包键（B）。
+    /// 只表示"这个键被按了"：到底开还是关由容器自己判断（持有"当前开/关"的是容器，不是输入层），
+    /// ActionMap 也由 UIManager 按"有没有受监控容器开着"统一切。
+    /// </summary>
+    public readonly struct EventToggleBackpack : IEvent
+    {
+    }
+
+    /// <summary>
+    /// 受监控容器的开关状态变了（UIManager 判断完之后广播）。
+    /// 只当"该重新判断暂停 / 别的横切逻辑"的触发器用；需要具体状态就去读
+    /// <see cref="TapTapGameJam.UI.UIManager.AllContainersClosed"/>（这里也带了一份，方便日志）。
+    /// </summary>
+    public readonly struct EventContainerStateChanged : IEvent
+    {
+        /// <summary>是不是所有受监控的容器都关着</summary>
+        public bool AllContainersClosed { get; }
+
+        public EventContainerStateChanged(bool allContainersClosed)
+        {
+            AllContainersClosed = allContainersClosed;
+        }
+    }
     
     public readonly struct RepoOnOffEvent : IEvent
     {

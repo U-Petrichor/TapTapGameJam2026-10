@@ -135,7 +135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &14625823
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2982,7 +2982,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 901970754}
         m_TargetAssemblyTypeName: TapTapGameJam.UI.RepoPanelUI, Assembly-CSharp
-        m_MethodName: OpenRepoTemp
+        m_MethodName: ToggleContainer
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5245,6 +5245,10 @@ MonoBehaviour:
   _cellSpacing: 3
   _dragLayer: {fileID: 216682730}
   _bag: {fileID: 4853131174117530477}
+  _containers:
+  - {fileID: 1955856715526313587}
+  - {fileID: 901970754}
+  - {fileID: 14625824}
 --- !u!1 &1768378447
 GameObject:
   m_ObjectHideFlags: 0
@@ -5806,9 +5810,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -416, y: 0}
+  m_AnchoredPosition: {x: -426.91, y: 0}
   m_SizeDelta: {x: 50, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.22, y: 0.5}
 --- !u!114 &1842770358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5852,7 +5856,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1842770359}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1955856715526313587}
+        m_TargetAssemblyTypeName: TapTapGameJam.UI.BagPanelUI, Assembly-CSharp
+        m_MethodName: ToggleOpen
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1842770359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7236,6 +7252,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.BagPanelUI
   _bagRoot: {fileID: 8812027121864878242}
+  _toggleButton: {fileID: 1842770359}
   _gridRoot: {fileID: 6575292632729008459}
   _slotHead: {fileID: 2081115382}
   _slotBody: {fileID: 1804842107}
@@ -7934,7 +7951,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 167, y: 0}
+  m_AnchoredPosition: {x: 121, y: 0}
   m_SizeDelta: {x: 850, y: 600}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!1001 &8830923686708275691

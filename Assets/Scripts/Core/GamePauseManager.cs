@@ -1,6 +1,7 @@
 using UnityEngine;
 using TapTapGameJam.Events;
 using TapTapGameJam.Types;
+using TapTapGameJam.UI;
 
 namespace TapTapGameJam.Core
 {
@@ -13,12 +14,13 @@ namespace TapTapGameJam.Core
         }
 
         private bool _escOpen;
-        private bool _backpackOpen;
         private bool _doorRevealPlaying;
 
         // 任意一个暂停原因存在，游戏就保持暂停。
+        // "有没有 UI 面板开着"不再自己记一份：去问 UIManager —— 它才知道受监控容器的开/关，
+        // 这样仓库、以后的商店也一起算数，不用在暂停这边一个个订阅。
         public bool IsPaused =>
-            _escOpen || _backpackOpen || _doorRevealPlaying;
+            _escOpen || UIManager.Instance.AnyContainerOpen || _doorRevealPlaying;
 
         public void SetDoorRevealPlaying(bool playing)
         {
@@ -37,8 +39,9 @@ namespace TapTapGameJam.Core
                 HandleESCMenu
             );
 
-            EventPipeline.Subscribe<BackpackEvent>(
-                HandleBackpack
+            // 容器开关状态变了只是"触发器"，真正的状态在 RefreshPause 里问 UIManager
+            EventPipeline.Subscribe<EventContainerStateChanged>(
+                HandleContainerStateChanged
             );
         }
 
@@ -53,8 +56,8 @@ namespace TapTapGameJam.Core
                 HandleESCMenu
             );
 
-            EventPipeline.UnSubscribe<BackpackEvent>(
-                HandleBackpack
+            EventPipeline.UnSubscribe<EventContainerStateChanged>(
+                HandleContainerStateChanged
             );
         }
 
@@ -64,9 +67,8 @@ namespace TapTapGameJam.Core
             RefreshPause();
         }
 
-        private void HandleBackpack(BackpackEvent evt)
+        private void HandleContainerStateChanged(EventContainerStateChanged evt)
         {
-            _backpackOpen = evt.IsOpen;
             RefreshPause();
         }
 

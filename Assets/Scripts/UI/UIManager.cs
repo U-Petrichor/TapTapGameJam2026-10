@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Core;
+using TapTapGameJam.Events;
 using TapTapGameJam.Items;
+using TapTapGameJam.Player;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -56,6 +58,11 @@ namespace TapTapGameJam.UI
         [Tooltip("物品送回世界时用的后端。UI 侧只有这一处要落到世界上")]
         [SerializeField] private PlayerBag _bag;
 
+        [Header("受监控的容器")]
+        [Tooltip("打开其中任意一个就切 Backpack ActionMap、并让游戏暂停；全关了才回 DayPlayer。" +
+                 "没连进来的容器不参与判断（不是所有容器都需要关注）")]
+        [SerializeField] private List<ItemContainer> _containers = new List<ItemContainer>();
+
         #endregion
 
         #region 对外
@@ -76,6 +83,67 @@ namespace TapTapGameJam.UI
         /// <summary>鼠标正拖着的那一块。R 键旋转、拖拽中关容器都靠它</summary>
         public BagItemBlock CurrentDraggingBlock { get; private set; }
 
+        /// <summary>
+        /// 所有受监控的容器都关着吗。
+        /// 这是"UI 有没有占着屏幕"的唯一判断依据：暂停（<see cref="GamePauseManager"/>）和
+        /// ActionMap 都看它。
+        /// </summary>
+        public bool AllContainersClosed
+        {
+            get
+            {
+                for (int i = 0; i < _containers.Count; i++)
+                {
+                    ItemContainer container = _containers[i];
+                    if (container != null && container.IsOpen) // 已销毁的条目当作没开
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>受监控的容器里有开着的吗（= 该用 UI 的 ActionMap、该暂停）</summary>
+        public bool AnyContainerOpen => !AllContainersClosed;
+
+        /// <summary>受监控的容器数量，调试用</summary>
+        public int MonitoredContainerCount => _containers.Count;
+
+        /// <summary>
+        /// 重新判断一遍：有受监控容器开着就用 UI 的 ActionMap（Backpack），全关了才回默认（DayPlayer），
+        /// 然后广播 <see cref="EventContainerStateChanged"/> 让暂停这类横切逻辑跟着重算。
+        ///
+        /// 容器的开/关会自动调到这里（见 <see cref="ItemContainer"/>）；别的系统把 ActionMap 改掉之后
+        /// 也应该调它，免得绕开这条规则、在容器还开着的时候切回 DayPlayer。
+        /// </summary>
+        public void RefreshActionMap()
+        {
+            bool allClosed = AllContainersClosed;
+
+            GameManager.PlayerInputManager.SwitchActionMap(
+                allClosed ? PlayerInputManager.DefaultActionMapName : PlayerInputManager.UIActionMapName);
+
+            EventPipeline.Publish(new EventContainerStateChanged(allClosed));
+        }
+
+        /// <summary>
+        /// 把所有受监控的容器关掉（Backpack ActionMap 下的 ESC 走这里：ESC = 退出所有 UI）。
+        /// 逐个调 CloseContainer，各容器自己的销毁块 / 隐藏照常执行。
+        /// </summary>
+        public void CloseAllContainer()
+        {
+            for (int i = 0; i < _containers.Count; i++)
+            {
+                ItemContainer container = _containers[i];
+                if (container != null && container.IsOpen)
+                {
+                    container.CloseContainer();
+                }
+            }
+        }
+
         #endregion
 
         #region 生命周期
@@ -87,6 +155,12 @@ namespace TapTapGameJam.UI
 
             Assert.IsTrue(_dragLayer, "UIManager：没连 DragLayer");
             Assert.IsTrue(_bag, "UIManager：没连 PlayerBag（送回世界要用）");
+
+            if (_containers.Count == 0)
+            {
+                Debug.LogWarning($"[UIManager:{name}]：受监控容器列表是空的 —— 打开背包 / 仓库时不会切 " +
+                                 "ActionMap、也不会暂停。请把需要关注的容器（BagPanelUI / RepoPanelUI…）拖进列表", this);
+            }
 
             EnsureDragLayerOnTop();
         }
