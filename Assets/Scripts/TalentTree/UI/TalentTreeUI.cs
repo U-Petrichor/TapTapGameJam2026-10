@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Player;
@@ -276,7 +277,7 @@ namespace TalentTree
         private void UpgradeSelected()
         {
             if (_selected == null || _playerTalentTree == null) return;
-            _playerTalentTree.TryUpgrade(_selected);
+            if (!_playerTalentTree.TryUpgrade(_selected).Succeeded) Sfx.Play(SoundId.Error, this);
             Refresh();
         }
 
@@ -290,6 +291,7 @@ namespace TalentTree
             }
 
             TalentOperationResult result = _playerTalentTree.TryUnlock(_selected);
+            if (!result.Succeeded) Sfx.Play(SoundId.Error, this);
             _operationMessage = result.Succeeded ? "天赋解锁成功。" : result.Message;
             Refresh();
         }
@@ -304,6 +306,7 @@ namespace TalentTree
             }
 
             TalentOperationResult result = _playerTalentTree.TryRemove(_selected);
+            if (!result.Succeeded) Sfx.Play(SoundId.Error, this);
             _operationMessage = result.Succeeded ? $"天赋已解除，返还 {result.PointChange} 天赋点。" : result.Message;
             Refresh();
         }

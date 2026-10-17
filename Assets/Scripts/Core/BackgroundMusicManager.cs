@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using TapTapGameJam.Audio;
+using UnityEngine;
 
 using TapTapGameJam.Events;
 using TapTapGameJam.Types;
@@ -48,6 +49,12 @@ namespace TapTapGameJam.Core
         {
             // 兼容阶段管理器的 Start 在本组件之前或之后执行。
             SyncCurrentPhase();
+        }
+
+        private void LateUpdate()
+        {
+            if (_musicSource != null && SoundManager.Instance != null)
+                _musicSource.volume = SoundManager.Instance.MusicGain;
         }
 
         private void OnDisable()

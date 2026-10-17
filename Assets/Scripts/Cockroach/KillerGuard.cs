@@ -1,6 +1,7 @@
 using System;
 using TapTapGameJam.Core;
 using TapTapGameJam.Player;
+using TapTapGameJam.Audio;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -368,6 +369,7 @@ namespace TapTapGameJam.Cockroach
                 return;
             }
 
+            Sfx.At(SoundId.Stomp, victim.transform.position, this);
             victim.Die();       // 危险信息素爆发在 Die() 里做
 
             CockroachesInSight.Remove(victim);

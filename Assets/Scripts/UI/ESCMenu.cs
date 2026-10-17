@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using UnityEngine;
 using TapTapGameJam.Events;
 using UnityEngine.UI;
@@ -84,6 +85,7 @@ namespace TapTapGameJam.UI
         private void ReturnToMainMenu()
         {
             // 这里可以添加返回主菜单的逻辑，比如加载主菜单场景
+            Sfx.Play(SoundId.Click, this);
             UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
         private void ExitGame()

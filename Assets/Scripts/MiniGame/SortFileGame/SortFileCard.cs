@@ -24,7 +24,7 @@ namespace TapTapGameJam.UI
         public RectTransform Rect => _rect;
         public Vector3 HomeWorldPosition => _homeParent.TransformPoint(_homeParent.rect.center + _homePosition);
 
-        public void Initialize(SortFileGame owner, int index, SortFileDepartment department, Color color)
+        public void Initialize(SortFileGame owner, int index, SortFileDepartment department, Color color, Sprite artwork = null)
         {
             _owner = owner;
             Index = index;
@@ -39,8 +39,16 @@ namespace TapTapGameJam.UI
             {
                 _departmentText.text = SortFileRound.DepartmentName(department) + "文件";
                 _departmentText.raycastTarget = false;
+                // 文件素材已自带部门文字，避免与旧标签重叠。
+                _departmentText.gameObject.SetActive(artwork == null);
             }
-            GetComponent<Image>().color = color;
+            var image = GetComponent<Image>();
+            image.color = artwork != null ? Color.white : color;
+            if (artwork != null)
+            {
+                image.sprite = artwork;
+                image.preserveAspect = true;
+            }
             SetDraggable(false);
         }
 

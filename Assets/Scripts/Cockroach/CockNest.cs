@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
@@ -186,6 +187,7 @@ namespace TapTapGameJam.Cockroach
             if (nestLockState == state) return;
 
             nestLockState = state;
+            Sfx.Play(SoundId.Achievement, this);
             RefreshRingVisibility();
         }
 

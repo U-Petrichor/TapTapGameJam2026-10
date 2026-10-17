@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using TapTapGameJam.Coffee;
 using TMPro;
@@ -16,6 +17,9 @@ namespace TapTapGameJam.UI
         [SerializeField] private RectTransform _beans;
         [SerializeField] private RectTransform _beansZone;
         [SerializeField] private RectTransform _grindButton;
+        [Tooltip("独立手柄图片，轴心设在圆形连接处。只在有效研磨时旋转。")]
+        [SerializeField] private RectTransform _grinderHandle;
+        [SerializeField, Min(0f)] private float _grindDegreesPerSecond = 240f;
         [Header("盛粉杯与咖啡机")]
         [SerializeField] private RectTransform _grounds;
         [SerializeField] private GameObject _groundVisual;
@@ -55,8 +59,11 @@ namespace TapTapGameJam.UI
         private Camera _eventCamera;
         private int _pointerId;
         private bool _holdingGrinder, _running;
+        private int _lastGrindingFrame = -1;
         private float _completionRemaining = -1f;
         private Action _onCompleted;
+        private Quaternion _initialHandleRotation;
+        private bool _hasInitialHandleRotation;
 
         public bool IsConfigured => _beans != null && _beansZone != null && _grindButton != null
             && _grounds != null && _groundVisual != null && _kettle != null && _kettleSpout != null
@@ -80,6 +87,11 @@ namespace TapTapGameJam.UI
         public override void Begin(Action onCompleted)
         {
             if (_items == null) CacheItems();
+            if (_grinderHandle != null && !_hasInitialHandleRotation)
+            {
+                _initialHandleRotation = _grinderHandle.localRotation;
+                _hasInitialHandleRotation = true;
+            }
             ResetView();
             if (!IsConfigured) throw new InvalidOperationException("请绑定咖啡豆、放豆区域、研磨机、盛粉杯与粉堆、热水壶与壶嘴、放粉及注水区域。");
             _panelGroup = GetComponentInParent<MiniGamePanelUI>()?.GetComponent<CanvasGroup>();
@@ -120,6 +132,7 @@ namespace TapTapGameJam.UI
                 if (!Hit(hit.transform, item) || !CanDrag(item)) continue;
                 if (!(item.parent is RectTransform parent) || !RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     parent, evt.position, evt.pressEventCamera, out var point)) return;
+                if (item == _beans || item == _grounds) Sfx.Play(SoundId.PaperBag, this);
                 _dragged = item;
                 _pointerId = evt.pointerId;
                 _eventCamera = evt.pressEventCamera;
@@ -179,7 +192,7 @@ namespace TapTapGameJam.UI
                 return;
             }
             if (_holdingGrinder && RectTransformUtility.RectangleContainsScreenPoint(
-                _grindButton, mouse.position.ReadValue(), _eventCamera)) _recipe.Grind(Time.unscaledDeltaTime);
+                _grindButton, mouse.position.ReadValue(), _eventCamera)) AdvanceGrinding(Time.unscaledDeltaTime);
             if (!_running) return;
             bool pouring = false;
             if (_dragged == _kettle)
@@ -197,6 +210,26 @@ namespace TapTapGameJam.UI
             else _recipe.StopPouringWater();
             SetVisible(_waterEffect, _running && pouring);
             if (_running) Refresh();
+        }
+        private void LateUpdate()
+        {
+            bool processing = CanInteract && _recipe != null && _recipe.IsProcessing;
+            ActionSound.SetPlaying(SoundId.Grinding, processing && _recipe.Step == CoffeeStep.Grind
+                && _lastGrindingFrame == Time.frameCount);
+            ActionSound.SetPlaying(SoundId.PourWater, processing && _recipe.Step == CoffeeStep.PourWater);
+        }
+
+        private void AdvanceGrinding(float deltaTime)
+        {
+            if (!CanInteract || !_holdingGrinder || _recipe == null ||
+                _recipe.Step != CoffeeStep.Grind || !_recipe.IsProcessing || deltaTime <= 0f ||
+                float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
+            // 最后一帧只旋转剩余研磨时间，之后的步骤不会继续带动手柄。
+            float consumed = Mathf.Min(deltaTime, (1f - _recipe.Progress) * Mathf.Max(0.1f, _grindSeconds));
+            if (_grinderHandle != null)
+                _grinderHandle.Rotate(0f, 0f, -Mathf.Max(0f, _grindDegreesPerSecond) * consumed, Space.Self);
+            _lastGrindingFrame = Time.frameCount;
+            _recipe.Grind(deltaTime);
         }
         private void OnStepChanged(CoffeeStep step)
         {
@@ -250,6 +283,7 @@ namespace TapTapGameJam.UI
         }
         public override void End()
         {
+            ActionSound.StopAll();
             ReleaseInput();
             _running = false;
             _completionRemaining = -1f;
@@ -260,6 +294,8 @@ namespace TapTapGameJam.UI
         {
             End();
             _recipe = null;
+            if (_grinderHandle != null && _hasInitialHandleRotation)
+                _grinderHandle.localRotation = _initialHandleRotation;
             if (_items != null) foreach (var item in _items) ResetItem(item);
             Refresh();
         }

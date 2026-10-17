@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using TapTapGameJam.Items;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -111,7 +112,11 @@ namespace TapTapGameJam.Player
             // TODO: 启用 RefreshHeavyFromBag();
 
             _sprintHeld = ReadSprintHeld();
+            bool wasSprinting = _isSprinting;
             UpdatePower(Time.deltaTime);
+            if (!wasSprinting && _isSprinting && Time.timeScale > 0f &&
+                TryGetComponent<PlayerBasic>(out var player) && !player.IsHuman)
+                Sfx.At(SoundId.Sprint, transform.position, this);
 
             // 冲刺只在这里落地：PlayerMovement 只负责按 IsSprinting 改速度
             if (_movement != null)
@@ -136,6 +141,7 @@ namespace TapTapGameJam.Player
             }
 
             _damage += amount;
+            Sfx.Play(SoundId.Hit, this);
             ClampAvailableToTotal();
         }
 
@@ -147,7 +153,9 @@ namespace TapTapGameJam.Player
                 return;
             }
 
+            float previous = _damage;
             _damage = Mathf.Max(0f, _damage - amount);
+            if (previous > 0f && _damage <= 0f) Sfx.Play(SoundId.Recovery, this);
         }
 
         /// <summary>中毒：增加中毒占据的上限</summary>
@@ -159,6 +167,7 @@ namespace TapTapGameJam.Player
             }
 
             _poison += amount;
+            Sfx.Play(SoundId.Hit, this);
             ClampAvailableToTotal();
         }
 
@@ -170,7 +179,9 @@ namespace TapTapGameJam.Player
                 return;
             }
 
+            float previous = _poison;
             _poison = Mathf.Max(0f, _poison - amount);
+            if (previous > 0f && _poison <= 0f) Sfx.Play(SoundId.Recovery, this);
         }
 
         /// <summary>直接改负重（正常情况下负重由背包自动换算，这个接口留给特殊玩法用）</summary>
@@ -205,6 +216,7 @@ namespace TapTapGameJam.Player
         /// <summary>回满当前可用体力（睡一觉、吃药之类）</summary>
         public void RefillPower()
         {
+            if (_powerAvailable < PowerTotal) Sfx.Play(SoundId.Recovery, this);
             _powerAvailable = PowerTotal;
             _needsRecoverToSprint = false;
         }
@@ -297,6 +309,7 @@ namespace TapTapGameJam.Player
             }
 
             _isDefeated = true;
+            Sfx.Play(SoundId.Defeat, this);
             _isSprinting = false;
 
             // TODO: 失败流程（倒下动画 / 弹结算界面 / 通知 GameManager 结束本局）

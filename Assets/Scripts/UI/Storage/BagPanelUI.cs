@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -406,10 +407,12 @@ namespace TapTapGameJam.UI
 
             if (!_bag.TryPlace(block.boundedItem, origin))
             {
+                Sfx.Play(SoundId.Error, this);
                 return false;
             }
 
             LayoutBlockToCell(block, origin);
+            Sfx.Play(SoundId.MoveItem, this);
             return true;
         }
 

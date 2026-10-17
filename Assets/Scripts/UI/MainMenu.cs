@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -20,7 +21,7 @@ namespace TapTapGameJam.UI
 
         private void BindEvents()
         {
-            if(startGameBtn != null) startGameBtn.onClick.AddListener(() => SceneManager.LoadScene("GameScene"));
+            if(startGameBtn != null) startGameBtn.onClick.AddListener(() => { Sfx.Play(SoundId.Click, this); SceneManager.LoadScene("GameScene"); });
             // if (settingsBtn != null) settingsBtn.onClick.AddListener(() => SettingsManager.Instance.OpenESCMenu());
 
             if (exitBtn != null) exitBtn.onClick.AddListener(() => {

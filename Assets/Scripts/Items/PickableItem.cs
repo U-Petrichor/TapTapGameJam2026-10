@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
@@ -111,7 +112,9 @@ namespace TapTapGameJam.Items
                 return;
             }
 
-            bag.PickUp(this);
+            Vector3 pickupPosition = transform.position;
+            if (bag.PickUp(this)) Sfx.At(SoundId.Pickup, pickupPosition, player, SoundBus.Interface);
+            else Sfx.Play(SoundId.Error, player);
         }
 
         public override string InteractionPrompt => "按 E 拾取";

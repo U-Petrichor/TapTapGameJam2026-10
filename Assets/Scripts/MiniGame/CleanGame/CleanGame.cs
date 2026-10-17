@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using TapTapGameJam.UI;
 using TMPro;
@@ -16,6 +17,7 @@ public class CleanGame : MiniGameContent, IPointerDownHandler, IDragHandler, IPo
     [SerializeField, Min(1f)] private float _brushRadius = 35f;
     private Texture2D _workingTexture;
     private Color32[] _pixels;
+    private float _lastWipeMotion = -100f;
     private WipeMask _mask;
     private Action _onCompleted;
     private bool _running, _wiping;
@@ -91,9 +93,15 @@ public class CleanGame : MiniGameContent, IPointerDownHandler, IDragHandler, IPo
     }
     public void OnDrag(PointerEventData evt)
     {
-        if (_wiping && evt.pointerId == _pointer && TryPoint(evt, out var point)) Erase(point);
+        if (_wiping && evt.pointerId == _pointer && TryPoint(evt, out var point))
+        {
+            if ((point - _last).sqrMagnitude > 0.01f) _lastWipeMotion = Time.unscaledTime;
+            Erase(point);
+        }
     }
     public void OnPointerUp(PointerEventData evt) { if (evt.pointerId == _pointer) _wiping = false; }
+    private void LateUpdate() => ActionSound.SetPlaying(SoundId.Wipe,
+        _running && _wiping && Time.unscaledTime - _lastWipeMotion < 0.08f);
     private bool TryPoint(PointerEventData evt, out Vector2 point)
     {
         point = default;
@@ -130,7 +138,7 @@ public class CleanGame : MiniGameContent, IPointerDownHandler, IDragHandler, IPo
         if (_progressBar != null) _progressBar.SetValueWithoutNotify(_mask.Progress);
         if (_progressText != null) _progressText.text = $"已清理 {_mask.Progress:P0} · 目标 {_completionThreshold:P0}";
     }
-    public override void End() { _running = _wiping = false; _onCompleted = null; }
+    public override void End() { ActionSound.StopAll(); _lastWipeMotion = -100f; _running = _wiping = false; _onCompleted = null; }
     public override void ResetView()
     {
         End();

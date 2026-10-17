@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -200,6 +201,7 @@ namespace TapTapGameJam.Cockroach
         {
             if (_dead) return;
             _dead = true;
+            Sfx.At(SoundId.Hit, transform.position, this);
 
             GridManager grid = GridManager.Instance;
             if (grid != null && _settings != null)
@@ -635,6 +637,7 @@ namespace TapTapGameJam.Cockroach
                         GridManager.Instance.ClearPheromoneInRadius(PheromoneKind.Food, foodPos, _settings.EmptyClearRadius, 0f);
                     }
 
+                    Sfx.At(SoundId.Gnaw, transform.position, this);
                     _carrying = take;
                     SetState(CockroachState.Return);
                     _phaseClock = 0f; // 计时重置 → 食物处信息素最浓

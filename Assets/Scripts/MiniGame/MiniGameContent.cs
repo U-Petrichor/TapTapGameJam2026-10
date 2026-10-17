@@ -1,9 +1,11 @@
+using TapTapGameJam.Audio;
 using UnityEngine;
 
 namespace TapTapGameJam.UI
 {
     public abstract class MiniGameContent : MonoBehaviour
     {
+        protected SoundEmitter ActionSound => Sfx.Emitter(this);
         protected TapTapGameJam.Player.PlayerResources Resources { get; private set; }
         public void BindPlayer(TapTapGameJam.Player.PlayerBasic player) =>
             Resources = player != null ? player.PlayerResources : null;

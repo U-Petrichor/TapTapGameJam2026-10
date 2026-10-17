@@ -247,7 +247,7 @@ namespace TapTapGameJam.UI
             {
                 root.sizeDelta = new Vector2(1100, 600);
                 Label(root, "Title", "拆快递", new Vector2(800, 50), new Vector2(0, 255), font, 34);
-                Label(root, "Instruction", "按住鼠标左键，沿黄色胶带拖动剪刀", new Vector2(900, 40), new Vector2(0, 210), font, 22);
+                Label(root, "Instruction", "按住鼠标左键，沿黄色胶带拖动美工刀", new Vector2(900, 40), new Vector2(0, 210), font, 22);
 
                 var box = Raw(root, "Box", new Vector2(800, 408), new Vector2(0, -5), LoadParcelTexture("1.png"), false);
                 var tapeImages = new RawImage[ParcelCutRound.TapeCount];
@@ -276,7 +276,7 @@ namespace TapTapGameJam.UI
                 handle.rectTransform.localEulerAngles = new Vector3(0, 0, -18f);
 
                 var progress = Label(root, "ProgressText", "已拆 0 / 3", new Vector2(420, 34), new Vector2(-290, -260), font, 24);
-                var instruction = Label(root, "StatusText", "按住鼠标左键，沿黄色胶带拖动剪刀", new Vector2(700, 34), new Vector2(120, -260), font, 19);
+                var instruction = Label(root, "StatusText", "按住鼠标左键，沿黄色胶带拖动美工刀", new Vector2(700, 34), new Vector2(120, -260), font, 19);
                 var bar = Progress(root, "Progress", new Vector2(240, 12), new Vector2(390, -260));
                 game.Configure(box, blade, handle, tapeImages, progress, instruction, bar);
                 foreach (var graphic in root.GetComponentsInChildren<Graphic>(true))

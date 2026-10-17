@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
@@ -155,6 +156,14 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     {
         if (_animator == null) return;
 
+        // NPC presence is sampled every frame. A door already at the requested
+        // endpoint must not restart its animation or publish another sound.
+        if (!_isAnimating && _doorOpen == opening)
+        {
+            if (opening && unlockPlayerWhenFinished) UnlockTheDoor();
+            return;
+        }
+
         if (_isAnimating && _opening == opening)
         {
             _unlockPlayerAfterOpen |= unlockPlayerWhenFinished;
@@ -168,6 +177,7 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
             currentTime = _doorOpen ? 1f : 0f;
         }
 
+        Sfx.At(opening ? SoundId.Door : SoundId.DoorClose, transform.position, this);
         _opening = opening;
         _unlockPlayerAfterOpen = unlockPlayerWhenFinished || _unlockPlayerAfterOpen;
         _animationNormalizedTime = Mathf.Clamp01(currentTime);

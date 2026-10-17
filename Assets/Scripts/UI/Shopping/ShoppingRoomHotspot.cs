@@ -51,7 +51,12 @@ namespace TapTapGameJam.UI
         public void OnPointerClick(PointerEventData evt)
         {
             if (CanInteract && evt != null && evt.button == PointerEventData.InputButton.Left)
+            {
+                int feedback = TapTapGameJam.Audio.Sfx.FeedbackSequence;
                 _onClick.Invoke();
+                if (feedback == TapTapGameJam.Audio.Sfx.FeedbackSequence)
+                    TapTapGameJam.Audio.Sfx.Play(TapTapGameJam.Audio.SoundId.Click, this);
+            }
         }
 
         public void OnPointerExit(PointerEventData evt) => SetHovered(false);

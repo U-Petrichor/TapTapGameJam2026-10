@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections;
 using TapTapGameJam.Events;
 using UnityEngine.UI;
@@ -102,6 +103,7 @@ namespace TapTapGameJam.UI
             content.transform.SetAsLastSibling();
             content.gameObject.SetActive(true);
             Show();
+            Sfx.Play(SoundId.Panel, this);
             // 内容立即初始化；弹出动画期间 CanvasGroup 会禁止玩家操作。
             try
             {
@@ -150,6 +152,7 @@ namespace TapTapGameJam.UI
             try
             {
                 // End 会按当前价格清仓；再回调实例，避免任务先释放后丢失持仓。
+                Sfx.Emitter(content).StopAll();
                 content.End();
                 callback?.Invoke(success);
             }
@@ -159,6 +162,7 @@ namespace TapTapGameJam.UI
                 content.BindPlayer(null);
                 content.gameObject.SetActive(false);
                 Hide();
+                Sfx.Play(SoundId.Panel, this);
                 Cursor.visible = _savedCursorVisible;
                 Cursor.lockState = _savedCursorLock;
                 EventPipeline.Publish(new EventCloseMiniGamePanel());

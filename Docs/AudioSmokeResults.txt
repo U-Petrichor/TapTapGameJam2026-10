@@ -1,0 +1,36 @@
+PASS
+Runtime bootstrap and Resources library
+44 definitions resolve all clip references
+S11/S15 disabled
+Click variants contain individual clicks rather than a three-click recording
+Panel variants contain individual page turns rather than a three-take recording
+Animation footstep events use individual steps rather than walking recordings
+NPC requests during opening issue one door sound
+NPC staying beside an already-open door never replays its sound
+Closing uses its own sound once despite repeated requests
+An already-closed door never replays its closing sound
+A genuinely new opening after closing still plays once
+Reversing a closing door can play a new opening cue
+A new closing transition plays one closing cue
+One page-turn request creates exactly one non-looping sample
+One page turn finishes without later recorded takes or replay
+Independent owners and duplicate start idempotence
+Stopping A leaves B playing
+Disabled owner releases its loop
+Stale stop cannot stop a new playback
+Right-hand source pans right
+Camera rotation updates stereo direction
+Camera zoom does not change distance gain
+Beyond maximum player distance is silent
+World pauses while minigame loop continues
+World loop resumes after pause
+Loop requested during pause remains resumable
+Paused start resumes correctly
+Defeat preempts full pool and ducks music
+Specific UI feedback suppresses generic click
+Ordinary button gets click feedback
+First day does not play night settlement
+Day end cue once on actual transition
+Night end cue once on night-to-day
+Scene unload clears old playback instances
+Single persistent manager

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using UnityEngine;
 
 namespace TapTapGameJam.UI
@@ -44,6 +45,7 @@ namespace TapTapGameJam.UI
             }
 
             IsOpen = true;
+            if (this is BagPanelUI || this is RepoPanelUI) Sfx.Play(SoundId.Panel, this);
             UIManager.Instance.RefreshActionMap();
         }
 
@@ -56,6 +58,7 @@ namespace TapTapGameJam.UI
             }
 
             IsOpen = false;
+            if (this is BagPanelUI || this is RepoPanelUI) Sfx.Play(SoundId.Panel, this);
             UIManager.Instance.RefreshActionMap();
         }
 

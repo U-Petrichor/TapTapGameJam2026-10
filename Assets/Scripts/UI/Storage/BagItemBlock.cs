@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Items;
@@ -132,7 +133,7 @@ namespace TapTapGameJam.UI
             if (target == null)
             {
                 // 没打到任何槽位（面板外，或者那个底盘没设成槽位）= 丢到世界
-                UIManager.Instance.DestroyBlock(this);
+                UIManager.Instance.FinishWorldDrop(this);
                 return;
             }
 
@@ -141,6 +142,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
+            Sfx.Play(SoundId.Error, this);
+
             // 打到了但放不下：退回原来的槽位
             if (CurrentSlot != null && CurrentSlot.DropItemBlock(this))
             {
@@ -148,7 +151,7 @@ namespace TapTapGameJam.UI
             }
 
             // 连原处都回不去：丢回世界（已经丢回，这里只需要destroy block）
-            UIManager.Instance.DestroyBlock(this);
+            UIManager.Instance.FinishWorldDrop(this);
         }
 
         /// <summary>
@@ -175,6 +178,7 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(boundedItem.shape != null, $"RotateItem：{boundedItem.name} 没配 shape");
 
             boundedItem.shape.RotateClockwise();
+            Sfx.Play(SoundId.RotateItem, this);
             SyncRotationWithItem();
 
             // 形状变了，预览必须重算；鼠标不动也要立刻算，所以用上一次的指针位置

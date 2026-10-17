@@ -134,7 +134,10 @@ namespace TapTapGameJam.UI
             if (isDown && !IsPressed && IsHovered)
             {
                 IsPressed = true;
+                int feedback = TapTapGameJam.Audio.Sfx.FeedbackSequence;
                 OnPress?.Invoke();
+                if (feedback == TapTapGameJam.Audio.Sfx.FeedbackSequence)
+                    TapTapGameJam.Audio.Sfx.Play(TapTapGameJam.Audio.SoundId.Click, this);
                 LogPressed();
             }
             else if (!isDown && IsPressed)

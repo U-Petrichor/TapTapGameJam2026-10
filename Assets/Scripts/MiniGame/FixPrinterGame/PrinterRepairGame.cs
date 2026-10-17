@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -60,6 +61,7 @@ namespace TapTapGameJam.UI
             _round = new PrinterRepairRound(Mathf.Max(1, _requiredHits), Mathf.Max(0.05f, _pointerSpeed),
                 Mathf.Clamp(_successWidth, 0.05f, 1f), () => UnityEngine.Random.value);
             _onCompleted = onCompleted;
+            ActionSound.SetPlaying(SoundId.Printer, true);
             _running = true;
             Render();
         }
@@ -84,6 +86,8 @@ namespace TapTapGameJam.UI
             if (!_running || _completionPending || !isActiveAndEnabled || _panelGroup == null || !_panelGroup.interactable) return;
             var outcome = _round.Hit();
             if (outcome == PrinterHitResult.Ignored) return;
+            Sfx.Play(SoundId.PrinterHit, this);
+            if (outcome == PrinterHitResult.Miss) Sfx.Play(SoundId.Error, this);
             _feedbackSeconds = 0.7f;
             if (HasStrikeVisuals)
             {
@@ -268,6 +272,7 @@ namespace TapTapGameJam.UI
         }
         public override void End()
         {
+            ActionSound.StopAll();
             _running = false; _onCompleted = null; _round?.Stop();
             if (_printerBody != null && _round != null) _printerBody.anchoredPosition = _printerOrigin;
             _feedbackSeconds = _shakeSeconds = 0;

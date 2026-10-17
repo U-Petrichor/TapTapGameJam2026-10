@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -345,6 +346,7 @@ namespace TapTapGameJam.UI
         /// <summary>只显示这一页：其余 GridRoot 整块 SetActive(false)，格子、块、射线一起收掉</summary>
         private void ShowPage(ItemCategory page)
         {
+            if (_currentPage != page && IsOpen) Sfx.Play(SoundId.Switch, this);
             _currentPage = page;
 
             foreach (KeyValuePair<ItemCategory, RectTransform> kv in _pageRoots)
@@ -449,10 +451,12 @@ namespace TapTapGameJam.UI
 
             if (!_repo.PutItem(cell.Page, cell.Index, block.boundedItem))
             {
+                Sfx.Play(SoundId.Error, this);
                 return false;
             }
 
             LayoutBlockToCell(block, cell);
+            Sfx.Play(SoundId.MoveItem, this);
             return true;
         }
 

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 
 
 using TapTapGameJam.Player;
@@ -52,6 +53,7 @@ namespace TapTapGameJam.MiniGame
                 ? player.CarryController.CurrentObject as UnityEngine.GameObject
                 : null;
             // 文件已被拾取，取消订阅
+            Sfx.At(SoundId.Delivery, _source.transform.position, player);
             _source.EventFileSourceFinish -= HandleFilePickedup;
 
             // 让目的地可以交互
@@ -66,6 +68,7 @@ namespace TapTapGameJam.MiniGame
         {
             if (_stage != Stage.WaitingForDelivery || IsFinished ||
                 player == null || player.PlayerResources == null) return;
+            Sfx.At(SoundId.Delivery, _destination.transform.position, player);
             Complete(player.PlayerResources);
         }
 

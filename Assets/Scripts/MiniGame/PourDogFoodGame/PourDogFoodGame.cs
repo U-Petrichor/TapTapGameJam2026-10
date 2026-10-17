@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -117,6 +118,7 @@ namespace TapTapGameJam.UI
             _pointerId = eventData.pointerId;
             _grabOffset = (Vector2)_foodBag.localPosition - pointer;
             _dragging = true;
+            Sfx.Play(SoundId.DogFoodBag, this);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -124,6 +126,7 @@ namespace TapTapGameJam.UI
             if (!_running || !_dragging || eventData.pointerId != _pointerId) return;
             if (!TryGetPointer(eventData, out Vector2 pointer)) return;
             Vector2 position = pointer + _grabOffset;
+            if (((Vector2)_foodBag.localPosition - position).sqrMagnitude > 1f) Sfx.Play(SoundId.DogFoodBag, this);
             // 根节点可以只用于组织层级，不用它的默认 100×100 尺寸限制拖动。
             _foodBag.localPosition = new Vector3(position.x, position.y, _initialPosition.z);
         }
@@ -164,6 +167,7 @@ namespace TapTapGameJam.UI
             }
             bool canPour = CanPour() && _progress.Spawned < _progress.Target;
             if (_pourEffect != null) _pourEffect.SetActive(canPour);
+            ActionSound.SetPlaying(SoundId.PourDogFood, canPour);
             int count = _progress.Tick(dt, canPour, Mathf.Max(1f, _foodsPerSecond));
             for (int i = 0; i < count; i++) SpawnFood();
         }
@@ -254,6 +258,7 @@ namespace TapTapGameJam.UI
 
         public override void End()
         {
+            ActionSound.StopAll();
             _running = false;
             _onCompleted = null;
             ReleaseBag();

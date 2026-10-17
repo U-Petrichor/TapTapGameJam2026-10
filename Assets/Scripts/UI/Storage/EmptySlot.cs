@@ -61,8 +61,8 @@ namespace TapTapGameJam.UI
                 return true;
             }
 
-            // 其它情况都是丢回世界：本体早就回世界了，这里只要销毁块
-            ui.DestroyBlock(block);
+            // 本体早就回世界了，确认放下并播放反馈。
+            ui.FinishWorldDrop(block);
             return true;
         }
 

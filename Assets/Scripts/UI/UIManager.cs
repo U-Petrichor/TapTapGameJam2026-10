@@ -1,4 +1,5 @@
 using System;
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Core;
@@ -414,6 +415,19 @@ namespace TapTapGameJam.UI
             _bag.DropToWorld(item);
         }
         
+        /// <summary>确认物品留在世界：本体在开始拖拽时已经放下，此处只播放反馈并销毁界面块。</summary>
+        public void FinishWorldDrop(BagItemBlock block)
+        {
+            Assert.IsTrue(block != null, "FinishWorldDrop：block 是 null");
+            PickableItem item = block.boundedItem;
+            if (item != null && item.IsOnMap)
+            {
+                Sfx.At(SoundId.Drop, item.transform.position, item, SoundBus.Interface);
+            }
+
+            DestroyBlock(block);
+        }
+
         /// <summary>拖拽到一半容器被关掉：这一块已经不属于任何容器了，直接销毁</summary>
         public void DestroyDraggingBlock()
         {

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TalentTree.Effects;
 using TapTapGameJam.Events;
@@ -82,6 +83,7 @@ namespace TalentTree
 
             _progress.SetLevel(talent, 1);
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, 0, 1));
+            Sfx.Play(SoundId.TalentUpgrade, this, 1);
             return TalentOperationResult.Success(0, 1, -cost);
         }
 
@@ -100,6 +102,7 @@ namespace TalentTree
 
             _progress.SetLevel(talent, targetLevel);
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, oldLevel, targetLevel));
+            Sfx.Play(SoundId.TalentUpgrade, this, targetLevel);
             return TalentOperationResult.Success(oldLevel, targetLevel, -cost);
         }
 
@@ -145,6 +148,7 @@ namespace TalentTree
             _progress.SetLevel(talent, 0);
             if (refund > 0) _playerResources?.AddTalentPoint(refund);
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, oldLevel, 0));
+            Sfx.Play(SoundId.TalentRefund, this);
             return TalentOperationResult.Success(oldLevel, 0, refund);
         }
 
@@ -164,6 +168,7 @@ namespace TalentTree
             if (refund > 0) _playerResources?.AddTalentPoint(refund);
             foreach ((TalentData talent, int level) in entries)
                 EventPipeline.Publish(new TalentLevelChangedEvent(talent, level, 0));
+            Sfx.Play(SoundId.TalentRefund, this);
             return refund;
         }
 

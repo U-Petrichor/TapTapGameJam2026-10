@@ -14,6 +14,7 @@ namespace TapTapGameJam.UI
             public SortFileDepartment Department;
             public RectTransform Area;
             public Color FileColor = Color.white;
+            public Sprite FileSprite;
             public TMP_Text CountText;
         }
 
@@ -86,7 +87,8 @@ namespace TapTapGameJam.UI
                 // 第 0 份是栈顶，放到 UI 绘制顺序的最上面。
                 rect.SetAsFirstSibling();
                 SortFileDepartment department = _round.DepartmentAt(i);
-                card.Initialize(this, i, department, _areaByDepartment[(int)department].FileColor);
+                var area = _areaByDepartment[(int)department];
+                card.Initialize(this, i, department, area.FileColor, area.FileSprite);
                 card.gameObject.SetActive(true);
                 _cards.Add(card);
             }
@@ -120,6 +122,7 @@ namespace TapTapGameJam.UI
             bool correct = target != null && target.Department == _round.DepartmentAt(card.Index);
             if (!correct)
             {
+                TapTapGameJam.Audio.Sfx.Play(TapTapGameJam.Audio.SoundId.Error, this);
                 if (_statusText != null)
                     _statusText.text = "请放到" + SortFileRound.DepartmentName(_round.DepartmentAt(card.Index)) + "部门";
                 _motion = StartCoroutine(MoveCard(card, card.HomeWorldPosition, () =>

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
@@ -298,6 +299,7 @@ namespace TapTapGameJam.Items
                     MoveToBagStorage(item);
                     _equipped[(int)slot] = item;
                     item.SetLocation(PickableItem.ItemLocation.Equipped);
+                    Sfx.Play(SoundId.Equip, this);
                     PendingPickupItem = null;
                     return true;
                 }
@@ -468,6 +470,7 @@ namespace TapTapGameJam.Items
             MoveToBagStorage(item);
             _equipped[(int)slot] = item;
             item.SetLocation(PickableItem.ItemLocation.Equipped);
+            Sfx.Play(SoundId.Equip, this);
 
             if (PendingPickupItem == item)
             {

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using UnityEngine;
 using TapTapGameJam.Player;
@@ -63,6 +64,7 @@ namespace TapTapGameJam.MiniGame
                 {
                     if (RewardCoins > 0) resources.AddCoins(RewardCoins);
                     if (RewardTalentPoints > 0) resources.AddTalentPoint(RewardTalentPoints);
+                    if (RewardCoins > 0 || RewardTalentPoints > 0) Sfx.Play(SoundId.Coin);
                     OnSuccess(resources);
                 }
             }

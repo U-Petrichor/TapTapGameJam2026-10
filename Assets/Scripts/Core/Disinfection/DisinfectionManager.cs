@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using TapTapGameJam.Cockroach;
@@ -243,6 +244,7 @@ namespace TapTapGameJam.Core.Disinfection
 
             _warningRemaining = Mathf.Max(0f, _warningDuration);
             _state = DisinfectionState.Warning;
+            Sfx.Play(SoundId.Warning, this);
 
             for (int i = 0; i < _selectedRooms.Count; i++)
             {

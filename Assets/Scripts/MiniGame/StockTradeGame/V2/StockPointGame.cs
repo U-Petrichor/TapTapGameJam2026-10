@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using TMPro;
 using UnityEngine;
@@ -62,8 +63,8 @@ namespace TapTapGameJam.UI
             Refresh();
         }
 
-        public void Buy() { if (_running) { _round.Buy(); Refresh(); } }
-        public void Sell() { if (_running) { _round.Sell(); Refresh(); } }
+        public void Buy() { if (_running) { Sfx.Play(_round.Buy() ? SoundId.Coin : SoundId.Error, this); Refresh(); } }
+        public void Sell() { if (_running) { Sfx.Play(_round.Sell() ? SoundId.Coin : SoundId.Error, this); Refresh(); } }
 
         private void Update()
         {

@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -149,13 +150,17 @@ namespace TapTapGameJam.Player
 
             if (!_currentTarget.CanInteract(_player))
             {
+                Sfx.Play(SoundId.Error, this);
                 Debug.LogError($"当前目标{_currentTarget.InteractionPrompt}无法交互");
                 return;
             }
 
             // 先切成 Interacting 再交给对象执行：它在这一帧里就能读到自己的状态
             _currentTarget.InteractState = InteractState.Interacting;
+            int feedback = Sfx.FeedbackSequence;
             _currentTarget.Interact(_player, key);
+            if (feedback == Sfx.FeedbackSequence && !(_currentTarget is TapTapGameJam.Items.BlackBox))
+                Sfx.Play(SoundId.Click, this);
         }
 
         public void HandleSwitchInteraction()
@@ -165,7 +170,7 @@ namespace TapTapGameJam.Player
             // Q 按距离从近到远依次聚焦（次近、更远…），最远的下一次回到最近的。
             // 这个聚焦是临时的，下一次刷新（移动 / 注册 / 注销）会自动覆盖回"最近"。
             Interactable next = FindNextNearest(_currentTarget);
-            if (next != null) SetFocus(next, true);
+            if (next != null && next != _currentTarget) { SetFocus(next, true); Sfx.Play(SoundId.Switch, this); }
         }
 
         /// <summary>让特殊交互流程（例如手持巢穴）立即成为当前聚焦对象，效果等同一次 Q 切换。</summary>

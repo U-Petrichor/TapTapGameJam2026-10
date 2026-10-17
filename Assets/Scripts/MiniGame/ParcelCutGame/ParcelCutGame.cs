@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -27,6 +28,8 @@ namespace TapTapGameJam.UI
         [SerializeField] private RawImage _boxImage;
         [SerializeField] private RawImage _cutterBlade;
         [SerializeField] private RawImage _cutterHandle;
+        [Tooltip("持刀手臂的整体根节点；原点对应刀尖，拖动时整体跟随鼠标。")]
+        [SerializeField] private RectTransform _cutterRoot;
         [SerializeField] private List<TapeEntry> _tapes = new();
         [SerializeField] private TMP_Text _progressText;
         [SerializeField] private TMP_Text _instructionText;
@@ -49,6 +52,8 @@ namespace TapTapGameJam.UI
         private int _pointerId;
         private Camera _eventCamera;
         private Vector2 _lastPoint;
+        private Vector3 _cutterHomePosition;
+        private bool _hasCutterHome;
 
         public bool IsConfigured
         {
@@ -74,6 +79,15 @@ namespace TapTapGameJam.UI
                         tape.Outline == null || tape.Outline.Length < 3) return false;
                 return true;
             }
+        }
+
+        public void ConfigureCutterVisual(RectTransform root, RawImage blade, RawImage arm)
+        {
+            _cutterRoot = root;
+            _cutterBlade = blade;
+            _cutterHandle = arm;
+            _hasCutterHome = false;
+            blade.raycastTarget = arm.raycastTarget = false;
         }
 
         public void Configure(RawImage box, RawImage blade, RawImage handle, RawImage[] tapes,
@@ -133,12 +147,17 @@ namespace TapTapGameJam.UI
 
         public override void Begin(Action onCompleted)
         {
+            if (_cutterRoot != null && !_hasCutterHome)
+            {
+                _cutterHomePosition = _cutterRoot.localPosition;
+                _hasCutterHome = true;
+            }
             ResetView();
 #if UNITY_EDITOR
             if (!HasTapeGeometry) RebuildTapeGeometry();
 #endif
             if (!IsConfigured)
-                throw new InvalidOperationException("请配置箱子、剪刀、六条胶带和拆快递文字组件。");
+                throw new InvalidOperationException("请配置箱子、美工刀、六条胶带和拆快递文字组件。");
 
             var paths = new List<IReadOnlyList<Vector2>>(ParcelCutRound.TapeCount);
             var outlines = new List<IReadOnlyList<Vector2>>(ParcelCutRound.TapeCount);
@@ -182,6 +201,7 @@ namespace TapTapGameJam.UI
                 RefreshText();
                 if (_round.IsCompleted(_draggingTape))
                 {
+                    Sfx.Play(SoundId.CutTape, this);
                     _tapes[_draggingTape].Image.gameObject.SetActive(false);
                     _tapes[_draggingTape].Image.raycastTarget = false;
                     _draggingTape = -1;
@@ -241,6 +261,12 @@ namespace TapTapGameJam.UI
         private void MoveCutter(Vector2 screen)
         {
             if (_cutterBlade == null || _cutterHandle == null) return;
+            if (_cutterRoot != null && _cutterRoot.parent is RectTransform parent)
+            {
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, _eventCamera, out var point))
+                    _cutterRoot.localPosition = new Vector3(point.x, point.y, _cutterRoot.localPosition.z);
+                return;
+            }
             RectTransform root = transform as RectTransform;
             if (root == null || !RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, _eventCamera, out Vector2 local)) return;
             _cutterBlade.rectTransform.anchoredPosition = local + new Vector2(18f, 12f);
@@ -313,7 +339,7 @@ namespace TapTapGameJam.UI
             if (_instructionText != null)
                 _instructionText.text = _draggingTape >= 0
                     ? $"当前胶带：{_round.CoverageFor(_draggingTape):P0} · 目标 {_completionThreshold:P0}"
-                    : $"沿胶带拖动剪刀 · 每条覆盖 {_completionThreshold:P0} 即可";
+                    : $"沿胶带拖动美工刀 · 每条覆盖 {_completionThreshold:P0} 即可";
         }
 
         private void ReleasePointer()
@@ -328,6 +354,7 @@ namespace TapTapGameJam.UI
             _onCompleted = null;
             ReleasePointer();
             _round?.Stop();
+            if (_cutterRoot != null && _hasCutterHome) _cutterRoot.localPosition = _cutterHomePosition;
             if (_checkpointGraphic != null)
             {
                 _checkpointGraphic.Configure(null, null, _checkpointRadius);
@@ -350,7 +377,7 @@ namespace TapTapGameJam.UI
                 }
             }
             if (_progressText != null) _progressText.text = "已拆 0 / 3";
-            if (_instructionText != null) _instructionText.text = "按住鼠标左键，沿黄色胶带拖动剪刀";
+            if (_instructionText != null) _instructionText.text = "按住鼠标左键，沿黄色胶带拖动美工刀";
             if (_progressBar != null) _progressBar.SetValueWithoutNotify(0f);
         }
 

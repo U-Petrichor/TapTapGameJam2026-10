@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using TapTapGameJam.Core;
 using TapTapGameJam.Items;
 using UnityEngine;
@@ -184,6 +185,7 @@ namespace TapTapGameJam.Cockroach
             if (TryFindPlacement(out Vector3 worldPosition, out Quaternion rotation))
             {
                 SpawnDrug(worldPosition, rotation);
+                Sfx.At(SoundId.PaperBag, worldPosition, this);
                 _placeTimer = cleaner.PlaceInterval;
                 _lastPlacePos = Position;
                 _placedCount++;

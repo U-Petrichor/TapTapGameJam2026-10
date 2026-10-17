@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
@@ -98,6 +99,7 @@ namespace TapTapGameJam.Cockroach
                 return false;
             }
 
+            Sfx.At(SoundId.PaperBag, transform.position, this);
             _groundRotation = transform.rotation;
             _groundScale = transform.lossyScale;
             _carryColliders = GetComponentsInChildren<Collider>(true);
@@ -174,6 +176,7 @@ namespace TapTapGameJam.Cockroach
             transform.rotation = _groundRotation;
             transform.localScale = _groundScale;
             transform.position = position;
+            Sfx.At(SoundId.PaperBag, position, this);
             _carrierInteraction?.Unregister(this);
             _carrierInteraction = null;
             _carrier = null;

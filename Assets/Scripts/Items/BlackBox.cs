@@ -1,3 +1,4 @@
+using TapTapGameJam.Audio;
 using System;
 using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
@@ -46,6 +47,7 @@ namespace TapTapGameJam.Items
 
         private void Update()
         {
+            Sfx.Emitter(this).SetPlaying(SoundId.Search, InteractState == InteractState.Interacting, SoundBus.World, true);
             if (InteractState == InteractState.Interacting)
             {
                 if (!scanUI.IsActive()) scanUI.gameObject.SetActive(true);
@@ -55,6 +57,8 @@ namespace TapTapGameJam.Items
                 scannedTime += Time.deltaTime;
                 if (scannedTime >= scanReqTime)
                 {
+                    Sfx.Emitter(this).StopAll();
+                    Sfx.Play(SoundId.Achievement, this);
                     Instantiate(hidedItem, transform.position, Quaternion.identity);
                     Destroy(gameObject);
                 }

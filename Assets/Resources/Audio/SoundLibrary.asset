@@ -1,0 +1,822 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 799c996fcea42b34491b1d8b4edd6190, type: 3}
+  m_Name: SoundLibrary
+  m_EditorClassIdentifier: 
+  masterVolume: 1
+  musicVolume: 0.65
+  effectsVolume: 0.8
+  defeatDuckVolume: 0.25
+  voiceLimit: 32
+  sounds:
+  - id: 1
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: a00147d3bcc449fd823232d9d03cc6d4, type: 3}
+    - {fileID: 8300000, guid: 9d070f8c2b06479784338b8847292e34, type: 3}
+    - {fileID: 8300000, guid: a67c1e3281c44e7c9898146434bbf757, type: 3}
+    - {fileID: 8300000, guid: 723b45d65c164481b4a2aa5192137a3c, type: 3}
+    - {fileID: 8300000, guid: b756b07e39d94023bfa42eab6c4365b6, type: 3}
+    - {fileID: 8300000, guid: b80a23fad8554301afb61350030389e0, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 2
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 4a65804df27f412694a9f4d0a7c95ff2, type: 3}
+    - {fileID: 8300000, guid: d18063d9cc964ec8b00168927cc7a150, type: 3}
+    - {fileID: 8300000, guid: 21d1950fa851428abe1ed2c313f870b4, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 3
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 72e57a7b071141cabcb243b328d3700e, type: 3}
+    - {fileID: 8300000, guid: f2d78187ace046d5a291d68c0a158385, type: 3}
+    - {fileID: 8300000, guid: 87a5ed079d71453b9610b23d8b13e626, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 4
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 87d1fe63b88c712408c5ff0ac02ab0c7, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.2
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 5
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 96a8a3ae851be4d4693fb014de6270b5, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 6
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 7d480296f0d64d0eb3599197c0218cb0, type: 3}
+    - {fileID: 8300000, guid: 11be4cddcbdc412d970e633304fb327d, type: 3}
+    - {fileID: 8300000, guid: c38ca5dd0086486fb824287343068769, type: 3}
+    volume: 0.75
+    pitch: {x: 0.96, y: 1.04}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 1
+    maxInstances: 6
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 7
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 0f1e5b81ca4840b9927ea9592be68934, type: 3}
+    - {fileID: 8300000, guid: cf7d66fd3c774a0d9789cc5e5b0c8663, type: 3}
+    - {fileID: 8300000, guid: 07186393460445139d23455d75dd0444, type: 3}
+    - {fileID: 8300000, guid: 9ab800f056b24a61ac02750d9eda03e8, type: 3}
+    - {fileID: 8300000, guid: d019f99296e54350bacd2af6cb739910, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 8
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: aceb03c5d40a4223808306c7f7953639, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 9
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 202692d2fcf944e58c0e726cba447fda, type: 3}
+    - {fileID: 8300000, guid: e65c446ea4ef478593a3979179def1f1, type: 3}
+    - {fileID: 8300000, guid: 126d56128c494d5a9f77fb4cd6cf7801, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 10
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: afe7a75add53421c8320305453f7c387, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 11
+    enabled: 0
+    clips:
+    - {fileID: 8300000, guid: b872f2157c0b2ac4389134aa588a44ed, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 12
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 3aabe07ee04f4e74cb87c848e6ede44d, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 13
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: a3a806974c9a4ff29a260b9d8a9948e2, type: 3}
+    - {fileID: 8300000, guid: c32fb90e13fb4f0ab9eeb45e1a90ebfa, type: 3}
+    - {fileID: 8300000, guid: 1baabc3c35954418a49153ad403f56ce, type: 3}
+    - {fileID: 8300000, guid: 3f8c215eecdc433abf56fedd30cd8de6, type: 3}
+    - {fileID: 8300000, guid: 4c72a1c6881048f0bed6c25e30dd82f8, type: 3}
+    - {fileID: 8300000, guid: 717b56083a5048a9b39e7b36d0bad072, type: 3}
+    - {fileID: 8300000, guid: d5da20f4d3b64d778b8bf59a3b7e5b04, type: 3}
+    - {fileID: 8300000, guid: b4cd5266403848adb6d4e26151c16a36, type: 3}
+    - {fileID: 8300000, guid: c940583d7c1a48e6a15fcde75682d969, type: 3}
+    - {fileID: 8300000, guid: caec4376db33469b81ffe9a7714b332a, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 14
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 0bec7d15501147908dc4218ffee75f90, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 15
+    enabled: 0
+    clips:
+    - {fileID: 8300000, guid: 0845c95edf4d4c146aacf584ae0af391, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 16
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 453950595d384f49aa756df2a9beba82, type: 3}
+    - {fileID: 8300000, guid: a7242da45eb4408887e53b684ea238ba, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 17
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 182b096184b8482f931d7686af9f1b16, type: 3}
+    - {fileID: 8300000, guid: 8ff7924a4d1746378ad422da7218940a, type: 3}
+    - {fileID: 8300000, guid: dc9ac38d2b6c4246ae244c00b9421cf5, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 18
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 004c7f801099f2943b4ce2ba4090d515, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 19
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 7988e8e4dde1e404d95e5cc7650ed264, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 1
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 20
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 0b85bb0e468c0a24eba86a516e43cb16, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 21
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 6148795abde4ee24e91dc2c9945b0bdc, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.12
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 22
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: f9022f2636d24542990a66e30d79d374, type: 3}
+    - {fileID: 8300000, guid: f562e5c6b33a40249d306a63ff724c4a, type: 3}
+    - {fileID: 8300000, guid: ce918b84b4c04be5aef4007768421dca, type: 3}
+    - {fileID: 8300000, guid: a3917bd1965c4eed9b50448d4951adb2, type: 3}
+    - {fileID: 8300000, guid: ce6d39652ee44b3784eec59a8327e34d, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 23
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 28c3c685ab7043628a9eafe1e4413ac9, type: 3}
+    - {fileID: 8300000, guid: 742e4560b547411aabaa304703dc735a, type: 3}
+    - {fileID: 8300000, guid: 557a4b6728034837bb2d72caf095ff69, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0.06
+    pitchPerLevel: 0.04
+  - id: 24
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 8443dc8a7fc9b384180344864da83f06, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 25
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 7557b7f1b467430db3dc858d6094dabf, type: 3}
+    - {fileID: 8300000, guid: dfa81c482bbe47bd9ddadab44d2eb1d6, type: 3}
+    - {fileID: 8300000, guid: b2ba926474a148b4922306ec5a831e5f, type: 3}
+    - {fileID: 8300000, guid: 3cada09b30034fa29def35b580b49d0f, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 26
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 34ce0e1432384f91806655ae78c903c8, type: 3}
+    - {fileID: 8300000, guid: c3fb40fa414a45bfa38b84c88163dfdc, type: 3}
+    - {fileID: 8300000, guid: 7a3b7bfdc13c44bca030c4a7bffdcb57, type: 3}
+    volume: 0.75
+    pitch: {x: 0.96, y: 1.04}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 1
+    maxInstances: 6
+    priority: 20
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 27
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 6b4d2ac74d1398d4984dd0b6c53b2de6, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 28
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: f102e64f83d542ab8b353c103ed64b4c, type: 3}
+    - {fileID: 8300000, guid: fd2308bc98644a50aa03af925e668320, type: 3}
+    - {fileID: 8300000, guid: 35e919f309264746a20f7bb32cd4e0dc, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 29
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: c817bafc95ac48d2865041db69fc2f3d, type: 3}
+    - {fileID: 8300000, guid: eb71a04d5b4f499cb955c4a644447aa2, type: 3}
+    - {fileID: 8300000, guid: fa191d45bfb44f2188fd88d5979622cc, type: 3}
+    - {fileID: 8300000, guid: d77db994228c4e3f8053bc911b18d2e7, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 30
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 6db87fc94994454f8b11f8bc8f2139d0, type: 3}
+    volume: 0.75
+    pitch: {x: 0.96, y: 1.04}
+    loop: 0
+    cooldown: 0.12
+    cooldownPerOwner: 0
+    maxInstances: 3
+    priority: 20
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 31
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 5f18b3514181d0b4b882b51749c2a2a4, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 32
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 719a09acd7b79194190e34c9478af398, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 33
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: a5b64042f9c0f0e4587d1b6254a80b83, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 34
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 7264c1e2b79347c3992a35b71627b283, type: 3}
+    - {fileID: 8300000, guid: e8bbb9caf08d446c9b16481c79c33295, type: 3}
+    - {fileID: 8300000, guid: c04b13f60e1149d6a7cf5ec8951fc540, type: 3}
+    volume: 0.75
+    pitch: {x: 0.96, y: 1.04}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 1
+    maxInstances: 6
+    priority: 20
+    nearDistance: 2
+    farDistance: 24
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 35
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 306986ca133046c28bc4cfabb5b03456, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 1
+    cooldown: 0
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 36
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: edd6c2ff864849beacc733a91cc8d3ee, type: 3}
+    - {fileID: 8300000, guid: 1afa9074e93d4a65b671223414228ba2, type: 3}
+    - {fileID: 8300000, guid: 32058b2828d1412a990714c66080e18b, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 37
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: fe9c6eeb6ce94f54fa89a71b5d485905, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 38
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: b431d72952f1e724cbfbdf3606a03289, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.2
+    cooldownPerOwner: 1
+    maxInstances: 4
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 39
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 61cb9f8d1a7b6bc4f89c45efdaef76dd, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 1
+    priority: 100
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 40
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 6f70566b5c274169b2a05fb64ccbc226, type: 3}
+    - {fileID: 8300000, guid: 4e3ad8b0f4ce469db917ac665196b5bd, type: 3}
+    - {fileID: 8300000, guid: 6202c43307e647968d3b73f34a48836d, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 41
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 818e2bf8e5760714c918e0aeb1ea5dff, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 42
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 35bbd2de9daf470aa0685e5b5902c572, type: 3}
+    - {fileID: 8300000, guid: b60b3531bd644c29a752530fa19da2fa, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 1
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 43
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: 73161b51a63943cd86d282518e88f87e, type: 3}
+    - {fileID: 8300000, guid: 3bab4836bb404a9ab486f317bc07d4b7, type: 3}
+    - {fileID: 8300000, guid: 68fba793874a4a1c9339797696abbd87, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 1
+    priority: 80
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
+  - id: 44
+    enabled: 1
+    clips:
+    - {fileID: 8300000, guid: c8ea03fbc5005ef4eb7db47dfd5db6dd, type: 3}
+    volume: 0.75
+    pitch: {x: 1, y: 1}
+    loop: 0
+    cooldown: 0.06
+    cooldownPerOwner: 0
+    maxInstances: 4
+    priority: 40
+    nearDistance: 2
+    farDistance: 18
+    maxDuration: 0
+    fadeOut: 0.04
+    volumePerLevel: 0
+    pitchPerLevel: 0
