@@ -268,6 +268,12 @@ namespace TapTapGameJam.Cockroach
                 return;
             }
 
+            // 隔着墙不算命中：冲刺是扑过去咬，不是隔山打牛
+            if (!HasLineOfSight(target.Position))
+            {
+                return;
+            }
+
             if (target.IsPlayer)
             {
                 HitPlayer();

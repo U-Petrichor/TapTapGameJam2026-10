@@ -288,7 +288,7 @@ namespace TapTapGameJam.Cockroach
             Gizmos.color = new Color(0.4f, 0.9f, 1f, 0.9f);
             Gizmos.DrawWireSphere(transform.position, cleaner.FearRadius);
 
-            if (!Application.isPlaying)
+            if (!Application.isPlaying || !IsReady)
             {
                 return;
             }

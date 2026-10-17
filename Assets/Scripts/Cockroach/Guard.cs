@@ -4,7 +4,6 @@ using TapTapGameJam.Events;
 using TapTapGameJam.Types;
 using UnityEngine;
 using UnityEngine.Assertions;
-using Random = UnityEngine.Random;
 
 // Cockroach 在本命名空间里既是命名空间又是实体类型，直接写会被当成命名空间（CS0118），统一走别名
 using CockroachAgent = TapTapGameJam.Cockroach.Cockroach;
@@ -51,12 +50,13 @@ namespace TapTapGameJam.Cockroach
 
     /// <summary>
     /// 守卫基类。它负责"当守卫"这件事本身：
-    /// 视野 / 身体感知、行动区域、夜间门控、巡逻、脱离区域后的回程、避障、转向、位移。
+    /// 视野 / 身体感知（含挡视线的墙）、行动区域、夜间门控、沿边缘路线的巡逻、
+    /// 脱离区域后的回程、避障、转向、位移。
     /// 子类只回答一个问题：<see cref="DecideIntent"/> —— 这一帧想干什么（追谁 / 逃向哪 / 回区域）。
     ///
     /// 每帧流程（<see cref="FixedUpdate"/>）：
     ///   夜间检查 → 清掉失效的感知 → <see cref="TickTimers"/>
-    ///   → 判定要不要回程（在区域外且没有焦点就必须回）
+    ///   → 判定要不要回程（在区域外且没有焦点就必须回；回到区域里就地接上路线）
     ///   → <see cref="DecideIntent"/>（或沿归巢距离场往回走）
     ///   → 避障 → 转向 → 位移（巡逻时不出区域 / 撞墙贴墙滑行 / 卡住上报）
     ///
@@ -87,11 +87,11 @@ namespace TapTapGameJam.Cockroach
         /// <summary>实际位移不到预期位移的这个比例，就算"想走但没走动"</summary>
         private const float StallProgressRatio = 0.15f;
 
-        /// <summary>挑不到巡逻点时，隔多久再试一次</summary>
-        private const float PatrolPointRetryDelay = 0.5f;
-
         /// <summary>回程时沿距离场往前看多远（世界单位）再瞄准</summary>
         private const float HomeLookahead = 1f;
+
+        /// <summary>巡逻卡住时，沿路线往前挪这么远换一个目标点</summary>
+        private const float StallPathNudge = 1.5f;
 
         #endregion
 
@@ -123,6 +123,13 @@ namespace TapTapGameJam.Cockroach
         protected readonly HashSet<CockroachAgent> CockroachesTouching = new HashSet<CockroachAgent>();
 
         private GuardRegion _region;
+
+        /// <summary>贴着区域边缘的固定巡逻路线</summary>
+        private GuardPatrolPath _patrolPath;
+
+        /// <summary>沿巡逻路线已经走了多远（前进方向上的距离，会一直累加）</summary>
+        private float _pathDistance;
+
         private Vector2 _homePosition;
         private Vector2Int _homeCell;
         private int[,] _homeField;
@@ -143,13 +150,6 @@ namespace TapTapGameJam.Cockroach
         private GuardStance _stance = GuardStance.Patrol;
         private float _engageLinger;
         private bool _returningHome;
-
-        private float _scanDir = 1f;
-        private float _scanTimer;
-
-        private bool _hasPatrolPoint;
-        private Vector2 _patrolPoint;
-        private float _patrolPauseTimer;
 
         private float _stallTimer;
 
@@ -213,8 +213,6 @@ namespace TapTapGameJam.Cockroach
             Assert.AreNotEqual(0, _wallMask.value, "找不到 Wall 层：守卫的避障会完全失效");
 
             _angle = RotationToAngle(transform.eulerAngles.y);
-            _scanDir = Random.value < 0.5f ? -1f : 1f;
-            _scanTimer = Random.Range(settings.ScanIntervalMin, settings.ScanIntervalMax);
 
             // 这两步是硬前置，缺了就不该继续跑。
             // 每个 Setup 里用 Assert 把问题喊出来；Assert 在编辑器里会抛出，
@@ -259,6 +257,7 @@ namespace TapTapGameJam.Cockroach
             }
 
             ResolveHome();
+            _pathDistance = _patrolPath.Project(Position);
 
             _rigReady = true;
             SetNightActive(GameManager.IsNight);
@@ -374,18 +373,14 @@ namespace TapTapGameJam.Cockroach
             return body;
         }
 
-        /// <summary>绑定外置 plane，拿到行动区域，并把守卫摆到区域中心</summary>
+        /// <summary>绑定外置 plane，拿到行动区域，并按配置铺好巡逻路线</summary>
         private bool SetupRegion()
         {
             if (searchRangePlane == null)
             {
                 // prefab 资产引用不到场景物体，所以允许按名字兜底找一次。
                 // 只在 Awake 找一次，之后一律以字段为准，避免运行时偷偷换绑到别的 plane。
-                GameObject found = GameObject.Find(SearchRangePlaneName);
-                if (found != null)
-                {
-                    searchRangePlane = found.transform;
-                }
+                searchRangePlane = FindSearchPlane();
             }
 
             Assert.IsNotNull(searchRangePlane,
@@ -398,7 +393,40 @@ namespace TapTapGameJam.Cockroach
             bool valid = GuardRegion.TryFromPlane(searchRangePlane, out _region);
             Assert.IsTrue(valid,
                 $"行动区域 plane「{searchRangePlane.name}」上没有 Renderer，或者它在 XZ 上退化了（面积必须大于 0）");
-            return valid;
+            if (!valid)
+            {
+                return false;
+            }
+
+            // 巡逻路线贴着区域边缘铺，圆角和方向都在这里定下来
+            bool pathReady = GuardPatrolPath.TryBuild(_region, settings.PatrolEdgeMargin,
+                settings.PatrolCornerRadius, settings.PatrolClockwise, out _patrolPath);
+            Assert.IsTrue(pathReady, "行动区域太小 / 内缩量太大，排不出贴着边缘的巡逻路线");
+
+            return pathReady;
+        }
+
+        /// <summary>按名字在场景里找行动区域 plane。只在配置缺省时用，找到之后以序列化字段为准</summary>
+        private static Transform FindSearchPlane()
+        {
+            GameObject found = GameObject.Find(SearchRangePlaneName);
+            return found != null ? found.transform : null;
+        }
+
+        /// <summary>
+        /// 取当前生效的行动区域。运行期直接用 Awake 算好的；
+        /// 编辑期 Awake 不跑，就从 plane 现读一次（给 gizmo 用，不写回序列化字段）。
+        /// </summary>
+        private bool TryResolveRegion(out GuardRegion region)
+        {
+            region = _region;
+            if (region.IsValid)
+            {
+                return true;
+            }
+
+            Transform plane = searchRangePlane != null ? searchRangePlane : FindSearchPlane();
+            return GuardRegion.TryFromPlane(plane, out region);
         }
 
         /// <summary>
@@ -513,7 +541,8 @@ namespace TapTapGameJam.Cockroach
             {
                 _engageLinger = 0f;
                 _stallTimer = 0f;
-                AbandonPatrolPoint();
+                _returningHome = false;
+                RejoinPatrolPath();
             }
             else
             {
@@ -595,6 +624,8 @@ namespace TapTapGameJam.Cockroach
         /// <summary>
         /// 视野 / 身体范围内最近的一只可攻击蟑螂。
         /// <paramref name="range"/> 用 Infinity 表示不限距。
+        /// 从视野名单里取的必须再验一次视线：视野 trigger 是个锥形碰撞体，墙挡不住它。
+        /// 贴身的（身体 trigger 报上来的）本身就贴在一起，不需要再验视线。
         /// </summary>
         protected CockroachAgent PickNearestCockroach(Vector2 from, float range, bool includeTouching)
         {
@@ -603,22 +634,27 @@ namespace TapTapGameJam.Cockroach
 
             foreach (CockroachAgent cockroach in CockroachesInSight)
             {
-                Consider(cockroach);
+                Consider(cockroach, needsLineOfSight: true);
             }
 
             if (includeTouching)
             {
                 foreach (CockroachAgent cockroach in CockroachesTouching)
                 {
-                    Consider(cockroach);
+                    Consider(cockroach, needsLineOfSight: false);
                 }
             }
 
             return best;
 
-            void Consider(CockroachAgent cockroach)
+            void Consider(CockroachAgent cockroach, bool needsLineOfSight)
             {
                 if (!IsTargetable(cockroach))
+                {
+                    return;
+                }
+
+                if (needsLineOfSight && !HasLineOfSight(cockroach.Position))
                 {
                     return;
                 }
@@ -635,8 +671,8 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 目标在不在视野锥里。<b>判据和视野 trigger 完全相同（距离 + 半角，墙不挡）</b>，
-        /// 这样"几何可见"和"物理触发到"不会互相打架。
+        /// 目标在不在视野里：距离够近、在视野锥内、并且中间没有墙。
+        /// 墙用网格的 DDA 判，和蟑螂自己的视线判定是同一套数据。
         /// </summary>
         protected bool CanSee(Vector2 target)
         {
@@ -647,7 +683,18 @@ namespace TapTapGameJam.Cockroach
             }
 
             float angleToTarget = Mathf.Atan2(delta.y, delta.x);
-            return Mathf.Abs(NormAng(angleToTarget - _angle)) <= settings.VisionCone;
+            if (Mathf.Abs(NormAng(angleToTarget - _angle)) > settings.VisionCone)
+            {
+                return false;
+            }
+
+            return HasLineOfSight(target);
+        }
+
+        /// <summary>从守卫到目标之间有没有墙挡着</summary>
+        protected bool HasLineOfSight(Vector2 target)
+        {
+            return Grid.LosClear(Position, target);
         }
 
         #endregion
@@ -667,11 +714,20 @@ namespace TapTapGameJam.Cockroach
         /// <summary>
         /// 决定本帧真正跑哪个决策。优先级：
         /// 1. 子类说"在交战"——放行，允许暂离区域（回程让位给发现新目标）；
-        /// 2. 在区域外又没有焦点——沿归巢距离场回出生点；
+        /// 2. 在区域外又没有焦点——沿归巢距离场往回走（目标仍是区域中心）；
         /// 3. 其余——交还给子类巡逻。
+        ///
+        /// 回程的终点不是"中心"，而是"重新进入矩形"：一进来就从最近的边缘点接上巡逻路线，
+        /// 之后沿着边缘走，不再专门跑回中心。
         /// </summary>
         private GuardIntent DecideGuardIntent(float dt)
         {
+            if (_returningHome && _region.Contains(Position))
+            {
+                _returningHome = false;
+                RejoinPatrolPath();
+            }
+
             GuardIntent intent = DecideIntent(dt);
 
             if (intent.Stance == GuardStance.Engage)
@@ -680,25 +736,24 @@ namespace TapTapGameJam.Cockroach
                 return intent;
             }
 
+            if (_stance == GuardStance.Engage)
+            {
+                // 刚结束交战：就地在最近的边缘点接上路线，别顺着记忆里的旧位置倒着走
+                RejoinPatrolPath();
+            }
+
             // 宽限期用上一帧的立场来算：刚丢焦点的那一下不该立刻掉头
-            bool needsHome = _returningHome || (!InEngageLinger && !_region.Contains(Position));
-            if (!needsHome)
+            if (_returningHome || (!InEngageLinger && !_region.Contains(Position)))
             {
-                return intent;
+                _returningHome = true;
+                return HomewardIntent();
             }
 
-            if (IsAtHome())
-            {
-                _returningHome = false;
-                return intent;
-            }
-
-            _returningHome = true;
-            return HomewardIntent();
+            return intent;
         }
 
         /// <summary>
-        /// 回出生点：沿距离场走，绕过墙，而不是一路往中心怼。
+        /// 回区域：沿距离场走，绕过墙，而不是一路往中心怼。
         /// 距离场在这里不可用时（守卫被丢进了和出生点不连通的死角）由 Descend 退化成直线朝向，
         /// 具体卡住由避障和卡住检测兜底。
         /// </summary>
@@ -730,89 +785,25 @@ namespace TapTapGameJam.Cockroach
             }
         }
 
-        private bool IsAtHome()
-        {
-            return (Position - _homePosition).sqrMagnitude <= settings.HomeArriveRadius * settings.HomeArriveRadius;
-        }
-
         /// <summary>
-        /// 区域内巡逻：走到一个巡逻点 → 停下扫视 → 换下一个点。
-        /// 挑不到能站人的点就原地扫视（区域太小或被墙切碎时会出现）。
+        /// 巡逻：沿贴着区域边缘的固定路线走（顺 / 逆时针见 <see cref="GuardSettings.PatrolClockwise"/>）。
+        /// 瞄准的是路线上"往前看一点"的位置，所以圆角处会自己提前开始拐；
+        /// 被挤离路线（追击、逃离之后）也会顺着这个目标自然回到线上。
         /// </summary>
         protected GuardIntent PatrolIntent(float dt)
         {
-            Vector2 position = Position;
-            float arriveSqr = settings.PatrolArriveRadius * settings.PatrolArriveRadius;
+            _pathDistance = _patrolPath.Wrap(_pathDistance + settings.PatrolSpeed * dt);
 
-            if (_hasPatrolPoint && (position - _patrolPoint).sqrMagnitude <= arriveSqr)
-            {
-                AbandonPatrolPoint();
-            }
+            float lookAhead = Mathf.Max(0.05f, settings.PatrolLookAhead);
+            _patrolPath.Sample(_pathDistance + lookAhead, out Vector2 target, out _);
 
-            if (!_hasPatrolPoint)
-            {
-                _patrolPauseTimer -= dt;
-
-                if (_patrolPauseTimer <= 0f)
-                {
-                    if (TryPickPatrolPoint(out Vector2 point))
-                    {
-                        _patrolPoint = point;
-                        _hasPatrolPoint = true;
-                    }
-                    else
-                    {
-                        // 区域内找不到能站人的点（被墙切碎 / 区域太小）：过一会儿再试，别每帧采一轮
-                        _patrolPauseTimer = PatrolPointRetryDelay;
-                    }
-                }
-            }
-
-            if (_hasPatrolPoint)
-            {
-                return new GuardIntent(GuardStance.Patrol, AngleTo(position, _patrolPoint), settings.PatrolSpeed, settings.TurnSpeed);
-            }
-
-            return new GuardIntent(GuardStance.Patrol, ScanAngle(dt), 0f, settings.TurnSpeed);
+            return new GuardIntent(GuardStance.Patrol, AngleTo(Position, target), settings.PatrolSpeed, settings.TurnSpeed);
         }
 
-        /// <summary>丢掉当前巡逻点，并进入一段原地扫视的停顿</summary>
-        protected void AbandonPatrolPoint()
+        /// <summary>就地接上巡逻路线：取离当前位置最近的那一点，不从起点重来</summary>
+        private void RejoinPatrolPath()
         {
-            _hasPatrolPoint = false;
-            _patrolPauseTimer = Random.Range(settings.PatrolPauseMin, settings.PatrolPauseMax);
-        }
-
-        private bool TryPickPatrolPoint(out Vector2 point)
-        {
-            float margin = Mathf.Max(0f, settings.PatrolEdgeMargin);
-            int attempts = Mathf.Max(1, settings.PatrolSampleAttempts);
-
-            for (int i = 0; i < attempts; i++)
-            {
-                point = _region.PointAt(Random.value, Random.value, margin);
-
-                if (!Grid.OverlapsWall(point, settings.WallProbeRadius))
-                {
-                    return true;
-                }
-            }
-
-            point = default;
-            return false;
-        }
-
-        /// <summary>原地扫视：每隔几秒换个方向慢慢扭头</summary>
-        protected float ScanAngle(float dt)
-        {
-            _scanTimer -= dt;
-            if (_scanTimer <= 0f)
-            {
-                _scanDir = Random.value < 0.5f ? -1f : 1f;
-                _scanTimer = Random.Range(settings.ScanIntervalMin, settings.ScanIntervalMax);
-            }
-
-            return NormAng(_angle + _scanDir * settings.ScanSpeed * dt);
+            _pathDistance = _patrolPath.Project(Position);
         }
 
         #endregion
@@ -954,10 +945,11 @@ namespace TapTapGameJam.Cockroach
             OnMovementStalled();
         }
 
-        /// <summary>卡住的钩子。基类换一个巡逻点；子类可以顺手收掉正在做的动作</summary>
+        /// <summary>卡住的钩子。基类换一个更靠前的路线目标；子类可以顺手收掉正在做的动作</summary>
         protected virtual void OnMovementStalled()
         {
-            AbandonPatrolPoint();
+            // 巡逻卡住（贴着墙角 / 路线被家具挡住）：沿路线往前挪一段，换一个更容易走到的目标点
+            _pathDistance = _patrolPath.Wrap(_pathDistance + StallPathNudge);
         }
 
         #endregion
@@ -1051,7 +1043,7 @@ namespace TapTapGameJam.Cockroach
         {
             DrawVisionGizmo();
             DrawRegionGizmo();
-            DrawHomeGizmo();
+            DrawPatrolPathGizmo();
         }
 
         private void DrawVisionGizmo()
@@ -1077,8 +1069,8 @@ namespace TapTapGameJam.Cockroach
 
         private void DrawRegionGizmo()
         {
-            // 编辑期还没有 _region（Awake 不跑），所以直接从 plane 现读一次
-            if (!GuardRegion.TryFromPlane(searchRangePlane, out GuardRegion region))
+            // 编辑期还没有 _region（Awake 不跑），TryResolveRegion 会从 plane 现读一次
+            if (!TryResolveRegion(out GuardRegion region))
             {
                 return;
             }
@@ -1096,16 +1088,51 @@ namespace TapTapGameJam.Cockroach
             Gizmos.DrawLine(d, a);
         }
 
-        private void DrawHomeGizmo()
+        /// <summary>
+        /// 画巡逻路线。运行期直接用已经建好的路线；编辑期没有 Awake，就用当前 plane + 配置现建一条，
+        /// 方便在场景里调内缩量、圆角和顺 / 逆时针。
+        /// </summary>
+        private void DrawPatrolPathGizmo()
         {
-            if (!Application.isPlaying)
+            GuardPatrolPath path = _patrolPath;
+
+            if (path == null)
             {
-                return;
+                if (!TryResolveRegion(out GuardRegion region) ||
+                    !GuardPatrolPath.TryBuild(region, settings.PatrolEdgeMargin, settings.PatrolCornerRadius,
+                        settings.PatrolClockwise, out path))
+                {
+                    return;
+                }
             }
 
-            Vector3 home = new Vector3(_homePosition.x, transform.position.y, _homePosition.y);
-            Gizmos.color = new Color(0.4f, 0.8f, 1f, 0.9f);
-            Gizmos.DrawWireSphere(home, settings.HomeArriveRadius);
+            float y = transform.position.y;
+            Gizmos.color = _isNight ? new Color(0.4f, 1f, 0.6f, 0.9f) : new Color(0.55f, 0.8f, 1f, 0.6f);
+
+            const int steps = 96;
+            Vector2 previous = path.PositionAt(0f);
+            for (int i = 1; i <= steps; i++)
+            {
+                Vector2 next = path.PositionAt(path.Length * i / steps);
+                Gizmos.DrawLine(new Vector3(previous.x, y, previous.y), new Vector3(next.x, y, next.y));
+                previous = next;
+            }
+
+            // 再画几个箭头，一眼能看出是顺时针还是逆时针
+            Gizmos.color = _isNight ? new Color(1f, 0.9f, 0.3f, 0.95f) : new Color(0.9f, 0.85f, 0.4f, 0.7f);
+            const int arrowCount = 4;
+            for (int i = 0; i < arrowCount; i++)
+            {
+                float distance = path.Length * (i + 0.5f) / arrowCount;
+                path.Sample(distance, out Vector2 position, out Vector2 tangent);
+
+                Vector3 tip = new Vector3(position.x, y, position.y);
+                Vector3 back = tip - new Vector3(tangent.x, 0f, tangent.y) * 0.5f;
+                Vector3 side = Vector3.Cross(Vector3.up, new Vector3(tangent.x, 0f, tangent.y)) * 0.25f;
+
+                Gizmos.DrawLine(tip, back + side);
+                Gizmos.DrawLine(tip, back - side);
+            }
         }
 
         #endregion

@@ -46,29 +46,6 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 取区域内的一点。<paramref name="u"/> / <paramref name="v"/> 是 [0,1] 的随机数，
-        /// 由调用方提供，这样随机源统一在调用方那边；<paramref name="margin"/> 是内缩量。
-        /// </summary>
-        public Vector2 PointAt(float u, float v, float margin)
-        {
-            Vector2 min = Min + Vector2.one * margin;
-            Vector2 max = Max - Vector2.one * margin;
-
-            // 内缩量比区域还大：退化成中心点，别把 min/max 反过来
-            if (max.x < min.x)
-            {
-                min.x = max.x = Center.x;
-            }
-
-            if (max.y < min.y)
-            {
-                min.y = max.y = Center.y;
-            }
-
-            return new Vector2(Mathf.Lerp(min.x, max.x, u), Mathf.Lerp(min.y, max.y, v));
-        }
-
-        /// <summary>
         /// 从 plane 的世界包围盒读出区域（只取 XZ，高度不参与）。
         /// 返回 false 表示这个物体上没有 Renderer，或者它在 XZ 上退化了。
         /// </summary>
