@@ -58,10 +58,22 @@ namespace TapTapGameJam.UI
         [Tooltip("物品送回世界时用的后端。UI 侧只有这一处要落到世界上")]
         [SerializeField] private PlayerBag _bag;
 
-        [Header("受监控的容器")]
-        [Tooltip("打开其中任意一个就切 Backpack ActionMap、并让游戏暂停；全关了才回 DayPlayer。" +
-                 "没连进来的容器不参与判断（不是所有容器都需要关注）")]
-        [SerializeField] private List<ItemContainer> _containers = new List<ItemContainer>();
+        [Header("受监控的容器（每个都单独挂）")]
+        [Tooltip("打开其中任意一个就切 UI ActionMap、并让游戏暂停；全关了才回 DayPlayer")]
+        [SerializeField] private BagPanelUI _bagContainer;
+        [Tooltip("仓库面板（还没进场景可以留空）")]
+        [SerializeField] private RepoPanelUI _repoContainer;
+        [Tooltip("商店面板（还没进场景可以留空）")]
+        [SerializeField] private StorePanelUI _storeContainer;
+        [Tooltip("待拾取位（停一件东西的小容器）")]
+        [SerializeField] private UnpickItemContainer _unpickContainer;
+
+        [Header("底板槽位")]
+        [Tooltip("物品底板的槽位（EmptySlot）。不开 UI 时会被关掉，免得它的射线挡住鼠标点击")]
+        [SerializeField] private EmptySlot _emptySlot;
+
+        /// <summary>受监控的容器，Awake 里按上面四个字段拼出来</summary>
+        private ItemContainer[] _containers = new ItemContainer[0];
 
         #endregion
 
@@ -92,7 +104,7 @@ namespace TapTapGameJam.UI
         {
             get
             {
-                for (int i = 0; i < _containers.Count; i++)
+                for (int i = 0; i < _containers.Length; i++)
                 {
                     ItemContainer container = _containers[i];
                     if (container != null && container.IsOpen) // 已销毁的条目当作没开
@@ -108,8 +120,45 @@ namespace TapTapGameJam.UI
         /// <summary>受监控的容器里有开着的吗（= 该用 UI 的 ActionMap、该暂停）</summary>
         public bool AnyContainerOpen => !AllContainersClosed;
 
+        /// <summary>
+        /// 是不是"只开着背包"：背包开着，仓库 / 商店 / 待拾取位都关着。
+        /// 底板（<see cref="EmptySlot"/>）靠它决定：往底板上丢东西是"停进待拾取位"还是"丢回世界"。
+        /// </summary>
+        public bool IsBagContainerOpenOnly
+        {
+            get
+            {
+                if (_bagContainer == null || !_bagContainer.IsOpen)
+                {
+                    return false;
+                }
+
+                return !IsOpen(_repoContainer)
+                       && !IsOpen(_storeContainer)
+                       && !IsOpen(_unpickContainer);
+            }
+        }
+
+        /// <summary>待拾取位容器（底板放在它上面时会往里停）</summary>
+        public UnpickItemContainer UnpickItemContainer => _unpickContainer;
+
         /// <summary>受监控的容器数量，调试用</summary>
-        public int MonitoredContainerCount => _containers.Count;
+        public int MonitoredContainerCount
+        {
+            get
+            {
+                int count = 0;
+                for (int i = 0; i < _containers.Length; i++)
+                {
+                    if (_containers[i] != null)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
 
         /// <summary>
         /// 重新判断一遍：有受监控容器开着就用 UI 的 ActionMap（Backpack），全关了才回默认（DayPlayer），
@@ -125,6 +174,9 @@ namespace TapTapGameJam.UI
             GameManager.PlayerInputManager.SwitchActionMap(
                 allClosed ? PlayerInputManager.DefaultActionMapName : PlayerInputManager.UIActionMapName);
 
+            // 底板跟着一起开关：不开 UI 时必须把它关掉，否则它那块 Image 会把鼠标点击全吃掉
+            _emptySlot.SetEnabled(!allClosed);
+
             EventPipeline.Publish(new EventContainerStateChanged(allClosed));
         }
 
@@ -134,7 +186,7 @@ namespace TapTapGameJam.UI
         /// </summary>
         public void CloseAllContainer()
         {
-            for (int i = 0; i < _containers.Count; i++)
+            for (int i = 0; i < _containers.Length; i++)
             {
                 ItemContainer container = _containers[i];
                 if (container != null && container.IsOpen)
@@ -142,6 +194,11 @@ namespace TapTapGameJam.UI
                     container.CloseContainer();
                 }
             }
+        }
+
+        private static bool IsOpen(ItemContainer container)
+        {
+            return container != null && container.IsOpen;
         }
 
         #endregion
@@ -155,12 +212,14 @@ namespace TapTapGameJam.UI
 
             Assert.IsTrue(_dragLayer, "UIManager：没连 DragLayer");
             Assert.IsTrue(_bag, "UIManager：没连 PlayerBag（送回世界要用）");
+            Assert.IsTrue(_bagContainer, "UIManager：没连背包容器（BagPanelUI）");
+            Assert.IsTrue(_unpickContainer, "UIManager：没连待拾取位容器（UnpickItemContainer）");
+            Assert.IsTrue(_emptySlot, "UIManager：没连底板槽位（EmptySlot）");
 
-            if (_containers.Count == 0)
-            {
-                Debug.LogWarning($"[UIManager:{name}]：受监控容器列表是空的 —— 打开背包 / 仓库时不会切 " +
-                                 "ActionMap、也不会暂停。请把需要关注的容器（BagPanelUI / RepoPanelUI…）拖进列表", this);
-            }
+            _containers = new ItemContainer[] { _bagContainer, _repoContainer, _storeContainer, _unpickContainer };
+
+            // 开局所有容器都是关的，底板也先关掉（它的 Image 会挡鼠标点击）
+            _emptySlot.SetEnabled(false);
 
             EnsureDragLayerOnTop();
         }
@@ -318,21 +377,7 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(item != null, "DetachItemToWorld：item 是 null");
             _bag.DropToWorld(item);
         }
-
-        /// <summary>把块对应的物品送回世界，然后销毁块（拖到面板外松手 / 落在拒绝的槽位上时走这里）</summary>
-        public void ReturnBlockToWorld(BagItemBlock block)
-        {
-            Assert.IsTrue(block != null, "ReturnBlockToWorld：block 是 null");
-
-            PickableItem item = block.boundedItem;
-            if (item != null)
-            {
-                _bag.DropToWorld(item);
-            }
-
-            DestroyBlock(block);
-        }
-
+        
         /// <summary>拖拽到一半容器被关掉：这一块已经不属于任何容器了，直接销毁</summary>
         public void DestroyDraggingBlock()
         {

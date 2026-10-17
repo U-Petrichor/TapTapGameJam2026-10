@@ -8,14 +8,14 @@ using UnityEngine;
 namespace TapTapGameJam.UI
 {
     /// <summary>
-    /// "待拾取物"位：一个只装一件东西的小容器 + 槽位。
+    /// "待拾取物"位：一个只装一件东西的小容器。该物品应该在世界上
     ///
     /// - 作为容器（<see cref="ItemContainer"/>）：持有那一件，打开时给它建块、关掉时销毁它的块；
     /// - 作为槽位（<see cref="IItemSlot"/>）：可以往上丢（标记点空着就行），也可以把这件再拖走。
     ///
     /// 它和背包是独立容器：背包关掉时把它一起关掉即可，不需要谁去记录它的块。
     /// </summary>
-    public class UnpickItemSlot : ItemContainer, IItemSlot
+    public class UnpickItemContainer : ItemContainer
     {
         [Tooltip("物品标记点：待拾取物停在这里。放在提示框中心")]
         [SerializeField] private RectTransform _itemSpritePivot;
@@ -36,10 +36,13 @@ namespace TapTapGameJam.UI
         [Tooltip("藏起来时的位置：相对停留位置的偏移。从屏幕底部升上来 → 填负 y（≈0,-650）")]
         [SerializeField] private Vector2 _hiddenOffset = new Vector2(0f, -650f);
 
+        [Tooltip("对应的底盘空槽位")]
+        [SerializeField] private EmptySlot _emptySlot;
+        
         /// <summary>当前停在这里的那件（容器持有的唯一物品）</summary>
         private PickableItem _item;
 
-        /// <summary>离场动画要销毁的那件。开始关的时候定下来 —— OpenWithItem 是"先关再开"，_item 会被换掉</summary>
+        /// <summary>离场动画要销毁的那件。开始关的时候就定下来：动画还没播完时 _item 可能已经被换成新的了</summary>
         private PickableItem _closingItem;
 
         private CanvasGroup _canvasGroup;
@@ -71,66 +74,16 @@ namespace TapTapGameJam.UI
             _canvasGroup.interactable = false;
         }
 
-        #region IItemSlot
-
-        public bool TryDropItemBlock(BagItemBlock block)
-        {
-            Assert.IsTrue(block != null, "UnpickItemSlot：block 是 null");
-            return _item == null;
-        }
-
-        public bool DropItemBlock(BagItemBlock block)
-        {
-            Assert.IsTrue(block != null, "UnpickItemSlot：block 是 null");
-
-            if (_item != null)
-            {
-                return false;
-            }
-
-            SetItemBlock(block);
-            return true;
-        }
-
-        /// <summary>块被拿走了：标记点空出来（块本身和 CurrentSlot 都不归这里管）</summary>
-        public bool OnPickUpItem(BagItemBlock block)
-        {
-            Assert.IsTrue(_item == block.boundedItem,
-                $"UnpickItemSlot：拿走的不是我这里的那件（我是 {_item}，来的是 {block.boundedItem}）");
-
-            _item = null;
-            _infoTextTitle.text = "";
-            _infoTextContent.text = "";
-            CloseContainer();
-            return true;
-        }
-
-        /// <summary>TODO: 待拾取位还没有试放预览的表现</summary>
-        public void ClearDropPreview()
-        {
-        }
-
-        #endregion
 
         #region ItemContainer
 
         /// <summary>
-        /// 换一件停在标记点上（比如装备槽换下来的那件）。
-        /// 换件 = 先关掉再开，所以重复调用、连着换都是安全的。
+        /// 将内容换成某Item并打开；已经打开时调用无效
         /// </summary>
         public void OpenWithItem(PickableItem item)
         {
             Assert.IsTrue(item != null, "UnpickItemSlot.OpenWithItem：item 是 null");
-
-            if (_item == item)
-            {
-                OpenContainer(); // 就是当前这件：确保它开着
-                return;
-            }
-
-            // 把那件（它的块 + 提示）收掉；没开着也安全
-            CloseContainer();
-
+            if (IsOpen) return;
             _item = item;
             OpenContainer();
         }
@@ -176,6 +129,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
+            // 要销毁哪一件在这里定下来（下面 FinishClose 是 0.25s 之后才跑的，
+            // 中间 _item 可能已经被 OpenWithItem 换成新的那件了）
             _closingItem = _item;
 
             _canvasGroup.blocksRaycasts = false;
@@ -186,12 +141,23 @@ namespace TapTapGameJam.UI
             PlayExitAnimation(FinishClose);
         }
 
-        /// <summary>离场动画播完之后的收尾：销毁那时持有的那件的块，并清掉提示文字</summary>
+        /// <summary>离场动画播完之后的收尾：销毁关店时那件的块，并清掉提示文字</summary>
         private void FinishClose()
         {
             if (_closingItem != null)
             {
-                UIManager.Instance.DestroyBlock(_closingItem);
+                // 块可能已经不在了（被拖出去、被别的容器接手），所以先问一句再销毁
+                if (UIManager.Instance.TryGetBlock(_closingItem, out BagItemBlock block))
+                {
+                    UIManager.Instance.DestroyBlock(block);
+                }
+
+                // 关的就是当前这件才清空（已经被换成新的那件就别动它）
+                if (_item == _closingItem)
+                {
+                    _item = null;
+                }
+
                 _closingItem = null;
             }
 
@@ -199,8 +165,6 @@ namespace TapTapGameJam.UI
             _infoTextContent.text = "";
 
             _canvasGroup.alpha = 0f;
-
-            // TODO: 把提示框整个收起来（现在是靠 alpha = 0 藏住的）
         }
 
         #region 出场 / 离场动画（实现）
@@ -285,15 +249,22 @@ namespace TapTapGameJam.UI
         #endregion
 
         /// <summary>把块停到标记点上，并显示提示</summary>
-        private void SetItemBlock(BagItemBlock block)
+        public void SetItemBlock(BagItemBlock block)
         {
+            if (block == null)
+            {
+                _item = null;
+                _infoTextContent.text = "";
+                _infoTextTitle.text = "";
+                return;
+            }
             _item = block.boundedItem;
             _infoTextContent.text = _item.ItemDesc;
             _infoTextTitle.text = _item.ItemTitle;
 
             // 从仓库过来的块要先恢复成背包形态（显示格子框、缩放归 1）
+            block.CurrentSlot = _emptySlot;
             block.ApplyBagPresentation();
-            block.CurrentSlot = this;
             // 挂在容器自己下面：待拾取位滑上来 / 淡入时物品跟着一起走
             block.transform.SetParent(transform, false);
             block.transform.position = _itemSpritePivot.position;

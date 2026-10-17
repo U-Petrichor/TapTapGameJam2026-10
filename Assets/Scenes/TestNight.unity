@@ -169,15 +169,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 14625822}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62e6253aaaf44d72a87a0c59b3dec121, type: 3}
+  m_Script: {fileID: 11500000, guid: de514c3157d74d04abbc435cdde6140c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.UnpickItemSlot
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.UnpickItemContainer
   _itemSpritePivot: {fileID: 1673450427}
   _infoTextTitle: {fileID: 128533856}
   _infoTextContent: {fileID: 688181913}
   _animDuration: 0.25
   _shownOffset: {x: 0, y: 0}
-  _hiddenOffset: {x: 0, y: -900}
+  _hiddenOffset: {x: 0, y: -650}
+  _emptySlot: {fileID: 1456963960}
 --- !u!1 &125808976
 GameObject:
   m_ObjectHideFlags: 0
@@ -5293,6 +5294,94 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1512975659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1456963956
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1456963957}
+  - component: {fileID: 1456963959}
+  - component: {fileID: 1456963958}
+  - component: {fileID: 1456963960}
+  m_Layer: 5
+  m_Name: EmptySlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1456963957
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456963956}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1743955155}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1456963958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456963956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 0
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1456963959
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456963956}
+  m_CullTransparentMesh: 1
+--- !u!114 &1456963960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456963956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c7e6400b59449868b2c8ade9fd161fd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.EmptySlot
 --- !u!1 &1488359888
 GameObject:
   m_ObjectHideFlags: 0
@@ -6827,6 +6916,7 @@ RectTransform:
   - {fileID: 2085038565}
   - {fileID: 1401466883}
   - {fileID: 1645516336}
+  - {fileID: 1456963957}
   - {fileID: 901970753}
   - {fileID: 8812027121864878242}
   - {fileID: 14625823}
@@ -6856,10 +6946,11 @@ MonoBehaviour:
   _cellSpacing: 3
   _dragLayer: {fileID: 216682730}
   _bag: {fileID: 4853131174117530477}
-  _containers:
-  - {fileID: 1955856715526313587}
-  - {fileID: 901970754}
-  - {fileID: 14625824}
+  _bagContainer: {fileID: 1955856715526313587}
+  _repoContainer: {fileID: 901970754}
+  _storeContainer: {fileID: 2145852217}
+  _unpickContainer: {fileID: 14625824}
+  _emptySlot: {fileID: 1456963960}
 --- !u!1 &1768378447
 GameObject:
   m_ObjectHideFlags: 0
@@ -9212,7 +9303,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 14625824}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: TapTapGameJam.UI.UnpickItemSlot, Assembly-CSharp
         m_MethodName: CloseContainer
         m_Mode: 1
@@ -9542,6 +9633,7 @@ GameObject:
   - component: {fileID: 2145852214}
   - component: {fileID: 2145852216}
   - component: {fileID: 2145852215}
+  - component: {fileID: 2145852217}
   m_Layer: 5
   m_Name: StorePanel
   m_TagString: Untagged
@@ -9590,6 +9682,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145852213}
   m_CullTransparentMesh: 1
+--- !u!114 &2145852217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145852213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e556149d50724b73bf1516bcb16f92af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.StorePanelUI
+  _foodGridRoot: {fileID: 0}
+  _toolGridRoot: {fileID: 0}
+  _dressGridRoot: {fileID: 0}
+  mouseStore: {fileID: 0}
+  _animDuration: 0.25
+  _shownOffset: {x: 0, y: 0}
+  _hiddenOffset: {x: -1100, y: 0}
 --- !u!114 &1955856715526313587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9608,7 +9719,7 @@ MonoBehaviour:
   _slotHead: {fileID: 2081115382}
   _slotBody: {fileID: 1804842107}
   _slotLegs: {fileID: 1706588794}
-  _unpickItemSlot: {fileID: 14625824}
+  _unpickItemContainer: {fileID: 14625824}
   _bag: {fileID: 4853131174117530477}
   _animDuration: 0.25
   _shownOffset: {x: 0, y: 0}
@@ -10554,6 +10665,10 @@ PrefabInstance:
     - target: {fileID: 3264854326140381292, guid: 513fc71e937e1644e9ff87a5c1ba9c17, type: 3}
       propertyPath: m_Name
       value: Dress1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5634128063003525477, guid: 513fc71e937e1644e9ff87a5c1ba9c17, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

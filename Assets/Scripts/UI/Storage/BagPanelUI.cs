@@ -70,7 +70,7 @@ namespace TapTapGameJam.UI
 
         [Header("拾取组件")]
         [Tooltip("待拾取物品的slot（独立小容器）")]
-        [SerializeField] private UnpickItemSlot _unpickItemSlot;
+        [SerializeField] private UnpickItemContainer _unpickItemContainer;
 
         
         [Header("背包组件")]
@@ -114,7 +114,7 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(_gridRoot, "BagPanelUI：没连 _gridRoot");
             Assert.IsTrue(_slotHead && _slotBody && _slotLegs,
                 "BagPanelUI：三个装备槽没连全（字段类型已从 Image 变成 EquipSlot，需要在场景里重新拖）");
-            Assert.IsTrue(_unpickItemSlot, "BagPanelUI：没连 _unpickItemSlot");
+            Assert.IsTrue(_unpickItemContainer, "BagPanelUI：没连 _unpickItemSlot");
             Assert.IsTrue(_bag, "BagPanelUI：没连 PlayerBag");
 
             _shownPosition = ((RectTransform)transform).anchoredPosition + _shownOffset;
@@ -181,11 +181,11 @@ namespace TapTapGameJam.UI
             PickableItem pending = _bag.PendingPickupItem;
             if (pending != null)
             {
-                _unpickItemSlot.OpenWithItem(pending);
+                _unpickItemContainer.OpenWithItem(pending);
             }
             else
             {
-                _unpickItemSlot.CloseContainer();
+                _unpickItemContainer.CloseContainer();
             }
         }
 
@@ -459,7 +459,7 @@ namespace TapTapGameJam.UI
 
                 // 送回世界，然后停在待拾取位上等玩家处理
                 _bag.DropToWorld(replaced);
-                _unpickItemSlot.OpenWithItem(replaced);
+                _unpickItemContainer.OpenWithItem(replaced);
             }
 
             return true;

@@ -132,7 +132,7 @@ namespace TapTapGameJam.UI
             if (target == null)
             {
                 // 没打到任何槽位（面板外，或者那个底盘没设成槽位）= 丢到世界
-                UIManager.Instance.ReturnBlockToWorld(this);
+                UIManager.Instance.DestroyBlock(this);
                 return;
             }
 
@@ -147,8 +147,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            // 连原处都回不去：兜底送回世界
-            UIManager.Instance.ReturnBlockToWorld(this);
+            // 连原处都回不去：丢回世界（已经丢回，这里只需要destroy block）
+            UIManager.Instance.DestroyBlock(this);
         }
 
         /// <summary>R 键：把形状顺时针转 90°，块整体跟着转。由 UIManager 转发给正在拖的那一块</summary>
