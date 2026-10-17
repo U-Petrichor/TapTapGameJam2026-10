@@ -197,6 +197,12 @@ namespace TapTapGameJam.Cockroach
 
         protected LayerMask CockroachMask => _cockroachMask;
 
+        /// <summary>
+        /// 视野灯。子类可以拿它做预警 / 闪光（例如喷雾蓄势时变色），
+        /// 但改完要自己还原：基类只负责开关，不管颜色和亮度。
+        /// </summary>
+        protected Light VisionLight => _visionLight;
+
         #endregion
 
         #region 生命周期
@@ -330,7 +336,8 @@ namespace TapTapGameJam.Cockroach
                 cone = vision.gameObject.AddComponent<MeshCollider>();
             }
 
-            cone.sharedMesh = BuildConeMesh(settings.VisionRange, settings.VisionCone, VisionThickness);
+            cone.sharedMesh = GuardConeMesh.Build(settings.VisionRange, settings.VisionCone, VisionThickness,
+                16, "GuardVisionCone");
             cone.convex = true;
             cone.isTrigger = true;
 
@@ -697,6 +704,23 @@ namespace TapTapGameJam.Cockroach
             return Grid.LosClear(Position, target);
         }
 
+        /// <summary>
+        /// 玩家（夜间是蟑螂形态）在世界 XZ 上的位置。场景里没有玩家时返回 false。
+        /// 只回答"玩家在哪"，怎么打玩家是子类的事。
+        /// </summary>
+        protected static bool TryGetPlayerPosition(out Vector2 position)
+        {
+            var player = GameManager.Player;
+            if (player == null)
+            {
+                position = default;
+                return false;
+            }
+
+            position = CockroachAgent.FlatOf(player.transform.position);
+            return true;
+        }
+
         #endregion
 
         #region 决策（子类覆写点）
@@ -987,52 +1011,6 @@ namespace TapTapGameJam.Cockroach
         protected static float RotateTowards(float current, float target, float maxDelta)
         {
             return NormAng(current + Mathf.Clamp(NormAng(target - current), -maxDelta, maxDelta));
-        }
-
-        /// <summary>薄楔形视野体：沿 +Z 铺开，竖直方向 thickness 厚。convex MeshCollider 只取顶点做凸包。</summary>
-        protected static Mesh BuildConeMesh(float range, float halfAngle, float thickness, int segments = 16)
-        {
-            float halfThickness = thickness * 0.5f;
-            var vertices = new List<Vector3>(4 + segments * 2)
-            {
-                new Vector3(0f, -halfThickness, 0f),
-                new Vector3(0f, halfThickness, 0f)
-            };
-
-            var triangles = new List<int>(segments * 12);
-
-            for (int i = 0; i <= segments; i++)
-            {
-                float angle = Mathf.Lerp(-halfAngle, halfAngle, i / (float)segments);
-                float x = Mathf.Sin(angle) * range;
-                float z = Mathf.Cos(angle) * range;
-
-                vertices.Add(new Vector3(x, -halfThickness, z));
-                vertices.Add(new Vector3(x, halfThickness, z));
-            }
-
-            for (int i = 0; i < segments; i++)
-            {
-                int bottom0 = 2 + i * 2;
-                int top0 = bottom0 + 1;
-                int bottom1 = bottom0 + 2;
-                int top1 = bottom0 + 3;
-
-                triangles.AddRange(new[] { 0, bottom1, bottom0 });
-                triangles.AddRange(new[] { 1, top0, top1 });
-                triangles.AddRange(new[] { bottom0, bottom1, top1, bottom0, top1, top0 });
-            }
-
-            int last = 2 + segments * 2;
-            triangles.AddRange(new[] { 0, 1, 3, 0, 3, 2 });
-            triangles.AddRange(new[] { 0, last, last + 1, 0, last + 1, 1 });
-
-            var mesh = new Mesh { name = "GuardVisionCone" };
-            mesh.SetVertices(vertices);
-            mesh.SetTriangles(triangles, 0);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            return mesh;
         }
 
         #endregion

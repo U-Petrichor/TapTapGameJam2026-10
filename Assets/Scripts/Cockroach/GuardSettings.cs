@@ -19,7 +19,6 @@ namespace TapTapGameJam.Cockroach
 
         [Header("移动")]
         public float PatrolSpeed = 1.5f;
-        public float DashSpeed = 8.8f;
 
         [Tooltip("转向角速度（rad/s）")]
         public float TurnSpeed = 4.5f;
@@ -45,13 +44,6 @@ namespace TapTapGameJam.Cockroach
 
         [Tooltip("沿路线往前看多远来瞄准。越大越早开始拐弯、也越容易切角")]
         public float PatrolLookAhead = 1f;
-
-        [Header("冲刺")]
-        [Tooltip("一次冲刺最长持续多久（秒）")]
-        public float DashDuration = 3.2f;
-
-        [Tooltip("冲刺结束后的冷却（秒）")]
-        public float DashCooldown = 6f;
 
         [Header("脱离区域与归巢")]
         [Tooltip("焦点消失后，还允许在区域外逗留多久再往回走（秒）")]

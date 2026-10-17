@@ -22,6 +22,17 @@ namespace TapTapGameJam.Cockroach
         [Serializable]
         public class KillerGuardSettings
         {
+            [Header("冲刺")]
+            [Tooltip("一次冲刺最长持续多久（秒）。冲刺是猎杀者的爆发手段，单次别给太长")]
+            [Range(0.1f, 2f)]
+            public float DashDuration = 2f;
+
+            [Tooltip("冲刺结束后的冷却（秒）")]
+            public float DashCooldown = 6f;
+
+            [Tooltip("冲刺时的速度（冲刺能持续多久在各自守卫的数值里）")]
+            public float DashSpeed = 5.8f;
+
             [Header("冲刺击杀")]
             [Tooltip("冲刺时判定命中蟑螂的额外半径（叠在 BodyRadius 上）")]
             public float KillReach = 0.35f;
@@ -35,6 +46,19 @@ namespace TapTapGameJam.Cockroach
 
             [Tooltip("玩家和蟑螂同时在视野里时，优先追玩家")]
             public bool PreferPlayer = true;
+
+            [Header("预警灯光")]
+            [Tooltip("追逐 / 冲刺时视野灯变成的颜色：告诉玩家\"它盯上你了\"")]
+            public Color WarningLightColor = new Color(1f, 0.22f, 0.15f, 1f);
+
+            [Tooltip("追逐时灯光亮度倍率（相对 prefab 里的原始亮度）")]
+            public float WarningLightIntensityMul = 1.8f;
+
+            [Tooltip("冲刺时灯光亮度倍率，比追逐更亮，冲出去那一下会像闪一下")]
+            public float DashLightIntensityMul = 2.6f;
+
+            [Tooltip("灯光变红 / 褪回原色的过渡时间（秒）")]
+            public float WarningFadeDuration = 0.2f;
         }
 
         /// <summary>
@@ -69,8 +93,29 @@ namespace TapTapGameJam.Cockroach
         private float _dashTimer;
         private float _dashCooldown;
 
+        /// <summary>视野灯的原始颜色 / 亮度，预警结束后要还原</summary>
+        private Color _baseLightColor;
+        private float _baseLightIntensity;
+
+        /// <summary>预警灯的混合度：0 = 原色，1 = 全红。追逐时升上去，丢目标后褪回来</summary>
+        private float _warningBlend;
+
         /// <summary>是否正在冲刺（冲刺才有对玩家的伤害）</summary>
         public bool IsDashing => _dashTarget.HasValue;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            if (!IsReady)
+            {
+                return;
+            }
+
+            // 在 Awake 里抓原色：Start 里基类会按昼夜开关灯，那时再抓就晚了
+            _baseLightColor = VisionLight.color;
+            _baseLightIntensity = VisionLight.intensity;
+        }
 
         protected override void Start()
         {
@@ -96,7 +141,7 @@ namespace TapTapGameJam.Cockroach
             if (TryTickDash())
             {
                 return new GuardIntent(GuardStance.Engage, AngleTo(Position, _dashTarget.Value.Position),
-                    settings.DashSpeed, settings.TurnSpeed);
+                    killer.DashSpeed, settings.TurnSpeed);
             }
 
             // 2. 不在冲刺：选目标，冷却好了就开冲
@@ -110,7 +155,7 @@ namespace TapTapGameJam.Cockroach
                 BeginDash(target);
             }
 
-            float speed = _dashTarget.HasValue ? settings.DashSpeed : settings.PatrolSpeed;
+            float speed = _dashTarget.HasValue ? killer.DashSpeed : settings.PatrolSpeed;
             return new GuardIntent(GuardStance.Engage, AngleTo(Position, target.Position), speed, settings.TurnSpeed);
         }
 
@@ -121,26 +166,48 @@ namespace TapTapGameJam.Cockroach
                 _dashCooldown = Mathf.Max(0f, _dashCooldown - dt);
             }
 
-            if (!_dashTarget.HasValue)
+            if (_dashTarget.HasValue)
             {
-                return;
+                _dashTimer -= dt;
+                if (_dashTimer <= 0f)
+                {
+                    FinishDash();
+                }
             }
 
-            _dashTimer -= dt;
-            if (_dashTimer <= 0f)
-            {
-                FinishDash();
-            }
+            UpdateWarningLight(dt);
+        }
+
+        /// <summary>
+        /// 追逐 / 冲刺时把视野灯染红，丢了目标就褪回原色——和喷雾守卫蓄势时的绿色预警同一个思路。
+        /// "在不在追"直接用基类的立场：只要有目标，子类就会给出 Engage，冲刺中也是 Engage。
+        /// </summary>
+        private void UpdateWarningLight(float dt)
+        {
+            float target = Stance == GuardStance.Engage ? 1f : 0f;
+            float fade = Mathf.Max(0.01f, killer.WarningFadeDuration);
+            _warningBlend = Mathf.MoveTowards(_warningBlend, target, dt / fade);
+
+            // 冲刺比追逐更亮：冲出去那一下会明显亮一头
+            float intensityMul = IsDashing ? killer.DashLightIntensityMul : killer.WarningLightIntensityMul;
+
+            VisionLight.color = Color.Lerp(_baseLightColor, killer.WarningLightColor, _warningBlend);
+            VisionLight.intensity = Mathf.Lerp(_baseLightIntensity, _baseLightIntensity * intensityMul, _warningBlend);
         }
 
         protected override void OnNightActiveChanged(bool active)
         {
-            if (!active)
+            if (active)
             {
-                // 白天不该留着一段没跑完的冲刺，下一个夜晚从干净状态开始
-                _dashTarget = null;
-                _dashTimer = 0f;
+                return;
             }
+
+            // 白天不该留着一段没跑完的冲刺，下一个夜晚从干净状态开始
+            _dashTarget = null;
+            _dashTimer = 0f;
+            _warningBlend = 0f;
+            VisionLight.color = _baseLightColor;
+            VisionLight.intensity = _baseLightIntensity;
         }
 
         #endregion
@@ -239,7 +306,7 @@ namespace TapTapGameJam.Cockroach
             Assert.IsFalse(_dashTarget.HasValue, "冲刺还没结束又开了一次");
 
             _dashTarget = target;
-            _dashTimer = settings.DashDuration;
+            _dashTimer = killer.DashDuration;
         }
 
         /// <summary>结束冲刺并进冷却。冲刺命中、目标丢失、被卡住、时间到都走这里</summary>
@@ -252,7 +319,7 @@ namespace TapTapGameJam.Cockroach
 
             _dashTarget = null;
             _dashTimer = 0f;
-            _dashCooldown = settings.DashCooldown;
+            _dashCooldown = killer.DashCooldown;
         }
 
         #endregion
@@ -330,19 +397,6 @@ namespace TapTapGameJam.Cockroach
         {
             PlayerBasic player = GameManager.Player;
             return player == null ? null : player.PlayerHealth;
-        }
-
-        private static bool TryGetPlayerPosition(out Vector2 position)
-        {
-            PlayerBasic player = GameManager.Player;
-            if (player == null)
-            {
-                position = default;
-                return false;
-            }
-
-            position = CockroachAgent.FlatOf(player.transform.position);
-            return true;
         }
 
         #endregion
