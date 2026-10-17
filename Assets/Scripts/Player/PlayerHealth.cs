@@ -77,6 +77,9 @@ namespace TapTapGameJam.Player
         /// <summary>负重占据的上限</summary>
         public float Heavy => _heavy;
 
+        /// <summary>是否已经受伤</summary>
+        public bool HasDamaged => _damage > 0.001f;
+        
         /// <summary>可用体力上限（体力条背景 power_back 的值）。降到 0 视为失败</summary>
         public float PowerTotal => Mathf.Max(0f, _maxHealth - _damage - _poison - _heavy);
 

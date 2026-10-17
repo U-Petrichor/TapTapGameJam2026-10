@@ -44,13 +44,13 @@ namespace TapTapGameJam.Items
         [SerializeField] protected Sprite _bagIcon;
         public virtual Sprite BagIcon => _bagIcon;
 
-        [Tooltip("在背包中鼠标 hover 该物品时显示的提示信息")]
-        [SerializeField] protected string _hoverPrompt = "";
-        public virtual string HoverPrompt => _hoverPrompt;
-
-        [Tooltip("是否可以在背包中被使用（右键）。默认可用，子类可覆写 IsUseAble 关闭")]
-        [SerializeField] protected bool _isUseAble = true;
-        public virtual bool IsUseAble => _isUseAble;
+        [Tooltip("物品名称")]
+        [SerializeField] protected string _itemTitle = "";
+        public virtual string ItemTitle => _itemTitle;
+        
+        [Tooltip("物品描述信息")]
+        [SerializeField] protected string _itemDesc = "";
+        public virtual string ItemDesc => _itemDesc;
 
         /// <summary>
         /// 这件物品属于哪个大类（仓库 / 商店分页用）。
@@ -107,8 +107,6 @@ namespace TapTapGameJam.Items
             PlayerBag bag = player != null ? player.PlayerBag : null;
             if (bag == null)
             {
-                // 场景里没有 PlayerBag（例如还没接线的测试场景）。
-                // 这里不做任何状态修改，只报错——把物品藏起来却没人记录它，等于凭空消失。
                 Debug.LogError($"[{name}]：玩家身上没有 PlayerBag，无法拾取。请在 Player 预制体上挂 PlayerBag 组件");
                 return;
             }
@@ -117,17 +115,6 @@ namespace TapTapGameJam.Items
         }
 
         public override string InteractionPrompt => "按 E 拾取";
-
-        /// <summary>
-        /// 在背包中才能使用（右键），具体作用由子类实现。
-        /// 返回 true 表示"这件东西用完了"，调用方（PlayerBag.UseItem）会把它从背包摘掉并销毁；
-        /// 返回 false 表示"效果做了但东西还在"（例如饰品换装），调用方会把它交回玩家手上。
-        /// </summary>
-        public virtual bool UseInBag(PlayerBasic player)
-        {
-            // 默认不可使用的物品直接返回失败
-            return false;
-        }
 
         #endregion
     }

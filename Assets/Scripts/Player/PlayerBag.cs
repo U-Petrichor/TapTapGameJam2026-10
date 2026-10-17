@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
+using TapTapGameJam.Items.tools;
 using TapTapGameJam.Player;
 using UnityEngine;
 
@@ -304,6 +305,7 @@ namespace TapTapGameJam.Items
 
             PendingPickupItem = item;
             GameManager.PlayerInputManager.OpenBackpack();
+            EventPipeline.Publish(new BackpackEvent(true));
             return true;
         }
 
@@ -405,6 +407,20 @@ namespace TapTapGameJam.Items
                 if (_placements[i].item == item)
                 {
                     _placements.RemoveAt(i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        
+        public bool IsInGrid(PickableItem item)
+        {
+            for (int i = 0; i < _placements.Count; i++)
+            {
+                if (_placements[i].item == item)
+                {
                     return true;
                 }
             }
@@ -557,48 +573,28 @@ namespace TapTapGameJam.Items
         #region 使用
 
         /// <summary>
-        /// 在背包里使用某个物品（右键）。
-        /// - 子类通过 <see cref="PickableItem.UseInBag"/> 施加效果；
-        /// - 返回 true 表示"用完了"，这里把它从背包摘掉并销毁；
-        /// - 返回 false 表示"效果做了，但东西还在"（换装之类），这里只把它从格子里摘掉，
-        ///   后续怎么安顿（送回世界 / 拿在手上）交给调用方。
+        /// 在背包里使用某个物品（右键），先丢回世界、再使用。
+        /// - 子类通过 <see cref="PickableItem.UseItem"/> 施加效果；
+        /// - 返回是否使用成功，成功则UI需要清理
         /// </summary>
         public bool UseItem(PickableItem item, PlayerBasic player)
         {
-            if (item == null || !item.IsUseAble)
+            if (item == null || player == null)
             {
                 return false;
             }
 
-            if (player == null)
+            if (item is ToolItem toolItem)
             {
-                player = GetComponent<PlayerBasic>();
+                if (IsInGrid(item) && toolItem.UseItem(player))
+                {
+                    TakeFromGrid(item);
+                    Destroy(item);
+                    return true;
+                }
             }
 
-            bool consumed = item.UseInBag(player);
-
-            if (consumed)
-            {
-                TakeFromGrid(item);
-                if (TryGetEquipSlot(item, out EquipSlot slot))
-                {
-                    _equipped[(int)slot] = null;
-                }
-
-                if (PendingPickupItem == item)
-                {
-                    PendingPickupItem = null;
-                }
-
-                if (Core.ItemManager.Instance != null)
-                {
-                    Core.ItemManager.Instance.Unregister(item);
-                }
-
-                Destroy(item.gameObject);
-            }
-
-            return consumed;
+            return false;
         }
 
         #endregion

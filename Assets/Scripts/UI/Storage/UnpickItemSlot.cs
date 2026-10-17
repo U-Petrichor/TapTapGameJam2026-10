@@ -101,6 +101,7 @@ namespace TapTapGameJam.UI
             _item = null;
             _infoTextTitle.text = "";
             _infoTextContent.text = "";
+            CloseContainer();
             return true;
         }
 
@@ -287,8 +288,8 @@ namespace TapTapGameJam.UI
         private void SetItemBlock(BagItemBlock block)
         {
             _item = block.boundedItem;
-            _infoTextContent.text = _item.HoverPrompt;
-            _infoTextTitle.text = _item.name;
+            _infoTextContent.text = _item.ItemDesc;
+            _infoTextTitle.text = _item.ItemTitle;
 
             // 从仓库过来的块要先恢复成背包形态（显示格子框、缩放归 1）
             block.ApplyBagPresentation();

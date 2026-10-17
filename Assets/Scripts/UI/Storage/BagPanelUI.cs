@@ -205,7 +205,6 @@ namespace TapTapGameJam.UI
 
             _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 180);
 
-            _unpickItemSlot.CloseContainer();
             base.CloseContainer();
 
             PlayExitAnimation(FinishClose);
@@ -528,17 +527,9 @@ namespace TapTapGameJam.UI
             }
 
             PickableItem item = block.boundedItem;
-            if (item == null || !item.IsUseAble)
-            {
-                return;
-            }
 
-            if (!_bag.UseItem(item, null))
-            {
-                // 效果做了但东西还在（换装之类）：怎么安顿还没有定，先不处理
-                return;
-            }
-
+            if (!_bag.UseItem(item, GameManager.Player)) return;
+            
             // 用掉了：后端已经把它摘掉并销毁本体，块交给 UIManager 回收
             UIManager.Instance.DestroyBlock(block);
         }

@@ -13,8 +13,6 @@ namespace TapTapGameJam.Items
         /// <summary>不给玩家捡：捡起来放回地图就成了玩家的杀蟑陷阱。</summary>
         public override bool CanInteract(Player.PlayerBasic player) => false;
 
-        public override string HoverPrompt => "杀虫饵";
-
         public override string InteractionPrompt => "杀虫饵（不可拾取）";
     }
 }

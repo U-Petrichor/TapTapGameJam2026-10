@@ -1,4 +1,5 @@
 using TapTapGameJam.Core;
+using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
 using UnityEngine;
 
@@ -34,6 +35,19 @@ namespace TapTapGameJam.Items
             return base.CanInteract(player) && HasNutrition;
         }
 
+        public override void Interact(PlayerBasic player, InteractKey key)
+        {
+            if (key == InteractKey.F)
+            {
+                // 存储
+                base.Interact(player, key);
+            }
+            else
+            {
+                // TODO: E吃掉
+            }
+        }
+
         /// <summary>
         /// 被蟑螂啃掉 amount 份营养，返回实际吃到的量（0 表示没吃到）。
         /// </summary>
@@ -62,30 +76,6 @@ namespace TapTapGameJam.Items
             return eaten;
         }
 
-        public override bool UseInBag(PlayerBasic player)
-        {
-            PlayerBag bag = player != null ? player.PlayerBag : null;
-            if (bag == null)
-            {
-                Debug.LogWarning($"[{name}]：玩家身上没有 PlayerBag，无法把食物放回地图");
-                return false;
-            }
-
-            if (!HasNutrition)
-            {
-                // 已经被吃空了，没必要再放回地图，直接让它消失
-                return true;
-            }
-
-            // 食物不做"使用即吃掉"：从背包拿出来放回地图，营养值原样保留
-            // （本体从没被销毁过，所以 remainingNutrition 不需要额外搬运）。
-            // 先从网格摘掉再回地图，否则会留下指向同一件物品的旧占格记录。
-            bag.TakeFromGrid(this);
-            bag.ReturnToWorld(this, bag.EvaluateDropPosition());
-            return false; // 东西还在，不消耗
-        }
-
-        public override string HoverPrompt => $"剩余营养 {remainingNutrition:F1}";
         public override string InteractionPrompt => "捡起食物";
     }
 }

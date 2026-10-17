@@ -36,26 +36,5 @@ namespace TapTapGameJam.Items
                     return EquipSlot.Head;
             }
         }
-
-        /// <summary>
-        /// 右键使用 = 装备到对应槽位。
-        /// 槽里已经有的那件会被 PlayerBag 换下来交到玩家手上，所以这里返回 false（东西没被消耗掉）。
-        /// </summary>
-        public override bool UseInBag(PlayerBasic player)
-        {
-            PlayerBag bag = player != null ? player.PlayerBag : null;
-            if (bag == null)
-            {
-                Debug.LogWarning($"[{name}]：玩家身上没有 PlayerBag，无法装备");
-                return false;
-            }
-
-            if (!bag.TryEquip(this, out _))
-            {
-                Debug.LogWarning($"[{name}]：装备失败");
-            }
-
-            return false;
-        }
     }
 }
