@@ -65,10 +65,10 @@ namespace TapTapGameJam.UI
             return repoPanelUI.DropToCell(block, this);
         }
 
-        public void OnPickUpItem(BagItemBlock block)
+        public bool OnPickUpItem(BagItemBlock block)
         {
             Assert.IsTrue(repoPanelUI != null, "RepoCellUI：没连 repoPanelUI");
-            repoPanelUI.OnItemPickedUp(block);
+            return repoPanelUI.OnItemPickedUp(block);
         }
 
         /// <summary>预览是整个容器一起收的（换目标、松手都会来一下）</summary>

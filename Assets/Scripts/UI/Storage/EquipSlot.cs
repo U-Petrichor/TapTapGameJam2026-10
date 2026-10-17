@@ -62,10 +62,10 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>从槽里把东西拿起来：先从后端卸下来（本体落到世界），块自己会带着来源回退</summary>
-        public void OnPickUpItem(BagItemBlock block)
+        public bool OnPickUpItem(BagItemBlock block)
         {
             Assert.IsTrue(bagPanelUI != null, "EquipSlot：没连 bagPanelUI");
-            bagPanelUI.OnItemPickedUp(block);
+            return bagPanelUI.OnItemPickedUp(block);
         }
 
         /// <summary>TODO: 装备槽的试放预览还没有表现（要红/绿得先定槽里怎么显示图标）</summary>

@@ -57,10 +57,10 @@ namespace TapTapGameJam.UI
             return bagPanelUI.DropToCell(block, Cell);
         }
 
-        public void OnPickUpItem(BagItemBlock block)
+        public bool OnPickUpItem(BagItemBlock block)
         {
             Assert.IsTrue(bagPanelUI != null, "BagCell：没连 bagPanelUI");
-            bagPanelUI.OnItemPickedUp(block);
+            return bagPanelUI.OnItemPickedUp(block);
         }
 
         /// <summary>预览是整个形状一起刷在若干格子上的，所以收的时候也是容器统一收</summary>

@@ -91,8 +91,13 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(CurrentSlot != null,
                 "BagItemBlock：块没有 CurrentSlot —— 容器创建块后必须把它登记到槽位上");
 
-            // 先告诉来源槽位"我走了"（它会把占用清掉），再挂到拖动层
-            CurrentSlot.OnPickUpItem(this);
+            // 先问来源槽位放不放人：返回 false 就当场放弃这次拖拽（IsDragging 保持 false，
+            // 后面的 OnDrag / OnEndDrag 都会直接 return，块一步都不动）
+            if (!CurrentSlot.OnPickUpItem(this))
+            {
+                return;
+            }
+
             UIManager.Instance.NotifyBeginDrag(this);
             transform.SetParent(UIManager.Instance.DragLayer, true);
 

@@ -418,10 +418,11 @@ namespace TapTapGameJam.UI
         /// 块被从槽里拿起来（按下开始拖）：把它从原来的占格里摘掉、本体回到世界。
         /// 背包格和装备槽是同一件事：PlayerBag.ReturnToWorld 会顺手把 Placement / _equipped 清掉。
         /// </summary>
-        public void OnItemPickedUp(BagItemBlock block)
+        public bool OnItemPickedUp(BagItemBlock block)
         {
             Assert.IsTrue(block != null, "OnItemPickedUp：block 是 null");
             UIManager.Instance.DetachItemToWorld(block.boundedItem);
+            return true;
         }
 
         /// <summary>

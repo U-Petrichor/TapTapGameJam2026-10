@@ -93,7 +93,7 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>块被拿走了：标记点空出来（块本身和 CurrentSlot 都不归这里管）</summary>
-        public void OnPickUpItem(BagItemBlock block)
+        public bool OnPickUpItem(BagItemBlock block)
         {
             Assert.IsTrue(_item == block.boundedItem,
                 $"UnpickItemSlot：拿走的不是我这里的那件（我是 {_item}，来的是 {block.boundedItem}）");
@@ -101,6 +101,7 @@ namespace TapTapGameJam.UI
             _item = null;
             _infoTextTitle.text = "";
             _infoTextContent.text = "";
+            return true;
         }
 
         /// <summary>TODO: 待拾取位还没有试放预览的表现</summary>

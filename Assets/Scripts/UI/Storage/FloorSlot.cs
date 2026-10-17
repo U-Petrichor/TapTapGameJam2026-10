@@ -17,10 +17,10 @@ namespace TapTapGameJam.UI
             return false;
         }
 
-        /// <summary>从某个槽位中拿起物品时</summary>
-        public void OnPickUpItem(BagItemBlock block)
+        /// <summary>底板本身不装东西，也不会成为谁的来源槽位；真要问就一律放行</summary>
+        public bool OnPickUpItem(BagItemBlock block)
         {
-            ;
+            return true;
         }
 
         /// <summary>把这个槽位刷出来的试放预览收掉</summary>

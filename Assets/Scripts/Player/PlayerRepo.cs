@@ -40,10 +40,6 @@ namespace TapTapGameJam.Player
         /// <summary>**每一页**的格子数（三页一样大）</summary>
         public int CellCount => _width * _height;
 
-        /// <summary>所有分页，顺序 = 枚举顺序 = 界面上的分页顺序。只读，别改它</summary>
-        public static readonly ItemCategory[] Pages =
-            (ItemCategory[])System.Enum.GetValues(typeof(ItemCategory));
-
         #endregion
 
         #region 运行时数据
@@ -110,7 +106,7 @@ namespace TapTapGameJam.Player
                 {
                     if (pages[p][i] == item)
                     {
-                        page = Pages[p];
+                        page = ItemCategories.All[p];
                         index = i;
                         return true;
                     }
@@ -262,7 +258,7 @@ namespace TapTapGameJam.Player
         {
             if (_pageCells == null)
             {
-                _pageCells = new PickableItem[Pages.Length][];
+                _pageCells = new PickableItem[ItemCategories.All.Length][];
                 for (int p = 0; p < _pageCells.Length; p++)
                 {
                     _pageCells[p] = new PickableItem[CellCount];

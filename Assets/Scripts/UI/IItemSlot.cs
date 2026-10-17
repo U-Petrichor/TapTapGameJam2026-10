@@ -10,9 +10,10 @@ namespace TapTapGameJam.UI
     /// - <see cref="DropItemBlock"/> 是**真放**：放得进才返回 true。成功时必须让容器登记这件物品、
     ///   给块定位（布局），并把 <see cref="BagItemBlock.CurrentSlot"/> 指到自己。
     ///   还**必须能"放回它原来待着的那个槽位"** —— 拖拽失败要靠这条路回退。
-    /// - <see cref="OnPickUpItem"/> 在**按下开始拖拽**时被调用：块已经离开这个槽位，
-    ///   槽位/容器要把自己的占用清掉。不许销毁块，也不许改 <see cref="BagItemBlock.CurrentSlot"/>，
-    ///   块还要靠它回退。
+    /// - <see cref="OnPickUpItem"/> 在**按下开始拖拽**时被调用：块要离开这个槽位了。
+    ///   返回 **false = 禁止取出**（块当场放弃这次拖拽，一步都不动），
+    ///   例如商店里没买下的商品就是靠这个拦下来的；允许取出时才去清自己的占用。
+    ///   不许销毁块，也不许改 <see cref="BagItemBlock.CurrentSlot"/>，块还要靠它回退。
     /// - <see cref="ClearDropPreview"/> 在块的命中目标变化、以及拖拽结束时被调用，用来收掉试放预览。
     /// </summary>
     public interface IItemSlot
@@ -23,8 +24,8 @@ namespace TapTapGameJam.UI
         /// <summary>把一个block放入这个槽位</summary>
         bool DropItemBlock(BagItemBlock block);
 
-        /// <summary>从某个槽位中拿起物品时</summary>
-        void OnPickUpItem(BagItemBlock block);
+        /// <summary>从这个槽位拿起物品。返回 false = 不允许取出</summary>
+        bool OnPickUpItem(BagItemBlock block);
 
         /// <summary>把这个槽位刷出来的试放预览收掉</summary>
         void ClearDropPreview();

@@ -137,14 +137,14 @@ namespace TapTapGameJam.UI
             BuildPages();
 
             // 默认停在第一页（Food），并且保证只有它显示
-            ShowPage(PlayerRepo.Pages[0]);
+            ShowPage(ItemCategories.All[0]);
         }
 
         public void OpenRepoTemp()
         {
             EventPipeline.Publish<RepoOnOffEvent>(new RepoOnOffEvent(true));
         }
-        
+
         private void Start()
         {
             EventPipeline.Subscribe<RepoOnOffEvent>(OnRepoEvent);
@@ -175,7 +175,7 @@ namespace TapTapGameJam.UI
 
             base.OpenContainer();
 
-            foreach (ItemCategory page in PlayerRepo.Pages)
+            foreach (ItemCategory page in ItemCategories.All)
             {
                 List<RepoCellUI> cells = _pageCells[page];
                 for (int i = 0; i < cells.Count; i++)
@@ -339,12 +339,12 @@ namespace TapTapGameJam.UI
             }
         }
 
-        /// <summary>三页各建一组格子（页数/每页格数都取自 PlayerRepo）</summary>
+        /// <summary>三页各建一组格子（页数、每页格数都取自 PlayerRepo）</summary>
         private void BuildPages()
         {
             _pageCells.Clear();
 
-            foreach (ItemCategory page in PlayerRepo.Pages)
+            foreach (ItemCategory page in ItemCategories.All)
             {
                 RectTransform root = _pageRoots[page];
 
@@ -444,7 +444,7 @@ namespace TapTapGameJam.UI
         /// 从仓库把东西拿起来：先把块的形态恢复成背包那套（显示格子框、缩放归 1），
         /// 否则整个拖拽过程它都还是"仓库样子"；再从仓库摘掉、本体按统一规则回世界。
         /// </summary>
-        public void OnItemPickedUp(BagItemBlock block)
+        public bool OnItemPickedUp(BagItemBlock block)
         {
             Assert.IsTrue(block != null, "RepoPanelUI.OnItemPickedUp：block 是 null");
 
@@ -454,6 +454,7 @@ namespace TapTapGameJam.UI
                 $"RepoPanelUI.OnItemPickedUp：{block.boundedItem} 不在仓库里");
 
             UIManager.Instance.DetachItemToWorld(block.boundedItem);
+            return true;
         }
 
         #endregion

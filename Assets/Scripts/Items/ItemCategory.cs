@@ -13,4 +13,12 @@ namespace TapTapGameJam.Items
         Tool = 1,
         Dress = 2,
     }
+
+    /// <summary><see cref="ItemCategory"/> 的配套常量</summary>
+    public static class ItemCategories
+    {
+        /// <summary>所有分页，顺序 = 枚举顺序 = 界面上的分页顺序（背包仓库 / 商店分页都读它）。只读，别改</summary>
+        public static readonly ItemCategory[] All =
+            (ItemCategory[])System.Enum.GetValues(typeof(ItemCategory));
+    }
 }
