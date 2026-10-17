@@ -25,7 +25,7 @@ namespace TapTapGameJam.UI
     /// </summary>
     [DisallowMultipleComponent]
     public class BagItemBlock : MonoBehaviour,
-        IBeginDragHandler, IDragHandler, IEndDragHandler
+        IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
     {
         /// <summary>这个块代表哪件物品</summary>
         public PickableItem boundedItem;
@@ -149,6 +149,23 @@ namespace TapTapGameJam.UI
 
             // 连原处都回不去：丢回世界（已经丢回，这里只需要destroy block）
             UIManager.Instance.DestroyBlock(this);
+        }
+
+        /// <summary>
+        /// 只是点了一下（没拖）：块压在格子上，格子自己的点击会被块吃掉，所以这里转给所在槽位。
+        /// 只有格子类槽位对点击有语义（<see cref="ICellItemClick"/>，例如商店格：第一下选中、第二下买）。
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            // 一次"按下→拖动→松手"也可能被判定成点击，拖过就不算点了
+            if (IsDragging)
+            {
+                return;
+            }
+
+            Assert.IsTrue(CurrentSlot != null, "BagItemBlock.OnPointerClick：块没有 CurrentSlot");
+
+            (CurrentSlot as ICellItemClick)?.OnClickItem(this, eventData.button);
         }
 
         /// <summary>R 键：把形状顺时针转 90°，块整体跟着转。由 UIManager 转发给正在拖的那一块</summary>

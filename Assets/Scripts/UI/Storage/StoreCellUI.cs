@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,15 +13,27 @@ namespace TapTapGameJam.UI
     /// （块进来时隐藏格子框、按 bbox 缩放居中，拿起来时由容器恢复背包形态）。
     ///
     /// 【和仓库格的区别】
-    /// - **不允许放入**：<see cref="TryDropItemBlock"/> / <see cref="DropItemBlock"/> 一律 false
-    ///   （这轮也不做"卖给商店"）；
-    /// - **拿取要过两道关**：这一格有货 + 这件货已经买下。没买下就当场拒绝，并把这一格记成高亮，
-    ///   交给 <see cref="StorePanelUI.OnBuyButton"/> 去买（购买按钮买的就是高亮那一件）。
+    /// - **放下就是"归还"**：格子空着、类别对得上就收，物品照常进商店后端并被标成已购买
+    ///   （归还的东西当然能再拿走）；
+    /// - **悬停即高亮**：鼠标进这一格就亮、离开就灭（容器负责高亮、刷显示信息、把块放大回背包形态）；
+    /// - **点一下就买**：<see cref="OnPointerClick"/> 直接尝试购买；拖起来时也是先尝试买、买成功才允许拿走；
+    /// - 格子本身就是预制体：价格文字**常显**，购买提示**只在高亮时**显示（见 <see cref="Refresh"/>）。
+    ///   格子的颜色完全由预制体决定，代码不碰。
     /// </summary>
     [DisallowMultipleComponent]
-    public class StoreCellUI : MonoBehaviour, IItemSlot, ICellItemClick
+    public class StoreCellUI : MonoBehaviour,
+        IItemSlot, ICellItemClick, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
-        private static readonly Color HighlightColor = new Color(1f, 0.85f, 0.3f, 1f);
+        #region 序列化引用（在格子预制体上连）
+
+        [Header("显示")]
+        [Tooltip("价格文字：一直显示（空货位空串，买下之后显示\"已购买\"）")]
+        [SerializeField] private TextMeshProUGUI _priceText;
+
+        [Tooltip("购买提示：只有这一格被选中（高亮）时才显示")]
+        [SerializeField] private TextMeshProUGUI _buyHint;
+
+        #endregion
 
         /// <summary>这一格属于哪一页（Food / Tool / Dress）</summary>
         public ItemCategory Page { get; private set; }
@@ -28,42 +41,43 @@ namespace TapTapGameJam.UI
         /// <summary>在**本页**里的格子下标</summary>
         public int Index { get; private set; }
 
-        /// <summary>这一格摆的是哪件商品（可能已经售罄：<c>Goods.item == null</c>）</summary>
-        public MouseStore.Goods Goods { get; private set; }
+        /// <summary>
+        /// 这一格现在摆的是哪件货。**每次实时向后端要** —— 商店随机刷新会换掉整批货，
+        /// 缓存引用会指到被销毁的旧对象上。
+        /// </summary>
+        public MouseStore.Goods Goods =>
+            storePanelUI != null ? storePanelUI.GoodsAt(Page, Index) : null;
 
-        private Image _background;
-        private Color _baseColor = Color.white;
         private bool _isHighlighted;
 
         public StorePanelUI storePanelUI;
 
-        public void Initialize(ItemCategory page, int index, MouseStore.Goods goods,
-            Image background, Color baseColor)
+        public void Initialize(ItemCategory page, int index)
         {
-            Assert.IsTrue(background != null, "StoreCellUI：底色层没建出来");
+            Assert.IsTrue(_priceText != null, "StoreCellUI：格子预制体上的价格文字没连");
+            Assert.IsTrue(_buyHint != null, "StoreCellUI：格子预制体上的购买提示没连");
             Assert.IsTrue(index >= 0, $"StoreCellUI：格子下标 {index} 非法");
 
             Page = page;
             Index = index;
-            Goods = goods;
-            _background = background;
-            _baseColor = baseColor;
             _isHighlighted = false;
-            Apply();
+            Refresh();
         }
 
-        #region IItemSlot（商店不接受放下）
+        #region IItemSlot
 
-        /// <summary>商店不接受放下（这轮也不做卖东西）</summary>
+        /// <summary>预览：空货位 + 类别对得上才收（用于把东西**还回**商店）</summary>
         public bool TryDropItemBlock(BagItemBlock block)
         {
-            return false;
+            Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
+            return storePanelUI.TryDropToCell(block, this);
         }
 
-        /// <summary>商店不接受放下</summary>
+        /// <summary>真放：登记进货架、标记为已购买，并把块按商店样式摆好</summary>
         public bool DropItemBlock(BagItemBlock block)
         {
-            return false;
+            Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
+            return storePanelUI.DropToCell(block, this);
         }
 
         /// <summary>拿取：判定在容器里（有货 + 已买下才放行）</summary>
@@ -80,20 +94,56 @@ namespace TapTapGameJam.UI
 
         #endregion
 
-        #region ICellItemClick
+        #region ICellItemClick / 点击
 
-        /// <summary>点一下商品格 = 选中它（购买按钮买选中的那件）</summary>
-        public void OnClickItem(BagItemBlock block, PointerEventData.InputButton button)
+        /// <summary>
+        /// 鼠标进入这一格 = 立刻高亮（不用点）：容器负责高亮、刷显示信息、把块恢复成背包形态。
+        /// 块压在格子上时事件会沿层级冒泡到这里的 `GetEventHandler`，所以块也能触发。
+        /// </summary>
+        public void OnPointerEnter(PointerEventData eventData)
         {
             Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
+            storePanelUI.OnCellHoverEnter(this);
+        }
+
+        /// <summary>鼠标离开 = 退出高亮、清掉显示信息、块缩回商店样式</summary>
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
+            storePanelUI.OnCellHoverExit(this);
+        }
+
+        /// <summary>点这一格 = 直接尝试买下（买不了什么都不发生）</summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
             storePanelUI.OnClickCell(this);
+            Refresh();
+        }
+
+        /// <summary>点一下商品格 = 选中它；已经选中就是买下</summary>
+        public void OnClickItem(BagItemBlock block, PointerEventData.InputButton button)
+        {
+            if (button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            Assert.IsTrue(storePanelUI != null, "StoreCellUI：没连 storePanelUI");
+            storePanelUI.OnClickCell(this);
+            Refresh();
         }
 
         #endregion
 
         #region 高亮
 
-        /// <summary>选中的那格会被点亮（由容器唯一持有）</summary>
+        /// <summary>选中状态（由容器唯一持有）。表现只有一条：购买提示的显隐</summary>
         public void SetHighlighted(bool highlighted)
         {
             if (_isHighlighted == highlighted)
@@ -102,17 +152,31 @@ namespace TapTapGameJam.UI
             }
 
             _isHighlighted = highlighted;
-            Apply();
+            Refresh();
         }
 
-        private void Apply()
+        /// <summary>价格常显，购买提示跟高亮走。**不碰预制体的颜色**</summary>
+        public void Refresh()
         {
-            if (_background == null)
+            MouseStore.Goods goods = Goods;
+            if (goods == null)
             {
-                return;
+                _priceText.gameObject.SetActive(false);
+                _buyHint.gameObject.SetActive(false);
             }
+            else
+            {
+                if (_priceText != null)
+                {
+                    _priceText.text = "$" + goods.price.ToString();
+                    _priceText.gameObject.SetActive(!goods.purchased);
+                }
 
-            _background.color = _isHighlighted ? Color.Lerp(_baseColor, HighlightColor, 0.55f) : _baseColor;
+                if (_buyHint != null)
+                {
+                    _buyHint.gameObject.SetActive(_isHighlighted && !goods.purchased);
+                }
+            }
         }
 
         #endregion

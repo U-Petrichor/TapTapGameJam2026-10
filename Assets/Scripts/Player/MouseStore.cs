@@ -13,9 +13,9 @@ namespace TapTapGameJam.Player
     /// - 货的本体在开张前就挪到暂存区隐藏，不销毁重建，运行时状态全保留；
     /// - 不管"界面上正被拖着哪一件"，也不引用 UI。
     ///
-    /// 【分页】和仓库一样按 <see cref="ItemCategory"/> 分三页，但这里三页是**三张独立的表**
-    /// （<see cref="Goods"/> 里带了价格，不能像仓库那样只看物品自己）。
-    /// 每张表里的货，类别必须和表一致，Awake 里会断言。
+    /// 【分页 / 货源】和仓库一样按 <see cref="ItemCategory"/> 分三页，但货源不是手摆的：
+    /// 由 <see cref="RefreshStore"/> 从 <see cref="PoolEntry"/> 商品池里随机生成
+    /// （每页 3~6 件、价格在各自范围内随机、不去重）。一件货属于哪一页由它自己的 Category 决定。
     ///
     /// 【买卖流程】没买下的货不许从货架上拿走（<see cref="TryTakeOut"/> 会拦）：
     /// 先在界面上买下（<see cref="TryBuy"/> 扣金币 + 标记），再拖出去。
@@ -40,13 +40,26 @@ namespace TapTapGameJam.Player
             [NonSerialized] public bool purchased;
         }
 
-        [Header("商品随机列表")]
-        // [SerializeField] private Dictionary<PickableItem, Range> _allGoods = new Dictionary<PickableItem, Range>();
-        
-        [Header("货架（item 的 Category 必须和所在表一致）")]
-        [SerializeField] private List<Goods> _foodGoods = new List<Goods>();
-        [SerializeField] private List<Goods> _toolGoods = new List<Goods>();
-        [SerializeField] private List<Goods> _dressGoods = new List<Goods>();
+        /// <summary>商品池里的一条：模板 + 售价范围（含两端）</summary>
+        [Serializable]
+        public class PoolEntry
+        {
+            [Tooltip("商品模板（预制体 / 场景里的模板物体都行；刷新时会 Instantiate 一份）")]
+            public PickableItem item;
+
+            [Tooltip("售价范围（含两端），刷新时在这个区间里随机")]
+            public Vector2Int priceRange = new Vector2Int(1, 3);
+        }
+
+        [Header("商品随机列表（随机刷新的候选，不去重）")]
+        [Tooltip("候选商品 + 各自的售价范围。刷新时会 Instantiate 一份，所以填预制体或场景里的模板物体都行")]
+        [SerializeField] private List<PoolEntry> _pool = new List<PoolEntry>();
+
+        [Tooltip("随机刷新时每页最少摆几件")]
+        [SerializeField, Min(0)] private int _minPerPage = 3;
+
+        [Tooltip("随机刷新时每页最多摆几件（不能超过一页的格子数）")]
+        [SerializeField, Min(0)] private int _maxPerPage = 6;
 
         [Header("货架尺寸（每一页）")]
         [Tooltip("每页的列数。商店界面的格子按它排，改这里要同步面板上的三个 GridRoot 摆位")]
@@ -104,9 +117,10 @@ namespace TapTapGameJam.Player
         private void Awake()
         {
             _shelves.Clear();
-            _shelves[ItemCategory.Food] = _foodGoods;
-            _shelves[ItemCategory.Tool] = _toolGoods;
-            _shelves[ItemCategory.Dress] = _dressGoods;
+            foreach (ItemCategory page in ItemCategories.All)
+            {
+                _shelves[page] = new List<Goods>();
+            }
 
             if (_resources == null)
             {
@@ -115,23 +129,21 @@ namespace TapTapGameJam.Player
 
             Assert.IsTrue(_resources != null, "MouseStore：没连 PlayerResources（扣钱要用）");
 
-            // 货架自检 + 把货藏进暂存区
-            foreach (ItemCategory page in ItemCategories.All)
+            // 配置自检
+            Assert.IsTrue(_minPerPage <= _maxPerPage,
+                $"MouseStore：每页最少 {_minPerPage} 件 > 最多 {_maxPerPage} 件");
+            Assert.IsTrue(_maxPerPage <= CellCount,
+                $"MouseStore：每页最多 {_maxPerPage} 件，但一页只有 {CellCount} 个格子 —— 多出来的在界面上看不见");
+
+            for (int i = 0; i < _pool.Count; i++)
             {
-                List<Goods> shelf = _shelves[page];
-                Assert.IsTrue(shelf.Count <= CellCount,
-                    $"MouseStore：{page} 页摆了 {shelf.Count} 件货，但一页只有 {CellCount} 个格子 —— 多出来的在界面上看不见");
-
-                for (int i = 0; i < shelf.Count; i++)
-                {
-                    Goods goods = shelf[i];
-                    Assert.IsTrue(goods.item != null, $"MouseStore：{page} 页第 {i} 个货位没连商品本体");
-                    Assert.IsTrue(goods.item.Category == page,
-                        $"MouseStore：{goods.item.name} 是 {goods.item.Category} 类，却摆在 {page} 页的货架上");
-
-                    MoveToStoreStorage(goods.item);
-                }
+                Assert.IsTrue(_pool[i].item != null, $"MouseStore：商品池第 {i} 条没连商品模板");
+                Assert.IsTrue(_pool[i].priceRange.x <= _pool[i].priceRange.y,
+                    $"MouseStore：商品池第 {i} 条（{_pool[i].item.name}）的售价范围写反了");
             }
+
+            // 开张：先随机刷一版货（想每天换一批就再调 RefreshStore）
+            RefreshStore();
         }
 
         #endregion
@@ -154,6 +166,86 @@ namespace TapTapGameJam.Player
             }
 
             return shelf[index];
+        }
+
+        #endregion
+
+        #region 随机刷新
+
+        /// <summary>
+        /// 随机刷新整店：三页各自清空，再从商品池里按类别随机抽 3~6 件
+        /// （数量由 _minPerPage / _maxPerPage 决定），每件 Instantiate 一份副本、
+        /// 价格在各条自己的范围内随机，**不去重**（同一件商品可以同时出现好几次）。
+        /// 某一页在池子里没有候选就空着。
+        ///
+        /// 注意：只在店关着的时候调 —— 开着调的话界面上的块会指向被销毁的旧货。
+        /// </summary>
+        public void RefreshStore()
+        {
+            ClearShelves();
+
+            foreach (ItemCategory page in ItemCategories.All)
+            {
+                List<PoolEntry> candidates = CollectCandidates(page);
+                if (candidates.Count == 0)
+                {
+                    continue; // 这一页没配候选：空着
+                }
+
+                List<Goods> shelf = _shelves[page];
+                int count = UnityEngine.Random.Range(_minPerPage, _maxPerPage + 1);
+
+                for (int i = 0; i < count; i++)
+                {
+                    PoolEntry entry = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+
+                    // 每次都 Instantiate：这样"不去重"也不会让同一件被摆两次（一件物品只能有一个块）
+                    PickableItem clone = Instantiate(entry.item);
+                    MoveToStoreStorage(clone);
+
+                    Vector2Int range = entry.priceRange;
+                    shelf.Add(new Goods
+                    {
+                        item = clone,
+                        price = Mathf.Max(0, UnityEngine.Random.Range(range.x, range.y + 1)),
+                        purchased = false,
+                    });
+                }
+            }
+        }
+
+        /// <summary>清空三页货架，并把上一轮的副本销毁掉</summary>
+        private void ClearShelves()
+        {
+            foreach (ItemCategory page in ItemCategories.All)
+            {
+                List<Goods> shelf = _shelves[page];
+                for (int i = 0; i < shelf.Count; i++)
+                {
+                    if (shelf[i].item != null)
+                    {
+                        Destroy(shelf[i].item.gameObject);
+                    }
+                }
+
+                shelf.Clear();
+            }
+        }
+
+        /// <summary>池子里属于这一页的候选（按商品自己的 Category 归类）</summary>
+        private List<PoolEntry> CollectCandidates(ItemCategory page)
+        {
+            List<PoolEntry> result = new List<PoolEntry>();
+            for (int i = 0; i < _pool.Count; i++)
+            {
+                PoolEntry entry = _pool[i];
+                if (entry.item != null && entry.item.Category == page)
+                {
+                    result.Add(entry);
+                }
+            }
+
+            return result;
         }
 
         #endregion
@@ -193,6 +285,49 @@ namespace TapTapGameJam.Player
 
             item = goods.item;
             goods.item = null; // 售罄
+            return true;
+        }
+
+        /// <summary>
+        /// 把一件东西放回货架的第 <paramref name="index"/> 个货位（玩家把东西还回商店）。
+        /// 那个货位必须空着；放进去就算**已购买**（自己还回去的东西当然能再拿走）。
+        /// 本体挪进暂存区隐藏，和商店本来进的货一样处理。
+        /// </summary>
+        public bool TryPutItem(ItemCategory page, int index, PickableItem item)
+        {
+            if (item == null)
+            {
+                return false;
+            }
+
+            Assert.IsTrue(item.Category == page,
+                $"MouseStore.TryPutItem：{item.name} 是 {item.Category} 类，却往 {page} 页放");
+
+            if (index < 0 || index >= CellCount)
+            {
+                return false;
+            }
+
+            List<Goods> shelf = _shelves[page];
+
+            // 已经被占着就不收（不做交换）
+            if (index < shelf.Count && shelf[index].item != null)
+            {
+                return false;
+            }
+
+            // 货位可能在表尾之外：先补空条目，让下标保持稳定
+            while (shelf.Count <= index)
+            {
+                shelf.Add(new Goods { item = null, price = 0, purchased = false });
+            }
+
+            Goods goods = shelf[index];
+            goods.item = item;
+            goods.price = 0;
+            goods.purchased = true;
+
+            MoveToStoreStorage(item);
             return true;
         }
 

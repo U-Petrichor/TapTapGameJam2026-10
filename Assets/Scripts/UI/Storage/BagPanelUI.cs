@@ -204,6 +204,7 @@ namespace TapTapGameJam.UI
 
             _toggleButton.transform.localEulerAngles = new Vector3(0, 0, 180);
 
+            _unpickItemContainer.CloseContainer();
             base.CloseContainer();
 
             PlayExitAnimation(FinishClose);

@@ -5,6 +5,7 @@ using NUnit.Framework;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,6 +49,9 @@ namespace TapTapGameJam.UI
         private static readonly Color CellEmptyColor = new Color(0f, 0f, 0f, 1f);
         private static readonly Color PreviewBadColor = new Color(0.95f, 0.3f, 0.3f, 0.35f);
 
+        /// <summary>没有物品时标题用的颜色（和待拾取位一样：有物品时标题换分类色）</summary>
+        private static readonly Color DefaultTitleColor = Color.black;
+
         #endregion
 
         #region 序列化引用
@@ -59,7 +63,12 @@ namespace TapTapGameJam.UI
         [SerializeField] private RectTransform _toolGridRoot;
         [Tooltip("Dress 页的网格根节点")]
         [SerializeField] private RectTransform _dressGridRoot;
-
+        
+        [Header("显示信息")]
+        [SerializeField] private TextMeshProUGUI _showTitle;
+        [SerializeField] private TextMeshProUGUI _showContent;
+        [SerializeField] private Image _showSprite;
+        
         [Header("仓库组件")]
         [Tooltip("玩家的 PlayerRepo。在 Inspector 里从场景里的 Player 预制体实例上拖过来")]
         [SerializeField] private PlayerRepo _repo;
@@ -194,6 +203,9 @@ namespace TapTapGameJam.UI
             ApplyVisibility(true);
             ShowPage(_currentPage);
 
+            // 刚打开时显示区是空的，点了某一格才出信息
+            ShowInfo(null);
+
             // 块已经在这一帧建好了，接着从隐藏位滑进来
             PlayEnterAnimation();
         }
@@ -228,6 +240,9 @@ namespace TapTapGameJam.UI
             }
 
             HidePreview();
+
+            // 关掉时把显示区也清掉，下次打开不会留着上次的信息
+            ShowInfo(null);
 
             // 滑完了才真的藏起来（滑动期间要看得见）
             _canvasGroup.alpha = 0f;
@@ -456,6 +471,33 @@ namespace TapTapGameJam.UI
 
             UIManager.Instance.DetachItemToWorld(block.boundedItem);
             return true;
+        }
+
+        /// <summary>
+        /// 点仓库里的一格：把这一格物品的标题 / 描述 / 图标刷到"显示信息"上（空货位就清空）。
+        /// 块压在格子上时走 <see cref="BagItemBlock.OnPointerClick"/> → <see cref="RepoCellUI.OnClickItem"/> → 这里。
+        /// </summary>
+        public void OnClickCell(RepoCellUI cell)
+        {
+            AssertCellBelongsToThisPanel(cell);
+            ShowInfo(_repo.ItemAt(cell.Page, cell.Index));
+        }
+
+        /// <summary>把一件物品的信息刷到显示区（传 null = 清空）。标题颜色跟着物品分类走，清空时用黑色</summary>
+        private void ShowInfo(PickableItem item)
+        {
+            Assert.IsTrue(_showTitle != null && _showContent != null,
+                "RepoPanelUI：显示信息的标题 / 内容没连");
+
+            _showTitle.text = item != null ? item.ItemTitle : string.Empty;
+            _showContent.text = item != null ? item.ItemDesc : string.Empty;
+            _showTitle.color = item != null ? UIManager.Instance.CategoryColor(item.Category) : DefaultTitleColor;
+
+            if (_showSprite != null)
+            {
+                _showSprite.sprite = item != null ? item.BagIcon : null;
+                _showSprite.enabled = item != null && item.BagIcon != null;
+            }
         }
 
         #endregion

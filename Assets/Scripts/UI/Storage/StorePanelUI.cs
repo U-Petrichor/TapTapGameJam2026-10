@@ -5,6 +5,7 @@ using NUnit.Framework;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,9 +22,10 @@ namespace TapTapGameJam.UI
     /// - 切页入口 <see cref="ShowFoodPage"/> / <see cref="ShowToolPage"/> / <see cref="ShowDressPage"/> 绑 Toggle。
     ///
     /// 【和 RepoPanelUI 的区别】
-    /// - 只出不进：格子不接受放下（<see cref="StoreCellUI.TryDropItemBlock"/> 一律 false）；
+    /// - **可以放进来，但只是"归还"**：把东西拖到空着的、类别对得上的货位上，它就回到商店后端
+    ///   （标记为已购买，随时能再拿走）；不做"卖店换钱"；
     /// - 拿货要"已买下"：没买下时格子会**拒绝拿取并高亮自己**，玩家点购买按钮
-    ///   （<see cref="OnBuyButton"/>）买的就是高亮那一件；买下后再拖才拿得走，拿走后即售罄；
+    ///   （<see cref="OnBuyButton"/>）或再点一次那一格买下；买下后再拖才拿得走，拿走后即售罄；
     /// - 高亮可以被"点商品格"或"拖拽被拒"点亮，同一时刻只有一格亮着。
     ///
     /// 开关走独立事件 <see cref="StoreOnOffEvent"/>（和背包 / 仓库互不影响）。
@@ -34,15 +36,16 @@ namespace TapTapGameJam.UI
         #region 配置常量
 
         /// <summary>单格边长，商品在商店里不显示格子、只显示sprite、且尺寸自适应缩放</summary>
-        private const float CellSize = 155f;
+        private const float CellSize = 180f;
 
         /// <summary>格与格的间隙</summary>
-        private const float CellSpacing = 5f;
+        private const float CellSpacing = 10f;
 
         /// <summary>格心间距</summary>
         private const float CellPitch = CellSize + CellSpacing;
 
-        private static readonly Color CellEmptyColor = new Color(0f, 0f, 0f, 1f);
+        /// <summary>默认语（欢迎 / 谢谢惠顾）的标题颜色</summary>
+        private static readonly Color DefaultTitleColor = Color.black;
 
         #endregion
 
@@ -55,6 +58,16 @@ namespace TapTapGameJam.UI
         [SerializeField] private RectTransform _toolGridRoot;
         [Tooltip("Dress 页的网格根节点")]
         [SerializeField] private RectTransform _dressGridRoot;
+
+        [Header("格子预制体")]
+        [Tooltip("货架格的预制体（带 StoreCellUI、底色 Image、价格文字、购买提示）。每格都是它的一份实例")]
+        [SerializeField] private StoreCellUI _storeCell;
+        
+        [Header("显示信息")]
+        [Tooltip("物品标题（高亮时显示商品名）")]
+        [SerializeField] private TextMeshProUGUI _showTitle;
+        [Tooltip("物品描述（高亮时显示商品描述）")]
+        [SerializeField] private TextMeshProUGUI _showContent;
 
         [Header("商店组件")]
         [Tooltip("商店后端。在 Inspector 里从场景里的 Player 预制体实例上拖过来")]
@@ -77,7 +90,7 @@ namespace TapTapGameJam.UI
 
         public ItemCategory CurrentPage => _currentPage;
 
-        /// <summary>当前高亮（= 购买按钮要买）的那一格。同一时刻只有一格亮着</summary>
+        /// <summary>当前高亮（= 正被鼠标悬停、信息显示区在展示、购买按钮要买）的那一格</summary>
         private StoreCellUI _highlightedCell;
 
         public StoreCellUI HighlightedCell => _highlightedCell;
@@ -114,6 +127,7 @@ namespace TapTapGameJam.UI
         {
             Assert.IsTrue(_foodGridRoot && _toolGridRoot && _dressGridRoot,
                 "StorePanelUI：三个 GridRoot（Food / Tool / Dress）要连全");
+            Assert.IsTrue(_storeCell != null, "StorePanelUI：没连格子预制体 _storeCell");
             Assert.IsTrue(mouseStore, "StorePanelUI：没连 MouseStore");
 
             _pageRoots.Clear();
@@ -141,9 +155,17 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>调试用：直接开店（正规入口应该是商店 NPC / Shopping 阶段那边发事件）</summary>
-        public void OpenStoreTemp()
+        public void RefreshAndOpenTemp()
         {
-            EventPipeline.Publish<StoreOnOffEvent>(new StoreOnOffEvent(true));
+            if (IsOpen)
+            {
+                EventPipeline.Publish<StoreOnOffEvent>(new StoreOnOffEvent(false));
+            }
+            else
+            {
+                mouseStore.RefreshStore();
+                EventPipeline.Publish<StoreOnOffEvent>(new StoreOnOffEvent(true));
+            }
         }
 
         private void Start()
@@ -193,6 +215,8 @@ namespace TapTapGameJam.UI
             }
 
             ApplyVisibility(true);
+            RefreshAllCell();
+            ShowWellcomeInfo();
             ShowPage(_currentPage);
 
             // 块已经在这一帧建好了，接着从隐藏位滑进来
@@ -373,21 +397,28 @@ namespace TapTapGameJam.UI
 
         private StoreCellUI CreateCell(ItemCategory page, RectTransform root, int index)
         {
-            GameObject go = new GameObject($"StoreCell_{page}_{index}", typeof(RectTransform));
-            RectTransform rect = (RectTransform)go.transform;
-            rect.SetParent(root, false);
+            Assert.IsTrue(_storeCell != null, "StorePanelUI：没连格子预制体 _storeCell");
+
+            StoreCellUI cell = Instantiate(_storeCell, root, false);
+            cell.name = $"StoreCell_{page}_{index}";
+
+            RectTransform rect = (RectTransform)cell.transform;
             rect.anchorMin = new Vector2(0f, 1f); // 以网格左上角为基准
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.sizeDelta = new Vector2(CellSize, CellSize);
             rect.anchoredPosition = CellLocalPosition(index) + new Vector2(CellSize * 0.5f, -CellSize * 0.5f);
 
-            Image background = EnsureImage(go, CellEmptyColor, true);
-
-            StoreCellUI cell = go.AddComponent<StoreCellUI>();
-            cell.Initialize(page, index, mouseStore.GoodsAt(page, index), background, CellEmptyColor);
+            // 先连容器再 Initialize：格子要靠 storePanelUI 实时取货
             cell.storePanelUI = this;
+            cell.Initialize(page, index);
             return cell;
+        }
+
+        /// <summary>某一页第 <paramref name="index"/> 个货位上现在摆的是什么（实时向后端要，刷新也不会失效）</summary>
+        public MouseStore.Goods GoodsAt(ItemCategory page, int index)
+        {
+            return mouseStore != null ? mouseStore.GoodsAt(page, index) : null;
         }
 
         /// <summary>格子中心相对网格左上角的位置（x 向右、y 向下，所以 y 取负）</summary>
@@ -403,31 +434,85 @@ namespace TapTapGameJam.UI
         #region 容器操作（槽位转发到这里）
 
         /// <summary>
-        /// 点一下商品格：把它选成高亮（购买按钮买的就是高亮那件）。
-        /// 空格位 / 已售罄的格子点不出高亮来。
+        /// 点一下商品格：**直接尝试买下**（钱不够 / 已经买过 / 已售罄 → 什么都不发生）。
+        /// 悬停时这一格已经高亮了，所以点击时信息面板上就是它在展示。
         /// </summary>
         public void OnClickCell(StoreCellUI cell)
         {
             AssertCellBelongsToThisPanel(cell);
+            TryBuyCell(cell);
+        }
 
-            if (cell.Goods == null || cell.Goods.item == null)
+        /// <summary>买某一格。成功返回 true，并把所有格子的价格 / 提示刷一遍</summary>
+        private bool TryBuyCell(StoreCellUI cell)
+        {
+            MouseStore.Goods goods = cell.Goods;
+            if (goods == null || goods.item == null)
             {
-                ClearHighlight();
-                return;
+                return false; // 空格位
             }
 
-            SetHighlight(cell);
+            if (!mouseStore.TryBuy(goods))
+            {
+                return false; // 钱不够 / 已经买过 / 已售罄：什么都不改
+            }
+
+            RefreshAllCell();
+            ShowBuyInfo();
+            return true;
         }
 
         /// <summary>
-        /// 从货架上拿货：有货 + 已经买下才放行。
-        /// 没买下就**当场拒绝并高亮这一格**（玩家接着点购买按钮买它），块一步都不会动。
+        /// 预览：把东西拖到货架上是"归还"。空货位 + 类别对得上才收。
+        /// 类别对不上时**顺手切到它该去的那一页**再返回 false（和仓库一个套路）。
+        /// </summary>
+        public bool TryDropToCell(BagItemBlock block, StoreCellUI cell)
+        {
+            Assert.IsTrue(block != null, "StorePanelUI.TryDropToCell：block 是 null");
+            AssertCellBelongsToThisPanel(cell);
+
+            ItemCategory itemPage = block.boundedItem.Category;
+            if (itemPage != cell.Page)
+            {
+                ShowPage(itemPage);
+                return false;
+            }
+
+            MouseStore.Goods goods = mouseStore.GoodsAt(cell.Page, cell.Index);
+            return goods == null || goods.item == null; // 空货位才收（不做交换）
+        }
+
+        /// <summary>
+        /// 真放（归还）：登记进货架第 index 个货位并标成已购买，本体挪进商店暂存区，
+        /// 块按商店样式摆进格子。之后就归商店管了（关店销毁块、再开店重建）。
+        /// </summary>
+        public bool DropToCell(BagItemBlock block, StoreCellUI cell)
+        {
+            Assert.IsTrue(block != null, "StorePanelUI.DropToCell：block 是 null");
+            AssertCellBelongsToThisPanel(cell);
+            Assert.IsTrue(block.boundedItem.Category == cell.Page,
+                $"StorePanelUI.DropToCell：{block.boundedItem.name} 是 {block.boundedItem.Category} 类，" +
+                $"却往 {cell.Page} 页放（TryDropToCell 里应该已经切过页了）");
+
+            if (!mouseStore.TryPutItem(cell.Page, cell.Index, block.boundedItem))
+            {
+                return false;
+            }
+
+            LayoutBlockToCell(block, cell);
+            cell.Refresh();
+            return true;
+        }
+
+        /// <summary>
+        /// 从货架上拿货 = 顺手买单：没买下就先试着买，买不成（钱不够等）就当场拒绝，块一步都不动；
+        /// 买成了 / 本来就买过，才真的取出去。
         /// </summary>
         public bool OnItemPickedUp(StoreCellUI cell, BagItemBlock block)
         {
             AssertCellBelongsToThisPanel(cell);
             Assert.IsTrue(block != null, "StorePanelUI.OnItemPickedUp：block 是 null");
-            Assert.IsTrue(block.CurrentSlot == cell,
+            Assert.IsTrue(ReferenceEquals(block.CurrentSlot, cell),
                 "StorePanelUI.OnItemPickedUp：块记着的槽位不是这个格子（是不是 CurrentSlot 被写坏了？）");
 
             MouseStore.Goods goods = cell.Goods;
@@ -436,10 +521,9 @@ namespace TapTapGameJam.UI
                 return false; // 空格位：本来就没东西可拿
             }
 
-            if (!goods.purchased)
+            if (!goods.purchased && !TryBuyCell(cell))
             {
-                SetHighlight(cell);
-                return false;
+                return false; // 买不了就不许拿（钱不够 / 已售罄）
             }
 
             Assert.IsTrue(mouseStore.TryTakeOut(goods, out PickableItem item),
@@ -454,11 +538,7 @@ namespace TapTapGameJam.UI
             return true;
         }
 
-        /// <summary>
-        /// 购买按钮：买下当前高亮的那件。
-        /// 买不了（没高亮 / 钱不够 / 已经买过 / 已售罄）就什么都不发生 —— 前端表现以后再做。
-        /// 买下之后高亮保留，玩家接着把这件拖出去即可。
-        /// </summary>
+        /// <summary>买下当前高亮（悬停）的那件。和点格子是同一件事</summary>
         public void OnBuyButton()
         {
             if (_highlightedCell == null)
@@ -466,33 +546,123 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            mouseStore.TryBuy(_highlightedCell.Goods);
+            TryBuyCell(_highlightedCell);
         }
 
-        private void SetHighlight(StoreCellUI cell)
+        private void RefreshAllCell()
         {
-            if (_highlightedCell == cell)
+            foreach (KeyValuePair<ItemCategory, List<StoreCellUI>> kv in _pageCells)
             {
+                List<StoreCellUI> cells = kv.Value;
+                for (int i = 0; i < cells.Count; i++)
+                {
+                    StoreCellUI cell = cells[i];
+                    MouseStore.Goods goods = cell.Goods;
+                    
+                    cell.Refresh();
+                }
+            }
+        }
+
+        #region 悬停高亮 / 显示信息
+
+        /// <summary>
+        /// 鼠标进入某一格：立刻高亮它、把它的信息刷到显示区，并把块恢复成背包形态（看清真实形状 / 大小）。
+        ///
+        /// 这里**不强制"只能亮一个"**：离开那一格时它自己会灭（<see cref="OnCellHoverExit"/>），
+        /// 正常只会有一格亮着；真出现两格同时亮也不会状态错乱。
+        /// </summary>
+        public void OnCellHoverEnter(StoreCellUI cell)
+        {
+            AssertCellBelongsToThisPanel(cell);
+
+            _highlightedCell = cell;
+            cell.SetHighlighted(true);
+            ShowInfo(cell);
+
+            if (TryGetBlockOf(cell, out BagItemBlock block))
+            {
+                block.ApplyBagPresentation();
+            }
+        }
+
+        /// <summary>鼠标离开：退出高亮、清掉显示信息（回默认语），块缩回商店样式</summary>
+        public void OnCellHoverExit(StoreCellUI cell)
+        {
+            AssertCellBelongsToThisPanel(cell);
+
+            cell.SetHighlighted(false);
+
+            if (ReferenceEquals(_highlightedCell, cell))
+            {
+                _highlightedCell = null;
+                ShowWellcomeInfo();
+            }
+
+            if (TryGetBlockOf(cell, out BagItemBlock block))
+            {
+                LayoutBlockToCell(block, cell);
+            }
+        }
+
+        /// <summary>把某一格的商品信息刷到显示区（标题用分类代表色）；空格位就回默认语</summary>
+        private void ShowInfo(StoreCellUI cell)
+        {
+            PickableItem item = cell != null && cell.Goods != null ? cell.Goods.item : null;
+            if (item == null)
+            {
+                ShowWellcomeInfo();
                 return;
             }
 
+            ShowInfo(item.ItemTitle, item.ItemDesc, UIManager.Instance.CategoryColor(item.Category));
+        }
+
+        private void ShowWellcomeInfo()
+        {
+            ShowInfo("欢迎光临", "", DefaultTitleColor);
+        }
+        
+        private void ShowBuyInfo()
+        {
+            ShowInfo("谢谢惠顾", "请收好", DefaultTitleColor);
+        }
+        
+        private void ShowInfo(string title, string content, Color titleColor)
+        {
+            Assert.IsTrue(_showTitle != null && _showContent != null,
+                "StorePanelUI：显示信息的标题 / 内容没连");
+
+            _showTitle.text = title;
+            _showContent.text = content;
+
+            // 标题配色和待拾取位一致：有商品时用分类代表色，默认语用黑色
+            _showTitle.color = titleColor;
+        }
+
+        /// <summary>这一格上那件货的块（没货 / 已售罄 / 没建块 → false）</summary>
+        private bool TryGetBlockOf(StoreCellUI cell, out BagItemBlock block)
+        {
+            MouseStore.Goods goods = cell.Goods;
+            block = null;
+
+            return goods != null
+                   && goods.item != null
+                   && UIManager.Instance.TryGetBlock(goods.item, out block);
+        }
+
+        /// <summary>退出所有高亮（切页 / 关店时用）：灭掉当前那格并回默认语</summary>
+        private void ClearHighlight()
+        {
             if (_highlightedCell != null)
             {
                 _highlightedCell.SetHighlighted(false);
+                _highlightedCell = null;
             }
-
-            _highlightedCell = cell;
-
-            if (_highlightedCell != null)
-            {
-                _highlightedCell.SetHighlighted(true);
-            }
+            ShowWellcomeInfo();
         }
 
-        private void ClearHighlight()
-        {
-            SetHighlight(null);
-        }
+        #endregion
 
         #endregion
 
@@ -503,7 +673,8 @@ namespace TapTapGameJam.UI
         ///
         /// bbox 中心 ≠ 块的原点（块的原点是抓取格中心），所以居中这里不算坐标 ——
         /// 直接把"物品图那一层"的中心搬到格心即可（换目标/旋转都不影响）。
-        /// 块挂在**它那一页的 GridRoot** 下：切页时跟着整页一起显隐，面板滑动时也一起走；
+        /// 块挂在**格子里**（<paramref name="cell"/> 下面）：跟着格子一起显隐、一起被切页带走，
+        /// 并且排到第一个子物体 —— UI 后画的盖前面，排在文字前面才会被两个文字盖住。
         /// 拖动中才会临时挪到拖动层。
         /// </summary>
         public void LayoutBlockToCell(BagItemBlock block, StoreCellUI cell)
@@ -514,7 +685,10 @@ namespace TapTapGameJam.UI
 
             block.CurrentSlot = cell;
             block.SetCellFramesVisible(false);
-            block.transform.SetParent(_pageRoots[cell.Page], false);
+
+            // 挂在格子里，并排到第一位（画在价格 / 购买提示两个文字下面）
+            block.transform.SetParent(cell.transform, false);
+            block.transform.SetAsFirstSibling();
             block.transform.localRotation = Quaternion.identity; // 商店按"标准朝向"看
 
             // 先归位再量尺寸：bbox 的长边塞满格子，短边按比例
@@ -575,19 +749,6 @@ namespace TapTapGameJam.UI
                 $"StorePanelUI：{cell.Page} 页的格子下标 {cell.Index} 越界");
             Assert.IsTrue(_pageCells[cell.Page][cell.Index] == cell,
                 $"StorePanelUI：{cell.Page} 页第 {cell.Index} 格不是这个面板建的（是不是连错容器了？）");
-        }
-
-        private static Image EnsureImage(GameObject go, Color color, bool raycastTarget)
-        {
-            Image image = go.GetComponent<Image>();
-            if (image == null)
-            {
-                image = go.AddComponent<Image>();
-            }
-
-            image.color = color;
-            image.raycastTarget = raycastTarget;
-            return image;
         }
 
         #endregion

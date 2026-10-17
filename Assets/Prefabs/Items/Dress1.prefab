@@ -330,7 +330,6 @@ MonoBehaviour:
     - {x: 1, y: 0}
     - {x: 0, y: 1}
     - {x: 1, y: 1}
-    colorInGrid: {r: 1, g: 0.7651565, b: 0, a: 1}
     _rotationSteps: 0
   _bagIcon: {fileID: -6986452331456081838, guid: f1fe2fa1ee7c3154ab41e4f7cc592c74, type: 3}
   _itemTitle: "\u6D4B\u8BD5\u5934"

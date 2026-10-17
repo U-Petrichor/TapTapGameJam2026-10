@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using TapTapGameJam.Items;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace TapTapGameJam.UI
@@ -19,7 +20,7 @@ namespace TapTapGameJam.UI
     /// - 拿起时要先把块恢复成背包形态（显示格子框、缩放归 1），否则拖动过程中它还是"仓库样子"。
     /// </summary>
     [DisallowMultipleComponent]
-    public class RepoCellUI : MonoBehaviour, IItemSlot
+    public class RepoCellUI : MonoBehaviour, IItemSlot, ICellItemClick, IPointerClickHandler
     {
         /// <summary>这一格属于哪一页（Food / Tool / Dress）</summary>
         public ItemCategory Page { get; private set; }
@@ -76,6 +77,37 @@ namespace TapTapGameJam.UI
         {
             Assert.IsTrue(repoPanelUI != null, "RepoCellUI：没连 repoPanelUI");
             repoPanelUI.HidePreview();
+        }
+
+        #endregion
+
+        #region ICellItemClick / 点击
+
+        /// <summary>
+        /// 点这一格（或压在格子上的块，块会把点击转给所在槽位）：让容器把这一格物品的
+        /// 标题 / 描述 / 图标刷到"显示信息"上。空货位就把信息清空。
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            Assert.IsTrue(repoPanelUI != null, "RepoCellUI：没连 repoPanelUI");
+            repoPanelUI.OnClickCell(this);
+        }
+
+        /// <summary>走 <see cref="ICellItemClick"/> 进来的点击（块转发）也当同一件事</summary>
+        public void OnClickItem(BagItemBlock block, PointerEventData.InputButton button)
+        {
+            if (button != PointerEventData.InputButton.Left)
+            {
+                return;
+            }
+
+            Assert.IsTrue(repoPanelUI != null, "RepoCellUI：没连 repoPanelUI");
+            repoPanelUI.OnClickCell(this);
         }
 
         #endregion
