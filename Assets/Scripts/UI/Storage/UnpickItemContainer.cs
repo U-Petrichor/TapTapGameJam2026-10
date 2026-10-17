@@ -57,12 +57,20 @@ namespace TapTapGameJam.UI
 
         public PickableItem Item => _item;
 
+        /// <summary>标题本来配的颜色。清空时还原成它（标题颜色跟着物品分类走）</summary>
+        private Color _titleBaseColor = Color.white;
+
         private void Awake()
         {
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null)
             {
                 _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+
+            if (_infoTextTitle != null)
+            {
+                _titleBaseColor = _infoTextTitle.color;
             }
 
             _shownPosition = ((RectTransform)transform).anchoredPosition + _shownOffset;
@@ -248,7 +256,7 @@ namespace TapTapGameJam.UI
 
         #endregion
 
-        /// <summary>把块停到标记点上，并显示提示</summary>
+        /// <summary>把块停到标记点上，并显示提示（标题颜色 = 物品分类的代表色）</summary>
         public void SetItemBlock(BagItemBlock block)
         {
             if (block == null)
@@ -256,11 +264,13 @@ namespace TapTapGameJam.UI
                 _item = null;
                 _infoTextContent.text = "";
                 _infoTextTitle.text = "";
+                _infoTextTitle.color = _titleBaseColor;
                 return;
             }
             _item = block.boundedItem;
             _infoTextContent.text = _item.ItemDesc;
             _infoTextTitle.text = _item.ItemTitle;
+            _infoTextTitle.color = UIManager.Instance.CategoryColor(_item.Category);
 
             // 从仓库过来的块要先恢复成背包形态（显示格子框、缩放归 1）
             block.CurrentSlot = _emptySlot;

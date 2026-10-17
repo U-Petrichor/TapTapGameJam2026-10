@@ -40,6 +40,9 @@ namespace TapTapGameJam.Player
             [NonSerialized] public bool purchased;
         }
 
+        [Header("商品随机列表")]
+        // [SerializeField] private Dictionary<PickableItem, Range> _allGoods = new Dictionary<PickableItem, Range>();
+        
         [Header("货架（item 的 Category 必须和所在表一致）")]
         [SerializeField] private List<Goods> _foodGoods = new List<Goods>();
         [SerializeField] private List<Goods> _toolGoods = new List<Goods>();
@@ -47,9 +50,9 @@ namespace TapTapGameJam.Player
 
         [Header("货架尺寸（每一页）")]
         [Tooltip("每页的列数。商店界面的格子按它排，改这里要同步面板上的三个 GridRoot 摆位")]
-        [SerializeField, Min(1)] private int _width = 4;
+        [SerializeField, Min(1)] private int _width = 3;
         [Tooltip("每页的行数")]
-        [SerializeField, Min(1)] private int _height = 5;
+        [SerializeField, Min(1)] private int _height = 2;
 
         public int Width => _width;
         public int Height => _height;

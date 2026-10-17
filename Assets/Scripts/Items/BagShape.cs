@@ -29,9 +29,6 @@ namespace TapTapGameJam.Items
         [Tooltip("初始形状的格子偏移。(0,0) 是鼠标咬住的抓取格，其余格相对它配置，可以是负数")]
         public List<Vector2Int> initialOffsets = new List<Vector2Int> { Vector2Int.zero };
 
-        [Tooltip("在背包里显示用的格子框颜色")]
-        public Color colorInGrid = Color.green;
-
         [SerializeField, Range(0, 3)] private int _rotationSteps;
 
         /// <summary>

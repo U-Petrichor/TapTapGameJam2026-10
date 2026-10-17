@@ -45,7 +45,6 @@ namespace TapTapGameJam.UI
         private const int GridRows = 5;
 
         private static readonly Color CellEmptyColor = new Color(0f, 0f, 0f, 1f);
-        private static readonly Color PreviewOkColor = new Color(0.35f, 0.9f, 0.4f, 0.45f);
         private static readonly Color PreviewBadColor = new Color(0.95f, 0.3f, 0.3f, 0.45f);
 
         #endregion
@@ -371,7 +370,7 @@ namespace TapTapGameJam.UI
                                     + new Vector2(cellSize * 0.5f, -cellSize * 0.5f);
 
             Image background = EnsureImage(go, CellEmptyColor, true);
-            Image preview = CreateStretchImage(rect, "Preview", PreviewOkColor, false);
+            Image preview = CreateStretchImage(rect, "Preview", Color.clear, false);
 
             BagCell cell = go.AddComponent<BagCell>();
             cell.Initialize(pos, background, preview, CellEmptyColor);
@@ -395,7 +394,7 @@ namespace TapTapGameJam.UI
             // ignore 传自己：和 TryPlace 的默认行为一致（从背包里挪位置时不被自己原来的占格挡住），
             // 这样"预览是绿的，松手一定放得下"才成立
             bool canPlace = _bag.CanPlace(item, origin, item);
-            PaintPlacementPreview(origin, item.shape, canPlace);
+            PaintPlacementPreview(origin, item.shape, canPlace, item.Category);
             return canPlace;
         }
 
@@ -552,14 +551,15 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>
-        /// 按"抓取格落在 origin"刷试放预览：形状覆盖到的每个格子统一染绿（放得下）或红（放不下）。
-        /// 越界的格子不画 —— 形状偏移允许是负数，越界那部分没有对应的 cell。
+        /// 按"抓取格落在 origin"刷试放预览：形状覆盖到的每个格子统一染色 ——
+        /// 放得下用**物品分类的代表色**（UIManager 里配的那套），放不下用统一的红色。
+        /// 越界的格子不画：形状偏移允许是负数，越界那部分没有对应的 cell。
         /// </summary>
-        private void PaintPlacementPreview(Vector2Int origin, BagShape shape, bool canPlace)
+        private void PaintPlacementPreview(Vector2Int origin, BagShape shape, bool canPlace, ItemCategory category)
         {
             HidePreview();
 
-            Color color = canPlace ? PreviewOkColor : PreviewBadColor;
+            Color color = canPlace ? UIManager.Instance.CategoryPreviewColor(category) : PreviewBadColor;
 
             foreach (Vector2Int offset in shape.Offsets)
             {

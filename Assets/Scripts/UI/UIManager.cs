@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using TapTapGameJam.Core;
@@ -51,6 +52,15 @@ namespace TapTapGameJam.UI
         [Tooltip("格与格的间隙")]
         [SerializeField] private float _cellSpacing = 3f;
 
+        [Header("分类配色（Food / Tool / Dress）")]
+        [Tooltip("这三类物品的代表色。影响：块上的格子框、背包/仓库的放置预览、待拾取位的标题")]
+        [SerializeField] private Color _foodColor = new Color(0.95f, 0.6f, 0.25f);
+        [SerializeField] private Color _toolColor = new Color(0.35f, 0.7f, 1f);
+        [SerializeField] private Color _dressColor = new Color(0.85f, 0.5f, 0.95f);
+
+        [Tooltip("放置预览用同一套颜色的半透明版本，这里定透明度")]
+        [UnityEngine.Range(0f, 1f)] private float _previewAlpha = 0.45f;
+
         [Header("引用")]
         [Tooltip("拖动中的块临时挂到这里，保证它在最上层")]
         [SerializeField] private RectTransform _dragLayer;
@@ -90,6 +100,33 @@ namespace TapTapGameJam.UI
         public Vector2 CellLocalPosition(Vector2Int cell)
         {
             return new Vector2(cell.x * CellPitch, -cell.y * CellPitch);
+        }
+
+        /// <summary>
+        /// 某一类物品的代表色。块上的格子框、待拾取位的标题都用它。
+        /// 分类来自物品自己的 <see cref="PickableItem.Category"/>（见 FoodItem / ToolItem / DressItem）。
+        /// </summary>
+        public Color CategoryColor(ItemCategory category)
+        {
+            switch (category)
+            {
+                case ItemCategory.Food:
+                    return _foodColor;
+                case ItemCategory.Tool:
+                    return _toolColor;
+                case ItemCategory.Dress:
+                    return _dressColor;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(category), category, "没配这一类物品的颜色");
+            }
+        }
+
+        /// <summary>放置预览用色：分类色 + 半透明</summary>
+        public Color CategoryPreviewColor(ItemCategory category)
+        {
+            Color color = CategoryColor(category);
+            color.a = _previewAlpha;
+            return color;
         }
 
         /// <summary>鼠标正拖着的那一块。R 键旋转、拖拽中关容器都靠它</summary>
@@ -311,13 +348,12 @@ namespace TapTapGameJam.UI
             framesRect.SetParent(root, false);
             framesRect.anchorMin = new Vector2(0.5f, 0.5f);
             framesRect.anchorMax = new Vector2(0.5f, 0.5f);
-            framesRect.pivot = new Vector2(0.5f, 0.5f);
-            framesRect.sizeDelta = Vector2.zero;
+            framesRect.pivot = new Vector2(0.5f, 0.5f);            framesRect.sizeDelta = Vector2.zero;
             framesRect.anchoredPosition = Vector2.zero;
 
             for (int i = 0; i < offsets.Count; i++)
             {
-                AddCellFrame(framesRect, offsets[i], item.shape.colorInGrid);
+                AddCellFrame(framesRect, offsets[i], CategoryColor(item.Category));
             }
 
             RectTransform icon = AddItemSprite(root, item, offsets);
@@ -464,8 +500,8 @@ namespace TapTapGameJam.UI
             }
             else
             {
-                // 还没配图：用形状色兜底，至少看得见、也拖得动
-                image.color = item.shape.colorInGrid;
+                // 还没配图：用分类色兜底，至少看得见、也拖得动
+                image.color = CategoryColor(item.Category);
                 image.preserveAspect = false;
             }
 

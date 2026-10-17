@@ -46,7 +46,6 @@ namespace TapTapGameJam.UI
         private const float CellPitch = CellSize + CellSpacing;
 
         private static readonly Color CellEmptyColor = new Color(0f, 0f, 0f, 1f);
-        private static readonly Color PreviewOkColor = new Color(0.35f, 0.9f, 0.4f, 0.35f);
         private static readonly Color PreviewBadColor = new Color(0.95f, 0.3f, 0.3f, 0.35f);
 
         #endregion
@@ -380,7 +379,7 @@ namespace TapTapGameJam.UI
             rect.anchoredPosition = CellLocalPosition(index) + new Vector2(CellSize * 0.5f, -CellSize * 0.5f);
 
             Image background = EnsureImage(go, CellEmptyColor, true);
-            Image preview = CreateStretchImage(rect, "Preview", PreviewOkColor, false);
+            Image preview = CreateStretchImage(rect, "Preview", Color.clear, false);
 
             RepoCellUI cell = go.AddComponent<RepoCellUI>();
             cell.Initialize(page, index, background, preview, CellEmptyColor);
@@ -418,7 +417,9 @@ namespace TapTapGameJam.UI
             }
 
             bool canDrop = !_repo.IsCellOccupied(cell.Page, cell.Index);
-            cell.SetDropPreview(canDrop ? PreviewOkColor : PreviewBadColor);
+            cell.SetDropPreview(canDrop
+                ? UIManager.Instance.CategoryPreviewColor(itemPage)
+                : PreviewBadColor);
             return canDrop;
         }
 

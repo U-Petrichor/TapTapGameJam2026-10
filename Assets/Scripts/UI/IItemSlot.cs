@@ -18,6 +18,7 @@ namespace TapTapGameJam.UI
     /// </summary>
     public interface IItemSlot
     {
+        
         /// <summary>尝试把一个block放入这个槽位（非正式，仅用于预览，不应影响状态）</summary>
         bool TryDropItemBlock(BagItemBlock block);
 
