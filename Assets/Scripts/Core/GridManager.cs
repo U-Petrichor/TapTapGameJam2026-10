@@ -487,6 +487,68 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
+        /// 世界坐标所在格子是不是墙。和 <see cref="IsBlocked(Vector2Int)"/> 一样，地图外也算墙。
+        /// 刻意不叫 IsBlocked 重载：WorldToGrid 会把越界坐标夹回边界格，语义和这个方法不同。
+        /// </summary>
+        public bool IsBlockedWorld(Vector2 worldPos)
+        {
+            Vector2 origin = GetGridOrigin();
+            int x = Mathf.FloorToInt((worldPos.x - origin.x) / _cellWidth);
+            int y = Mathf.FloorToInt((worldPos.y - origin.y) / _cellHeight);
+            return IsBlocked(new Vector2Int(x, y));
+        }
+
+        /// <summary>
+        /// 把世界坐标夹进网格覆盖的矩形。实体贴到地图边缘时用，免得跑到网格外。
+        /// </summary>
+        public Vector2 ClampToWorld(Vector2 worldPos)
+        {
+            Vector2 origin = GetGridOrigin();
+            return new Vector2(
+                Mathf.Clamp(worldPos.x, origin.x, origin.x + WorldSpan.x),
+                Mathf.Clamp(worldPos.y, origin.y, origin.y + WorldSpan.y));
+        }
+
+        /// <summary>
+        /// 以 <paramref name="center"/> 为圆心、<paramref name="radius"/> 为半径的圆，
+        /// 会不会压到墙格（地图外也算墙）。
+        /// 守卫是 kinematic 刚体，静态墙推不动它，所以位移前必须自己按这个判一遍。
+        /// </summary>
+        public bool OverlapsWall(Vector2 center, float radius)
+        {
+            // 先取格子坐标：它会顺带保证 _cellWidth / _cellHeight 已经按当前 transform 算好，
+            // 否则这里会拿 0 去除，半径被算成一个荒唐的大数
+            Vector2Int cell = WorldToGrid(center);
+            Vector2 cellSize = CellSize;
+            int radiusX = Mathf.Max(0, Mathf.CeilToInt(radius / Mathf.Max(cellSize.x, 1e-4f)));
+            int radiusY = Mathf.Max(0, Mathf.CeilToInt(radius / Mathf.Max(cellSize.y, 1e-4f)));
+            Vector2 half = cellSize * 0.5f;
+
+            for (int x = cell.x - radiusX; x <= cell.x + radiusX; x++)
+            {
+                for (int y = cell.y - radiusY; y <= cell.y + radiusY; y++)
+                {
+                    if (!IsBlocked(new Vector2Int(x, y)))
+                    {
+                        continue;
+                    }
+
+                    // 圆 vs 格子矩形：取圆心到矩形的最近距离
+                    Vector2 cellCenter = GridToWorld(new Vector2Int(x, y));
+                    float dx = Mathf.Max(Mathf.Abs(center.x - cellCenter.x) - half.x, 0f);
+                    float dy = Mathf.Max(Mathf.Abs(center.y - cellCenter.y) - half.y, 0f);
+
+                    if (dx * dx + dy * dy < radius * radius)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 1. 网格坐标转物理世界坐标（返回格子中心点，XZ 平面）
         /// </summary>
         public Vector2 GridToWorld(Vector2Int gridPos)

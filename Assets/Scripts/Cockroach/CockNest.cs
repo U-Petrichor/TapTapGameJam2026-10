@@ -41,7 +41,7 @@ namespace TapTapGameJam.Cockroach
         // =========== 夜间巢穴属性 ============== //
 
         /// <summary>巢穴距离场里"不可达"的哨兵值</summary>
-        public const int FarDistance = 1 << 24;
+        public const int FarDistance = GridDistanceField.Unreachable;
 
         /// <summary>孵化指令的颜色。巢穴自己的 UI 文本和范围圈都用它，改这里两边一起变</summary>
         public static readonly Color HatchColor = new Color(0.95f, 0.8f, 0.35f, 1f);
@@ -326,47 +326,17 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>
         /// 更新"绕过障碍到本巢穴"的格数距离场。
+        /// 算法在 <see cref="GridDistanceField"/> 里，和守卫的"回出生点"共用一份实现。
         /// </summary>
         public void RefreshDistanceField()
         {
             GridManager grid = GridManager.Instance;
-            if (grid == null || grid.MapState == null) return;
-
-            int width = grid.width;
-            int height = grid.height;
-
-            DistanceField = new int[width, height];
-
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j <  height; j++)
-                    DistanceField[i, j] = FarDistance;
-
-            Vector2Int center = grid.WorldToGrid(WorldPosition);
-            DistanceField[center.x, center.y] = 0;
-            
-            Vector2Int[] direction = new Vector2Int[4]
+            if (grid == null || grid.MapState == null)
             {
-                new Vector2Int(0, -1),
-                new Vector2Int(0, 1),
-                new Vector2Int(1, 0),
-                new Vector2Int(-1, 0)
-            };
-            Queue<Vector2Int> q = new Queue<Vector2Int>();
-            q.Enqueue(center);
-            while (q.Count > 0)
-            {
-                Vector2Int u = q.Dequeue();
-                int disu = DistanceField[u.x, u.y];
-                foreach (Vector2Int dir in direction)
-                {
-                    Vector2Int v = u + dir;
-                    if (!grid.IsBlocked(v) && DistanceField[v.x, v.y] > disu + 1)
-                    {
-                        DistanceField[v.x, v.y] = disu + 1;
-                        q.Enqueue(v);
-                    }
-                }
+                return;
             }
+
+            DistanceField = GridDistanceField.Build(grid, grid.WorldToGrid(WorldPosition));
         }
 
         /// <summary>

@@ -14,10 +14,13 @@ namespace TapTapGameJam.Core
         [SerializeField] private PlayerInputManager _playerInputManager;
         [SerializeField] private GamePhaseManager _gamePhaseManager;
         
-        public static bool IsDay => _instance._gamePhaseManager.CurrentPhase == GamePhase.Day;
-        public static bool IsNight => _instance._gamePhaseManager.CurrentPhase == GamePhase.Night;
-        public static PlayerBasic Player => _instance._player;
-        public static PlayerInputManager PlayerInputManager => _instance._playerInputManager;
+        public static bool IsDay => _instance != null && _instance._gamePhaseManager.CurrentPhase == GamePhase.Day;
+        public static bool IsNight => _instance != null && _instance._gamePhaseManager.CurrentPhase == GamePhase.Night;
+        public static PlayerBasic Player => _instance != null ? _instance._player : null;
+        public static PlayerInputManager PlayerInputManager => _instance != null ? _instance._playerInputManager : null;
+
+        /// <summary>场景里是否有 GameManager。守卫这类"只在夜晚工作"的组件靠它判断能不能开工</summary>
+        public static bool HasInstance => _instance != null;
 
         private void Awake()
         {
