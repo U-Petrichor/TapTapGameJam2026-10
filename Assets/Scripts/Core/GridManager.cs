@@ -70,6 +70,13 @@ namespace TapTapGameJam.Core
         public float[,] PDanger;
         public TileState[,] MapState;
 
+        /// <summary>
+        /// 墙体数据的版本号。<see cref="TraceMapStateFromWall"/> 每重建一次 MapState 就 +1。
+        /// 小地图之类"把 MapState 烘成别的形式"的消费者用它判断要不要重烘 ——
+        /// 既不用每帧重扫，也不用自己盯墙体变化。
+        /// </summary>
+        public int WallVersion { get; private set; }
+
         // 单元格实际物理尺寸
         private float _cellWidth;
         private float _cellHeight;
@@ -327,8 +334,9 @@ namespace TapTapGameJam.Core
 
             Debug.Log($"[GridManager]：墙体探测完成，{width * height} 个格子中有 {wallCount} 个是墙");
 
-            // 墙体变了，离墙距离场必须重算
+            // 墙体变了，离墙距离场必须重算；WallVersion 顺带通知小地图等缓存消费者
             RefreshWallDistance();
+            WallVersion++;
         }
 
         /// <summary>
