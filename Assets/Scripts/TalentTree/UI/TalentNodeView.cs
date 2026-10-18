@@ -44,6 +44,12 @@ namespace TalentTree
             if (_selectedIndicator != null) _selectedIndicator.gameObject.SetActive(selected);
         }
 
+        internal void SetInteractable(bool interactable)
+        {
+            if (_button == null) _button = GetComponentInChildren<Button>(true);
+            if (_button != null) _button.interactable = interactable;
+        }
+
         internal void Refresh(PlayerTalentTree playerTalentTree, TalentData data)
         {
             if (data == null || playerTalentTree == null) return;

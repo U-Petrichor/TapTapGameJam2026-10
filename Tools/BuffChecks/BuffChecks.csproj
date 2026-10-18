@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup><BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/../../Temp/BuffChecks/obj/</BaseIntermediateOutputPath></PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <BaseOutputPath>../../Temp/BuffChecks/bin/</BaseOutputPath>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 只编纯 C# 的那几个。PlayerBuffs 是 MonoBehaviour，不参与这里的验证 -->
+    <Compile Include="../../Assets/Scripts/Buffs/BuffKey.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/BuffKeyTable.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/BuffModifier.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/BuffRules.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/BuffAggregator.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/CockroachBuffSnapshot.cs" />
+    <Compile Include="../../Assets/Scripts/Buffs/TalentBuffSource.cs" />
+    <!-- 只有常量，没有 Unity 依赖；靠反射测试保证它和 BuffKeys 的字符串不漂 -->
+    <Compile Include="../../Assets/Scripts/TalentTree/Effects/TalentEffectKey.cs" />
+    <!-- 黑盒出货的概率公式，同样是纯 C# -->
+    <Compile Include="../../Assets/Scripts/Items/LootRoll.cs" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

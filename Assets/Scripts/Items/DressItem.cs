@@ -19,6 +19,12 @@ namespace TapTapGameJam.Items
         [Tooltip("装饰类别（头甲足）")]
         public DressType dressType;
 
+        [Tooltip("这件装扮提供的 Buff 配置。留空 = 纯外观，不影响数值")]
+        [SerializeField] private DressData _data;
+
+        /// <summary>这件装扮的 Buff 配置。可能为 null（纯外观）。</summary>
+        public DressData Data => _data;
+
         /// <summary>仓库分页：饰品归 Dress 页</summary>
         public override ItemCategory Category => ItemCategory.Dress;
 

@@ -35,19 +35,6 @@ namespace TapTapGameJam.Items
             return base.CanInteract(player) && HasNutrition;
         }
 
-        public override void Interact(PlayerBasic player, InteractKey key)
-        {
-            if (key == InteractKey.F)
-            {
-                // 存储
-                base.Interact(player, key);
-            }
-            else
-            {
-                // TODO: E吃掉
-            }
-        }
-
         /// <summary>
         /// 被蟑螂啃掉 amount 份营养，返回实际吃到的量（0 表示没吃到）。
         /// </summary>

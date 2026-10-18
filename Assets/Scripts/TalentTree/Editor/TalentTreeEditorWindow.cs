@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using TalentTree.Effects;
+using TapTapGameJam.Buffs;
+using TapTapGameJam.Buffs.EditorTools;
 using UnityEditor;
 using UnityEngine;
 
@@ -172,12 +175,16 @@ namespace TalentTree.Editor
             string id = EditorGUILayout.TextField("ID", data.Id);
             string displayName = EditorGUILayout.TextField("名称", data.DisplayName);
             string talentType = EditorGUILayout.TextField("天赋类型", data.TalentType);
+            EditorGUILayout.LabelField("描述");
+            string description = EditorGUILayout.TextArea(data.Description, GUILayout.MinHeight(60f));
             Sprite icon = (Sprite)EditorGUILayout.ObjectField("图标", data.Icon, typeof(Sprite), false);
-            if (id != data.Id || displayName != data.DisplayName || talentType != data.TalentType || icon != data.Icon)
+            if (id != data.Id || displayName != data.DisplayName || talentType != data.TalentType ||
+                description != data.Description || icon != data.Icon)
             {
                 Undo.RecordObject(data, "Edit Talent");
                 data.SetIdentity(id, displayName);
                 data.SetTalentType(talentType);
+                data.SetDescription(description);
                 SerializedObject serialized = new(data);
                 serialized.FindProperty("_icon").objectReferenceValue = icon;
                 serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -282,8 +289,18 @@ namespace TalentTree.Editor
                 TalentEffect effect = level.MutableEffects[i];
                 if (effect == null) continue;
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                string key = EditorGUILayout.TextField("效果 Key", effect.EffectKey);
-                float value = EditorGUILayout.FloatField("数值", effect.NumericValue);
+                string key = BuffKeyPicker.DrawIdField("效果 Key", effect.EffectKey);
+                BuffKind kind = ResolveKind(key);
+                float value = effect.NumericValue;
+                if (kind == BuffKind.Flag)
+                {
+                    EditorGUILayout.LabelField("数值", "能力 Tag，不需要填数值");
+                }
+                else
+                {
+                    value = EditorGUILayout.FloatField(BuffKeyPicker.UnitLabel(kind), effect.NumericValue);
+                }
+
                 string payload = EditorGUILayout.TextField("Payload", effect.Payload);
                 if (key != effect.EffectKey || !Mathf.Approximately(value, effect.NumericValue) || payload != effect.Payload)
                 {
@@ -306,6 +323,12 @@ namespace TalentTree.Editor
                 level.MutableEffects.Add(new TalentEffect());
                 EditorUtility.SetDirty(data);
             }
+        }
+
+        /// <summary>key 还没选 / 资产里是未知 key 时按百分比处理，只是为了给数值框一个单位提示。</summary>
+        private static BuffKind ResolveKind(string key)
+        {
+            return BuffKeys.TryParse(key, out BuffKey parsed) ? BuffKeys.KindOf(parsed) : BuffKind.Grow;
         }
 
         private void DrawConnectedEdges()

@@ -15,6 +15,9 @@ namespace TapTapGameJam.Core
         [field: SerializeField] public GamePhase CurrentPhase { get; private set; } = GamePhase.Day;
         public float RemainingTime = 0f; // 当前阶段剩余时间
         public int DayIndex = 0; // 已开始的白天数；进入首日后为 1，与门的开放日期一致。
+        
+        public float DayProcess => CurrentPhase == GamePhase.Day ? RemainingTime / DAY_DURATION : -1.0f;
+        public float NightProcess => CurrentPhase == GamePhase.Night ? RemainingTime / NIGHT_DURATION : -1.0f;
 
         private void OnEnable()
         {

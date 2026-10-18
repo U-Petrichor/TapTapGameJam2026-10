@@ -23,6 +23,7 @@ namespace TalentTree
         [SerializeField] private TMP_Text _introduceDescriptionText;
         [SerializeField] private TMP_Text _introduceTypeText;
         [SerializeField] private TMP_Text _introduceUnlockText;
+        [SerializeField] private TMP_Text _introduceUnlockCostText;
         [SerializeField] private Image _introduceIcon;
 
         [Header("Talent tree navigation")]
@@ -51,7 +52,6 @@ namespace TalentTree
         private InputAction _pressEscape;
         private string _previousActionMapName;
         private bool _talentTreeInputActive;
-        private string _operationMessage;
         private RectTransform _panelRect;
         private RectTransform _treeContent;
         private RectTransform _introducePanelRect;
@@ -84,12 +84,18 @@ namespace TalentTree
             {
                 _panel = _talentTreePanel;
                 _pointsText = _talentPoints;
-                _titleText = _introduceTitleText;
-                _detailText = _introduceDescriptionText;
-                foreach (TalentNodeView node in _authoredNodes) node.Bind(this);
+                foreach (TalentNodeView node in _authoredNodes)
+                {
+                    node.Bind(this);
+                    TalentData data = _talentTreeAsset?.FindTalent(node.TalentId);
+                    node.SetInteractable(_talentTreeAsset?.FindNode(data)?.IsRoot != true);
+                }
                 if (_upgradeButton != null) _upgradeButton.onClick.AddListener(UpgradeSelected);
                 if (_talentTreeCloseButton != null) _talentTreeCloseButton.onClick.AddListener(() => SetVisible(false));
                 InitializeTreeNavigation();
+                ResolveIntroduceReferences();
+                _titleText = _introduceTitleText;
+                _detailText = _introduceDescriptionText;
                 SetVisible(false);
                 Refresh();
                 return;
@@ -226,52 +232,76 @@ namespace TalentTree
 
         public void SelectById(string talentId)
         {
-            _operationMessage = string.Empty;
-            Select(_talentTreeAsset?.FindTalent(talentId));
+            TalentData data = _talentTreeAsset?.FindTalent(talentId);
+            if (_talentTreeAsset?.FindNode(data)?.IsRoot == true) return;
+            Select(data);
         }
 
         private void Select(TalentData data)
         {
             _selected = data;
+            SetIntroduceVisible(data != null);
             foreach (TalentNodeView node in _authoredNodes)
                 node.SetSelected(data != null && node.TalentId == data.Id);
             RefreshIntroduction();
             if (_selected == null || _playerTalentTree == null)
             {
                 if (_titleText != null) _titleText.text = "选择一个天赋";
-                if (_detailText != null)
-                    _detailText.text = "请点击一个天赋后使用 E 解锁或 F 解除。\n\n按 Q 可全部重置。" +
-                                       (string.IsNullOrEmpty(_operationMessage) ? string.Empty : $"\n\n{_operationMessage}");
+                if (_detailText != null) _detailText.text = string.Empty;
                 if (_upgradeButton != null) _upgradeButton.interactable = false;
                 return;
             }
 
             int level = _playerTalentTree.GetLevel(_selected);
-            string reason = string.Empty;
-            bool canUnlock = level <= 0 && _playerTalentTree.CanUnlock(_selected, out reason);
+            bool canUnlock = level <= 0 && _playerTalentTree.CanUnlock(_selected, out _);
             if (_titleText != null) _titleText.text = _selected.DisplayName;
-            if (_detailText != null)
-            {
-                string state = level > 0 ? "已解锁" : "未解锁";
-                string hint = level > 0 ? "按 F 解除当前天赋" : $"按 E 解锁\n解锁状态：{ReasonOrReady(reason)}";
-                _detailText.text = $"消耗：{_selected.GetLevelData(1)?.TalentPointCost ?? 0} 天赋点\n当前状态：{state}\n\n{hint}\n\n按 Q 全部重置。" +
-                                   (string.IsNullOrEmpty(_operationMessage) ? string.Empty : $"\n\n{_operationMessage}");
-            }
+            if (_detailText != null) _detailText.text = _selected.Description ?? string.Empty;
             if (_upgradeButton != null) _upgradeButton.interactable = canUnlock;
         }
 
         private void RefreshIntroduction()
         {
+            int level = _selected != null && _playerTalentTree != null ? _playerTalentTree.GetLevel(_selected) : 0;
             if (_introduceTypeText != null)
                 _introduceTypeText.text = _selected != null ? _selected.TalentType : string.Empty;
             if (_introduceUnlockText != null)
-                _introduceUnlockText.text = _selected != null && _playerTalentTree != null &&
-                    _playerTalentTree.GetLevel(_selected) > 0 ? "1/1" : "0/1";
+                _introduceUnlockText.text = _selected != null && level > 0 ? "1/1" : "0/1";
             if (_introduceIcon != null)
             {
                 _introduceIcon.sprite = _selected != null ? _selected.Icon : null;
                 _introduceIcon.enabled = _introduceIcon.sprite != null;
             }
+            if (_introduceUnlockCostText != null)
+            {
+                bool showCost = _selected != null && level <= 0;
+                _introduceUnlockCostText.gameObject.SetActive(showCost);
+                if (showCost)
+                    _introduceUnlockCostText.text = $"需要点数：{_selected.GetLevelData(1)?.TalentPointCost ?? 0}";
+            }
+        }
+
+        private void SetIntroduceVisible(bool visible)
+        {
+            if (_introducePanelRect == null) return;
+            if (_introducePanelRect.gameObject.activeSelf != visible)
+                _introducePanelRect.gameObject.SetActive(visible);
+        }
+
+        private void ResolveIntroduceReferences()
+        {
+            if (_introducePanelRect == null) return;
+            if (_introduceTitleText == null) _introduceTitleText = FindChildComponent<TMP_Text>(_introducePanelRect, "Title");
+            if (_introduceDescriptionText == null) _introduceDescriptionText = FindChildComponent<TMP_Text>(_introducePanelRect, "Description");
+            if (_introduceTypeText == null) _introduceTypeText = FindChildComponent<TMP_Text>(_introducePanelRect, "Type");
+            if (_introduceUnlockText == null) _introduceUnlockText = FindChildComponent<TMP_Text>(_introducePanelRect, "Unlock");
+            if (_introduceUnlockCostText == null) _introduceUnlockCostText = FindChildComponent<TMP_Text>(_introducePanelRect, "UnlockCostPoint");
+            if (_introduceIcon == null) _introduceIcon = FindChildComponent<Image>(_introducePanelRect, "Icon");
+        }
+
+        private static T FindChildComponent<T>(Transform parent, string childName) where T : Component
+        {
+            Transform child = parent.Find(childName);
+            return child != null ? child.GetComponent<T>() : null;
         }
 
         private void UpgradeSelected()
@@ -283,39 +313,26 @@ namespace TalentTree
 
         private void UnlockSelected()
         {
-            if (_selected == null || _playerTalentTree == null)
-            {
-                _operationMessage = "请先选择一个天赋。";
-                Refresh();
-                return;
-            }
+            if (_selected == null || _playerTalentTree == null) return;
 
             TalentOperationResult result = _playerTalentTree.TryUnlock(_selected);
             if (!result.Succeeded) Sfx.Play(SoundId.Error, this);
-            _operationMessage = result.Succeeded ? "天赋解锁成功。" : result.Message;
             Refresh();
         }
 
         private void RemoveSelected()
         {
-            if (_selected == null || _playerTalentTree == null)
-            {
-                _operationMessage = "请先选择一个天赋。";
-                Refresh();
-                return;
-            }
+            if (_selected == null || _playerTalentTree == null) return;
 
             TalentOperationResult result = _playerTalentTree.TryRemove(_selected);
             if (!result.Succeeded) Sfx.Play(SoundId.Error, this);
-            _operationMessage = result.Succeeded ? $"天赋已解除，返还 {result.PointChange} 天赋点。" : result.Message;
             Refresh();
         }
 
         private void ResetAllTalents()
         {
             if (_playerTalentTree == null) return;
-            int refund = _playerTalentTree.TryResetAll();
-            _operationMessage = refund > 0 ? $"全部天赋已重置，返还 {refund} 天赋点。" : "当前没有已解锁的天赋。";
+            _playerTalentTree.TryResetAll();
             Refresh();
         }
 
@@ -339,7 +356,6 @@ namespace TalentTree
             {
                 EnableTalentTreeInput();
                 ResetTreeView();
-                _operationMessage = string.Empty;
                 Select(null);
                 Refresh();
             }
@@ -411,6 +427,8 @@ namespace TalentTree
             _initialTreeContentPosition = _treeContent.position;
             _initialTreeContentScale = _treeContent.localScale;
             _zoom = 1f;
+
+            SetIntroduceVisible(false);
 
             // Keep the fixed UI above the moving tree even if the scene's
             // sibling order is changed later in the editor.
@@ -491,7 +509,8 @@ namespace TalentTree
 
         private bool IsPointerOver(RectTransform rect, Vector2 screenPoint)
         {
-            return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPoint, UiCamera());
+            return rect != null && rect.gameObject.activeInHierarchy &&
+                   RectTransformUtility.RectangleContainsScreenPoint(rect, screenPoint, UiCamera());
         }
 
         private Camera UiCamera()
@@ -613,8 +632,6 @@ namespace TalentTree
             for (int i = 0; i < _talentTreeAsset.Nodes.Count; i++) if (_talentTreeAsset.Nodes[i]?.Data == data) return i;
             return -1;
         }
-
-        private static string ReasonOrReady(string reason) => string.IsNullOrEmpty(reason) ? "可以解锁" : reason;
 
         private static Vector2[] CalculatePositions(Vector2 size, IReadOnlyList<TalentNodeData> nodes)
         {

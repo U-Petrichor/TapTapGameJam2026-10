@@ -1,3 +1,4 @@
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Types;
@@ -27,6 +28,9 @@ namespace TapTapGameJam.Player
         [Tooltip("玩家体力：冲刺消耗、受伤/中毒/负重占据上限")]
         [field: SerializeField] public PlayerHealth PlayerHealth { get; private set; }
 
+        [Tooltip("玩家持有的全部 Buff（天赋 / 装扮 / 临时效果）。没挂的话运行时自动补一个")]
+        [field: SerializeField] public PlayerBuffs Buffs { get; private set; }
+
         [Tooltip("玩家当前状态：是否为人类")]
         [field: SerializeField] public bool IsHuman { get; private set; }
         
@@ -55,6 +59,11 @@ namespace TapTapGameJam.Player
             if (CarryController == null) CarryController = GetComponent<PlayerCarryController>();
             if (PlayerBag == null) PlayerBag = GetComponent<PlayerBag>();
             if (PlayerHealth == null) PlayerHealth = GetComponent<PlayerHealth>();
+
+            // Buff 宿主是新加的组件，老场景 / 老预制体上不会自带。
+            // 少了它天赋就整个失效，所以这里缺了就补一个——比"忘了拖引用 → 数值静默不生效"好查得多。
+            if (Buffs == null) Buffs = GetComponent<PlayerBuffs>();
+            if (Buffs == null) Buffs = gameObject.AddComponent<PlayerBuffs>();
 
             // 初始化玩家拥有的状态机与状态实例
             StateMachine = new PlayerStateMachine();

@@ -109,13 +109,16 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("挂 Spot Light 和扇形 trigger 的子物体。留空则自动取身上第一盏灯")]
         public Transform vision;
 
-        [Header("运行时状态（只读）")]
-        [SerializeField] protected float _angle;
+        [Tooltip("挂载动画器")]
+        [SerializeField] protected Animator _animator;
 
         #endregion
 
         #region 运行时状态
 
+        /// <summary> 行动角度 </summary>
+        protected float _angle;
+        
         /// <summary>视野 trigger 里的蟑螂（进巢的也在，由取样函数过滤）</summary>
         protected readonly HashSet<CockroachAgent> CockroachesInSight = new HashSet<CockroachAgent>();
 
@@ -883,11 +886,17 @@ namespace TapTapGameJam.Cockroach
             _angle = RotateTowards(_angle, ApplyAvoidance(position, intent.DesiredAngle), intent.TurnSpeed * dt);
             transform.rotation = AngleToRotation(_angle);
 
+            _animator.SetBool("IsMoving", true);
             if (intent.Speed <= 0f)
             {
                 _stallTimer = 0f;
+                _animator.SetBool("IsMoving", false);
                 return;
             }
+            // ApplyMotion 里，intent.Speed 就是这一帧想走多快
+            float mul = intent.Speed > 0f ? Mathf.Clamp(intent.Speed / settings.PatrolSpeed, 1.0f, 2.5f) : 1f;
+            if (!Mathf.Approximately(_animator.speed, mul)) _animator.speed = mul;
+            
 
             Vector2 delta = DirOfAngle(_angle) * (intent.Speed * dt);
             Vector2 target = ClampToArea(intent.Stance, position, position + delta);

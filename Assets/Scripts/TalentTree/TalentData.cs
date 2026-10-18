@@ -10,12 +10,14 @@ namespace TalentTree
         [SerializeField] private string _id;
         [SerializeField] private string _displayName;
         [SerializeField] private string _talentType;
+        [SerializeField, TextArea] private string _description;
         [SerializeField] private Sprite _icon;
         [SerializeField] private List<TalentLevelData> _levels = new();
 
         public string Id => _id;
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? name : _displayName;
         public string TalentType => _talentType;
+        public string Description => _description;
         public Sprite Icon => _icon;
         public IReadOnlyList<TalentLevelData> Levels => _levels;
         public int MaxLevel => _levels?.Count ?? 0;
@@ -36,6 +38,7 @@ namespace TalentTree
         private void OnValidate() => SyncObjectName();
 
         public void SetTalentType(string talentType) => _talentType = talentType;
+        public void SetDescription(string description) => _description = description;
 
         private void SyncObjectName()
         {

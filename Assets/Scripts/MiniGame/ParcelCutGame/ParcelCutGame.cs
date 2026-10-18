@@ -1,7 +1,6 @@
 using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
-using TMPro;
 using TapTapGameJam.MiniGame;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -31,9 +30,6 @@ namespace TapTapGameJam.UI
         [Tooltip("持刀手臂的整体根节点；原点对应刀尖，拖动时整体跟随鼠标。")]
         [SerializeField] private RectTransform _cutterRoot;
         [SerializeField] private List<TapeEntry> _tapes = new();
-        [SerializeField] private TMP_Text _progressText;
-        [SerializeField] private TMP_Text _instructionText;
-        [SerializeField] private Slider _progressBar;
         [SerializeField, Range(0.03f, 0.4f)] private float _pathTolerance = 0.25f;
         [Tooltip("覆盖此比例的不同判定点即可剪开；60% 对应 32 个点中的至少 20 个。")]
         [SerializeField, Range(0.1f, 1f)] private float _completionThreshold = ParcelCutRound.DefaultCompletionThreshold;
@@ -60,7 +56,6 @@ namespace TapTapGameJam.UI
             get
             {
                 if (_boxImage == null || _cutterBlade == null || _cutterHandle == null ||
-                    _progressText == null || _instructionText == null || _progressBar == null ||
                     _tapes == null || _tapes.Count != ParcelCutRound.TapeCount)
                     return false;
                 foreach (var tape in _tapes)
@@ -88,29 +83,6 @@ namespace TapTapGameJam.UI
             _cutterHandle = arm;
             _hasCutterHome = false;
             blade.raycastTarget = arm.raycastTarget = false;
-        }
-
-        public void Configure(RawImage box, RawImage blade, RawImage handle, RawImage[] tapes,
-            TMP_Text progress, TMP_Text instruction, Slider progressBar = null)
-        {
-            _boxImage = box;
-            _cutterBlade = blade;
-            _cutterHandle = handle;
-            _progressText = progress;
-            _instructionText = instruction;
-            _progressBar = progressBar;
-            if (_tapes == null) _tapes = new List<TapeEntry>();
-            while (_tapes.Count < ParcelCutRound.TapeCount) _tapes.Add(new TapeEntry());
-            if (_tapes.Count > ParcelCutRound.TapeCount)
-                _tapes.RemoveRange(ParcelCutRound.TapeCount, _tapes.Count - ParcelCutRound.TapeCount);
-            for (int i = 0; i < ParcelCutRound.TapeCount; i++)
-            {
-                _tapes[i].Image = tapes != null && i < tapes.Length ? tapes[i] : null;
-                if (_tapes[i].Image != null) _tapes[i].Image.raycastTarget = true;
-            }
-#if UNITY_EDITOR
-            RebuildTapeGeometry();
-#endif
         }
 
 #if UNITY_EDITOR
@@ -157,7 +129,7 @@ namespace TapTapGameJam.UI
             if (!HasTapeGeometry) RebuildTapeGeometry();
 #endif
             if (!IsConfigured)
-                throw new InvalidOperationException("请配置箱子、美工刀、六条胶带和拆快递文字组件。");
+                throw new InvalidOperationException("请配置箱子、美工刀和六条胶带。");
 
             var paths = new List<IReadOnlyList<Vector2>>(ParcelCutRound.TapeCount);
             var outlines = new List<IReadOnlyList<Vector2>>(ParcelCutRound.TapeCount);
@@ -172,7 +144,6 @@ namespace TapTapGameJam.UI
             _draggingTape = -1;
             RenderTapes();
             PrepareCheckpoints();
-            RefreshText();
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -185,7 +156,6 @@ namespace TapTapGameJam.UI
             _pointerId = eventData.pointerId;
             _eventCamera = eventData.pressEventCamera;
             MoveCutter(eventData.position);
-            RefreshText();
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -196,26 +166,17 @@ namespace TapTapGameJam.UI
                 _tapes[_draggingTape].Image.rectTransform.rect.size);
             _lastPoint = current;
             MoveCutter(eventData.position);
-            if (changed)
+            if (changed && _round.IsCompleted(_draggingTape))
             {
-                RefreshText();
-                if (_round.IsCompleted(_draggingTape))
+                Sfx.Play(SoundId.CutTape, this);
+                _tapes[_draggingTape].Image.gameObject.SetActive(false);
+                _tapes[_draggingTape].Image.raycastTarget = false;
+                _draggingTape = -1;
+                if (_round.IsComplete)
                 {
-                    Sfx.Play(SoundId.CutTape, this);
-                    _tapes[_draggingTape].Image.gameObject.SetActive(false);
-                    _tapes[_draggingTape].Image.raycastTarget = false;
-                    _draggingTape = -1;
-                    RefreshText();
-                    if (_round.IsComplete)
-                    {
-                        var completed = _onCompleted;
-                        End();
-                        completed?.Invoke();
-                    }
-                    else
-                    {
-                        _instructionText.text = "继续剪下一条胶带 · 每条覆盖 60% 即可";
-                    }
+                    var completed = _onCompleted;
+                    End();
+                    completed?.Invoke();
                 }
             }
         }
@@ -324,24 +285,6 @@ namespace TapTapGameJam.UI
         // Also follows edits to tape transforms and the display toggle during Play.
         private void LateUpdate() => RefreshCheckpoints();
 
-        private void RefreshText()
-        {
-            if (_round == null) return;
-            if (_progressText != null)
-                _progressText.text = $"已拆 {_round.CompletedCount} / {ParcelCutRound.RequiredTapeCount}";
-            if (_progressBar != null)
-            {
-                float progress = 0f;
-                foreach (int tape in _round.TargetIndices)
-                    progress += _round.IsCompleted(tape) ? 1f : Mathf.Clamp01(_round.CoveredCountFor(tape) / (float)_round.RequiredCheckpointCount);
-                _progressBar.SetValueWithoutNotify(progress / ParcelCutRound.RequiredTapeCount);
-            }
-            if (_instructionText != null)
-                _instructionText.text = _draggingTape >= 0
-                    ? $"当前胶带：{_round.CoverageFor(_draggingTape):P0} · 目标 {_completionThreshold:P0}"
-                    : $"沿胶带拖动美工刀 · 每条覆盖 {_completionThreshold:P0} 即可";
-        }
-
         private void ReleasePointer()
         {
             _draggingTape = -1;
@@ -376,9 +319,6 @@ namespace TapTapGameJam.UI
                     tape.Image.raycastTarget = true;
                 }
             }
-            if (_progressText != null) _progressText.text = "已拆 0 / 3";
-            if (_instructionText != null) _instructionText.text = "按住鼠标左键，沿黄色胶带拖动美工刀";
-            if (_progressBar != null) _progressBar.SetValueWithoutNotify(0f);
         }
 
         private void OnDisable() => End();

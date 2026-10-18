@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Library</OutputType>
+    <AssemblyName>CompileCheck</AssemblyName>
+    <BaseIntermediateOutputPath>obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/</BaseOutputPath>
+    <DefineConstants>UNITY_EDITOR;UNITY_STANDALONE;UNITY_6000_3_OR_NEWER</DefineConstants>
+    <NoWarn>CS0649;CS0169;CS0414;CS0219;CS1591</NoWarn>
+    <UnityEngineManaged Condition="'$(UnityEngineManaged)' == ''">C:\Program Files\Unity\Hub\Editor\6000.3.25f1\Editor\Data\Managed\UnityEngine</UnityEngineManaged>
+    <NUnitDll Condition="'$(NUnitDll)' == ''">C:\Program Files\Unity\Hub\Editor\6000.3.25f1\Editor\Data\Resources\PackageManager\BuiltInPackages\com.unity.ext.nunit\net40\unity-custom\nunit.framework.dll</NUnitDll>
+    <UnityEditorDll Condition="'$(UnityEditorDll)' == ''">C:\Program Files\Unity\Hub\Editor\6000.3.25f1\Editor\Data\Managed\UnityEditor.dll</UnityEditorDll>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Assets\Scripts\**\*.cs"
+             Exclude="..\..\Assets\Scripts\**\Editor\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(UnityEngineManaged)\*.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.InputSystem.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.Cinemachine.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.TextMeshPro.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\UnityEngine.UI.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.Mathematics.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.Collections.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.Burst.dll" />
+    <Reference Include="..\..\Library\ScriptAssemblies\Unity.VisualScripting.Core.dll" />
+    <Reference Include="$(NUnitDll)" />
+  </ItemGroup>
+</Project>

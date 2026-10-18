@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using UnityEngine;
 
@@ -41,6 +42,36 @@ namespace TapTapGameJam.Cockroach
         public List<CockNest> CockNestList { get; private set; } = new List<CockNest>();
 
         private int _decisionFrameCounter;
+
+        private CockroachBuffSnapshot _buffMods = CockroachBuffSnapshot.Identity;
+        private int _buffRevision = int.MinValue;
+
+        /// <summary>
+        /// 虫群 Buff 快照。蟑螂 / 巢穴每帧都读，所以在这里再缓存一层：
+        /// 一次 PlayerBuffs 查找 + 一次 Revision 比较，之后就只是读结构体字段。
+        ///
+        /// 注意读的是<b>快照</b>而不是每次去查聚合器：几十只蟑螂 × 每帧 3 个 key 的话，
+        /// 就是每帧几百次字典/数组查询。
+        /// </summary>
+        public CockroachBuffSnapshot BuffMods
+        {
+            get
+            {
+                PlayerBuffs buffs = PlayerBuffs.Current;
+                if (buffs == null)
+                {
+                    return CockroachBuffSnapshot.Identity;
+                }
+
+                if (buffs.Revision != _buffRevision)
+                {
+                    _buffMods = buffs.CockroachSnapshot;
+                    _buffRevision = buffs.Revision;
+                }
+
+                return _buffMods;
+            }
+        }
 
         private void Awake()
         {

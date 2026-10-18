@@ -250,6 +250,59 @@ namespace TapTapGameJam.Player
 
         #endregion
 
+        #region 随机出货（黑盒等）
+
+        /// <summary>
+        /// 从商品池里<b>等概率</b>抽一个模板，按稀有度分档：
+        /// <paramref name="rare"/> = true 抽 <see cref="PickableItem.SpecialLevel"/> ≥ 1 的那一档，
+        /// false 抽 0 那一档。这一档为空时返回 false，<b>不会</b>自动跨档（由调用方决定要不要退一步）。
+        ///
+        /// 抽的是<b>模板</b>，不是货架上的货：调用方自己 Instantiate 一份，
+        /// 所以黑盒开出来的东西和商店里卖的是互相独立的实例。
+        /// 也不去重：池子里有几条同样的模板，抽中它的概率就按条数翻倍。
+        /// </summary>
+        public bool TryPickRandomLoot(bool rare, out PickableItem item)
+        {
+            item = null;
+
+            // 两遍扫描：先数出这一档有多少条，再按下标取。
+            // 池子只有个位数，比每次都 new 一个候选列表便宜。
+            int count = 0;
+            for (int i = 0; i < _pool.Count; i++)
+            {
+                PoolEntry entry = _pool[i];
+                if (entry != null && entry.item != null && LootRoll.IsRare(entry.item.SpecialLevel) == rare)
+                {
+                    count++;
+                }
+            }
+
+            if (count == 0)
+            {
+                return false;
+            }
+
+            int pick = UnityEngine.Random.Range(0, count);
+            for (int i = 0; i < _pool.Count; i++)
+            {
+                PoolEntry entry = _pool[i];
+                if (entry == null || entry.item == null || LootRoll.IsRare(entry.item.SpecialLevel) != rare)
+                {
+                    continue;
+                }
+
+                if (pick-- == 0)
+                {
+                    item = entry.item;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
         #region 买 / 取
 
         /// <summary>

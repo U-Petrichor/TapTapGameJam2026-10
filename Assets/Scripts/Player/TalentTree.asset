@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent4
   _displayName: "\u575A\u97E7\u7532\u58F3"
+  _description: "\u4e2a\u4f53\u53d7\u4f24 0%>>>-10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 489643794272651483, guid: 3edf1d3204cdd9f4d8db7919353f8495, type: 3}
   _levels:
@@ -37,6 +38,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent1
   _displayName: "\u52E4\u5DE5\u751F\u8D22"
+  _description: "\u91d1\u5e01\u83b7\u53d6 0%>>>\uff0b10%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 292623097425595353, guid: 0be20179968c5b74ea7d195195ce9c9e, type: 3}
   _levels:
@@ -67,6 +69,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent38
   _displayName: "\u84C4\u529B\u56DE\u5143"
+  _description: "\u6062\u590d\u4f53\u529b\u901f\u5ea6 0%>>>\uff0b10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 272631903203624113, guid: 0c768bba85f49e541a8a366159a81839, type: 3}
   _levels:
@@ -90,6 +93,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent37
   _displayName: "\u7EDD\u5883\u8715\u751F"
+  _description: "\u62b5\u6297\u4e00\u6b21\u81f4\u547d\u4f24"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 5271994706760348, guid: e6b6519c418e9054c9f639e101eea1e9, type: 3}
   _levels:
@@ -113,10 +117,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent36
   _displayName: "\u6301\u4E45\u8010\u52B3"
+  _description: "\u4f53\u529b\u635f\u8017 -10%>>>\uff0d25%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 80372350260318887, guid: 3f35429d7e44e85439c1f3313a8ed0a3, type: 3}
   _levels:
-  - _talentPointCost: 1
+  - _talentPointCost: 0
     _requirements: []
     _effects: []
   references:
@@ -136,6 +141,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent35
   _displayName: "\u8282\u529B\u722C\u884C"
+  _description: "\u4f53\u529b\u635f\u8017 0%>>>-10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 341093521953594277, guid: e8ac5417873207b409105e05d4687c62, type: 3}
   _levels:
@@ -159,6 +165,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent34
   _displayName: "\u4EE3\u8C22\u6392\u6BD2"
+  _description: "\u89e3\u6bd2\u901f\u5ea6 0%>>>\uff0b10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 894977949439274338, guid: 0c7ef741b7f92dd4897a60b9165e676c, type: 3}
   _levels:
@@ -182,6 +189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent33
   _displayName: "\u6297\u6BD2\u4F53\u8D28"
+  _description: "\u4e2d\u6bd2\u5f71\u54cd 0%>>>-10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 706267602671865258, guid: c545bb721b992fd419db801a63ee4d1f, type: 3}
   _levels:
@@ -205,6 +213,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent8
   _displayName: "\u75BE\u8DB3\u5954\u884C"
+  _description: "\u4e2a\u4f53\u79fb\u901f 0%>>>\uff0b20%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 279807250521832119, guid: a590ce82f0f22f44099032483cdc2341, type: 3}
   _levels:
@@ -228,15 +237,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent9
   _displayName: "\u94C1\u58C1\u866B\u7532"
+  _description: "\u4e2a\u4f53\u53d7\u4f24 -10%>>>\uff0d25%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 955801233472204380, guid: 5ea6879a19339ac449ed4689a4dd1f89, type: 3}
   _levels:
-  - _talentPointCost: 1
+  - _talentPointCost: 0
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 5638094838024896593
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5638094838024896593
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: movement_speed
+        _numericValue: 0.61
+        _payload: 
 --- !u!114 &-900000000000026000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,6 +268,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent32
   _displayName: "\u6012\u706B\u7FFB\u6D8C"
+  _description: "\u6012\u6c14\u70b9\u83b7\u53d6 \uff0b10%>>>\uff0b25%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 654483943925940894, guid: d9d3f295b3695884ea2e8e9d9a87c2b5, type: 3}
   _levels:
@@ -274,6 +292,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent5
   _displayName: "\u79EF\u6028\u6210\u6012"
+  _description: "\u6012\u6c14\u70b9\u83b7\u53d6\uff0b10%>>>\uff0b25%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 157363190194984318, guid: cc079d03e4579bd41b55518ab079f9c3, type: 3}
   _levels:
@@ -297,6 +316,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent31
   _displayName: "\u65E5\u8FDB\u6597\u91D1"
+  _description: "\u91d1\u5e01\u83b7\u53d6\uff0b10%>>>\uff0b25%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 700543266493092690, guid: d4c643d9fc1db304a98e97706e2c051d, type: 3}
   _levels:
@@ -327,6 +347,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent30
   _displayName: "\u9AD8\u6548\u540C\u5316"
+  _description: "\u8425\u517b\u83b7\u53d6 \uff0b10%>>>\uff0b25%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 57874642716581673, guid: 466740349761a8b4dbc4023a8d362669, type: 3}
   _levels:
@@ -350,6 +371,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent29
   _displayName: "\u7CBE\u7EC6\u5438\u6536"
+  _description: "\u8425\u517b\u83b7\u53d6 0%>>>\uff0b10%"
   _talentType: "\u8D44\u6E90\u589E\u76CA"
   _icon: {fileID: 1151057386297181072, guid: e02968a18d7b36f40bacd34e388d9acc, type: 3}
   _levels:
@@ -373,6 +395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent28
   _displayName: "\u51CF\u8D1F\u75BE\u884C"
+  _description: "\u80cc\u5305\u8d1f\u91cd -10%>>>\uff0d25%"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 983067207137675448, guid: 6dbb707fd14521a43bbe5af8b271a06d, type: 3}
   _levels:
@@ -396,6 +419,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent6
   _displayName: "\u8F7B\u88C5\u4E0A\u9635"
+  _description: "\u80cc\u5305\u8d1f\u91cd 0%>>>-10%"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 999910846251005009, guid: 20a1270a72be6c449a91dd0c6348cad8, type: 3}
   _levels:
@@ -419,6 +443,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent27
   _displayName: "\u5DE8\u56CA\u8F7D\u7269"
+  _description: "\u80cc\u5305\u6269\u5bb9 20>>>25\u683c"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 1030187685885707896, guid: 05add1776466d5a41b9698e4f1efe970, type: 3}
   _levels:
@@ -442,6 +467,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent26
   _displayName: "\u6269\u56CA\u589E\u5BB9"
+  _description: "\u80cc\u5305\u5bb9\u91cf 16>>>20\u683c"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 46201628644922541, guid: 0c6b20079d226f54c871d4bb1002fa3f, type: 3}
   _levels:
@@ -465,6 +491,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent25
   _displayName: "\u7CBE\u5DE5\u6218\u8863"
+  _description: "\u88c5\u626e\u52a0\u6210\uff0b10%>>>\uff0b25%"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 523149283092028544, guid: b730ee98ca3349c44911a8d3ac7f1d65, type: 3}
   _levels:
@@ -488,6 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent24
   _displayName: "\u7FA4\u989A\u7834\u58C1"
+  _description: "\u7fa4\u4f53\u83b7\u5f97\u5543\u566c\u5899\u4f53"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 434500968270620186, guid: 7eacdb5675e392242bce88803549bfb2, type: 3}
   _levels:
@@ -511,6 +539,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent23
   _displayName: "\u540C\u7C7B\u76F8\u98DF"
+  _description: "\u7fa4\u4f53\u83b7\u5f97\u540c\u7c7b\u76f8\u98df"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 774464656492359635, guid: 6059613eeb6964240bdcd5e2b4c43558, type: 3}
   _levels:
@@ -546,6 +575,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent22
   _displayName: "\u866B\u6F6E\u5954\u6D8C"
+  _description: "\u7fa4\u4f53\u79fb\u901f 0%>>>\uff0b50%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 800585547346865022, guid: 46966963febecb042a862a1af245f8b3, type: 3}
   _levels:
@@ -569,6 +599,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent21
   _displayName: "\u866B\u884C\u5982\u98CE"
+  _description: "\u7fa4\u4f53\u79fb\u901f\uff0b10%>>>\uff0b25%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 993817739031855509, guid: 2d349d90b7c03794b8cd6b7b17804be7, type: 3}
   _levels:
@@ -592,6 +623,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent20
   _displayName: "\u7FA4\u8DB3\u75BE\u884C"
+  _description: "\u7fa4\u4f53\u79fb\u901f 0%>>>\uff0b10%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 319966922158556227, guid: e74908eb22b1f9746b983bb05083bbaf, type: 3}
   _levels:
@@ -615,6 +647,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent19
   _displayName: "\u84C4\u52BF\u7A81\u8FDB"
+  _description: "\u4e2a\u4f53\u83b7\u5f97\u51b2\u523a\u6280\u80fd"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 71375598211067573, guid: ed4b7f08a31baad4f957413152bc5b73, type: 3}
   _levels:
@@ -638,6 +671,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent18
   _displayName: "\u7834\u5375\u5373\u751F"
+  _description: "\u4e2a\u4f53\u83b7\u5f97\u77ac\u95f4\u5b75\u5316"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 311810230738609330, guid: d9403099b76fb434db12cde3cb282404, type: 3}
   _levels:
@@ -661,6 +695,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent17
   _displayName: "\u77AC\u606F\u843D\u5375"
+  _description: "\u77ac\u95f4\u4ea7\u5375"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 0}
   _levels:
@@ -684,6 +719,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent16
   _displayName: "\u6BCD\u4F53\u50AC\u5375"
+  _description: "\u4e2a\u4f53\u4ea7\u5375\u901f\u5ea6 0%>>>\uff0b10%"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 496678774632743868, guid: 4f4246e8b6b98944eab2da6e88b803e0, type: 3}
   _levels:
@@ -707,6 +743,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent15
   _displayName: "\u4E07\u5375\u9F50\u751F"
+  _description: "\u7fa4\u4f53\u4ea7\u5375\u901f\u5ea6 0%>>>\uff0b50%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 126137052942771323, guid: 330cb7163e6a6b04787e250bfca0ee06, type: 3}
   _levels:
@@ -730,6 +767,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent14
   _displayName: "\u7FA4\u5375\u76DB\u7E41"
+  _description: "\u7fa4\u4f53\u4ea7\u5375\u901f\u5ea6 \uff0b10%>>>\uff0b25%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 564134371539538869, guid: 6546aa6cc0f443f4991ac28d0505ac5b, type: 3}
   _levels:
@@ -753,6 +791,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent13
   _displayName: "\u7FA4\u5375\u521D\u7E41"
+  _description: "\u7fa4\u4f53\u4ea7\u5375\u901f\u5ea6 0%>>>\uff0b10%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 58454559795405425, guid: fefcd6d325d47de44b5de376f6557c62, type: 3}
   _levels:
@@ -776,6 +815,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent12
   _displayName: "\u7FA4\u866B\u9955\u98DF"
+  _description: "\u7fa4\u4f53\u8fdb\u98df\u901f\u5ea6\uff0b10%>>>\uff0b25%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 562161265489046034, guid: 0df7235d1bfe295439523d1d0e562851, type: 3}
   _levels:
@@ -799,6 +839,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent7
   _displayName: "\u7FA4\u989A\u5FEB\u98DF"
+  _description: "\u7fa4\u4f53\u8fdb\u98df\u901f\u5ea6 0%>>>\uff0b10%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 220539970398222999, guid: 0fb0de002abf0f843b6f7e070f44d101, type: 3}
   _levels:
@@ -822,6 +863,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent11
   _displayName: "\u7EB8\u5DE2\u5E1D\u56FD"
+  _description: "\u7eb8\u7bb1\u533a\u57df \uff0b50%>>>\uff0b100%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 998900001881095232, guid: da38400fcea4f574b8ca3abaef798728, type: 3}
   _levels:
@@ -845,6 +887,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent10
   _displayName: "\u5DE2\u57DF\u6269\u5F20"
+  _description: "\u7eb8\u7bb1\u533a\u57df \uff0b25%>>>\uff0b50%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 936089389106346946, guid: 4d932f448104ac048afce2eb548c2e5b, type: 3}
   _levels:
@@ -868,7 +911,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentTreeAsset
   _nodes:
   - _data: {fileID: 8934417477304861204}
-    _position: {x: 960, y: 1022}
+    _position: {x: 997.647, y: 1187.8824}
     _isRoot: 1
     _unlockRule: 0
   - _data: {fileID: 4510617856486047292}
@@ -880,11 +923,11 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: 3011596460981020844}
-    _position: {x: 959, y: 904}
+    _position: {x: 982.6842, y: 867.6842}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -6944253372851422959}
-    _position: {x: 836, y: 1023}
+    _position: {x: 768.94116, y: 1130.0588}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000001000}
@@ -992,7 +1035,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000027000}
-    _position: {x: 1201, y: 1023}
+    _position: {x: 1230.4117, y: 1090.0588}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000028000}
@@ -1020,7 +1063,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000034000}
-    _position: {x: 1835, y: 775}
+    _position: {x: 1833.8236, y: 775}
     _isRoot: 0
     _unlockRule: 0
   _edges:
@@ -1128,6 +1171,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent3
   _displayName: "\u7EB8\u5DE2\u62D3\u571F"
+  _description: "\u7eb8\u7bb1\u533a\u57df 0%>>>\uff0b25%"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
   _icon: {fileID: 926275855849987488, guid: 5fac088b54b840b4a80e0796b2cf1f24, type: 3}
   _levels:
@@ -1151,6 +1195,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent2
   _displayName: "\u5DE7\u9970\u866B\u88C5"
+  _description: "\u88c5\u626e\u52a0\u6210 0%>>>\uff0b10%"
   _talentType: "\u88C5\u5907\u5F3A\u5316"
   _icon: {fileID: 590352205348553743, guid: ca674979f7556d140b62b1d9af2b5142, type: 3}
   _levels:
@@ -1174,12 +1219,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentData
   _id: Talent0
   _displayName: "\u89C9\u9192"
+  _description: ""
   _talentType: 
   _icon: {fileID: 0}
   _levels:
   - _talentPointCost: 0
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 5638094838024896513
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5638094838024896513
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nest_exploration_range_multiplier
+        _numericValue: 50
+        _payload: 

@@ -49,12 +49,14 @@ namespace TapTapGameJam.UI
         {
             EventPipeline.Subscribe<EventCoinsChange>(OnCoinsChange);
             EventPipeline.Subscribe<EventNutritionChange>(OnNutritionChange);
+            EventPipeline.Subscribe<EventTalentPointChange>(OnTalentPointChange);
 
         }
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<EventCoinsChange>(OnCoinsChange);
             EventPipeline.UnSubscribe<EventNutritionChange>(OnNutritionChange);
+            EventPipeline.UnSubscribe<EventTalentPointChange>(OnTalentPointChange);
         }
         private void OnCoinsChange(EventCoinsChange evt)
         {

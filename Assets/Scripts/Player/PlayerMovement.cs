@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Cockroach;
 using TapTapGameJam.Core;
 using UnityEngine;
@@ -22,11 +23,64 @@ namespace TapTapGameJam.Player
         private Vector2 _moveInput;
         private Vector2 MoveDirection;
 
+        private PlayerBuffs _buffs;
+        private bool _buffsResolved;
+
         /// <summary>是否处于冲刺状态。由 PlayerHealth 每帧写入（它才知道体力够不够）</summary>
         public bool IsSprinting { get; set; }
 
-        /// <summary>当前实际移动速度</summary>
-        public float CurrentMoveSpeed => IsSprinting ? _moveSpeed * _sprintSpeedMultiplier : _moveSpeed;
+        /// <summary>
+        /// 玩家身上的 Buff 宿主。<see cref="PlayerBuffs"/> 是 PlayerBasic 在 Awake 里补上的，
+        /// 而同一物体上各组件 Awake 的先后顺序不保证，所以这里惰性取，取不到就下一帧再试。
+        /// </summary>
+        private PlayerBuffs Buffs
+        {
+            get
+            {
+                if (!_buffsResolved)
+                {
+                    _buffs = GetComponent<PlayerBuffs>();
+                    _buffsResolved = _buffs != null;
+                }
+
+                return _buffs;
+            }
+        }
+
+        /// <summary>
+        /// 当前实际移动速度 = 基准 × Buff 系数（冲刺时再乘冲刺倍率）。
+        /// <see cref="_moveSpeed"/> 永远只是基准值，天赋加成不写回它。
+        /// </summary>
+        public float CurrentMoveSpeed
+        {
+            get
+            {
+                float speed = _moveSpeed;
+                PlayerBuffs buffs = Buffs;
+                if (buffs != null)
+                {
+                    speed = buffs.Apply(BuffKey.PlayerMoveSpeedPercent, speed);
+                }
+
+                return IsSprinting ? speed * SprintMultiplier : speed;
+            }
+        }
+
+        /// <summary>冲刺倍率（含「冲刺速度」Buff）</summary>
+        private float SprintMultiplier
+        {
+            get
+            {
+                float multiplier = _sprintSpeedMultiplier;
+                PlayerBuffs buffs = Buffs;
+                if (buffs != null)
+                {
+                    multiplier *= buffs.GetFactor(BuffKey.SprintSpeedPercent);
+                }
+
+                return multiplier;
+            }
+        }
 
         // 由当前状态提交允许执行的移动方向。
         public void SetMoveInput(Vector2 input)
