@@ -114,7 +114,8 @@ namespace TapTapGameJam.Player
         }
         public void PlayHappyIdle()
         {
-            PlayState(HappyIdleStateHash, 0.15f);
+            // TODO: 蟑螂还是会报错
+            // PlayState(HappyIdleStateHash, 0.15f);
         }
         public void PlayMove()
         {

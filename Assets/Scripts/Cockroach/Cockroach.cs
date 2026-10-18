@@ -90,7 +90,7 @@ namespace TapTapGameJam.Cockroach
             set
             {
                 Vector3 p = transform.position;
-                transform.position = new Vector3(value.x, p.y, value.y);
+                transform.position = new Vector3(value.x, 0.0f, value.y);
             }
         }
 
@@ -209,6 +209,8 @@ namespace TapTapGameJam.Cockroach
                 grid.BurstDanger(Position, _settings.MarkerMax * _settings.DangerBurstMul, _settings.DangerBurstRadius);
             }
 
+            // TODO: 击杀特效
+            
             Destroy(gameObject);
         }
 

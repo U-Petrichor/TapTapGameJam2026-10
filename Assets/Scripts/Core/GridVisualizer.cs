@@ -86,6 +86,7 @@ namespace TapTapGameJam.Core
             }
 
             _pheromoneFrameCounter = 0;
+            showPheromones = GameManager.IsNight;
 
             grid.EnsureFootprint();
             EnsureTexture();

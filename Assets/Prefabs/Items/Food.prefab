@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2962196772936151302}
   - component: {fileID: 2639712255920082090}
   - component: {fileID: 7819032333653259821}
-  m_Layer: 11
+  m_Layer: 9
   m_Name: GroundCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}

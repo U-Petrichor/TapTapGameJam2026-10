@@ -228,6 +228,13 @@ namespace TapTapGameJam.Cockroach
                 _ring.Regenerate(range);
                 RefreshDistanceField();
             }
+            else
+            {
+                foreach (Cockroach c in CockroachList)
+                {
+                    if (!c.IsInside) c.Die();
+                }
+            }
 
             RefreshRingVisibility();
         }
