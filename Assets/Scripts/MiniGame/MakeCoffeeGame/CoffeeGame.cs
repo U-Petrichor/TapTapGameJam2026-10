@@ -29,7 +29,7 @@ namespace TapTapGameJam.UI
         [SerializeField] private RectTransform _kettle;
         [SerializeField] private RectTransform _kettleSpout;
         [SerializeField] private RectTransform _pourZone;
-        [Tooltip("滤杯接水点。水流从倾倒后的壶嘴连接到这里。")]
+        [Tooltip("滤杯接水高度。水流从壶嘴竖直下落，落点横坐标跟随壶嘴。")]
         [SerializeField] private RectTransform _waterLandingPoint;
         [SerializeField] private GameObject _waterEffect;
         [Tooltip("滤杯下方流入咖啡杯的咖啡液，和有效注水同步启停。")]
@@ -273,9 +273,12 @@ namespace TapTapGameJam.UI
         {
             if (_waterEffect == null || _kettleSpout == null || _waterLandingPoint == null
                 || !(_waterEffect.transform is RectTransform stream) || stream.parent == null) return;
-            // 在水流父物体的坐标系内连接两端，兼容 Canvas 缩放及壶身倾斜。
+            // 按小游戏 UI 的竖直方向下落，只使用滤杯的高度，不吸附到固定落点。
+            Vector3 spout = transform.InverseTransformPoint(_kettleSpout.position);
+            float landingY = transform.InverseTransformPoint(_waterLandingPoint.position).y;
+            Vector3 landing = new Vector3(spout.x, landingY, spout.z);
             Vector3 start = stream.parent.InverseTransformPoint(_kettleSpout.position);
-            Vector3 end = stream.parent.InverseTransformPoint(_waterLandingPoint.position);
+            Vector3 end = stream.parent.InverseTransformPoint(transform.TransformPoint(landing));
             Vector2 direction = end - start;
             stream.pivot = new Vector2(0.5f, 1f);
             stream.localPosition = start;

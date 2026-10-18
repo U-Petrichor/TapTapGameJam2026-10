@@ -70,6 +70,7 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     private void OnDisable()
     {
         EventPipeline.UnSubscribe<EventNewDay>(TimeToUnlock);
+        ClearAllRegister();
      }
 
     private void Update()
@@ -256,23 +257,27 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     }
     private void OpenDoorAnimationFinish(int _)
     {
-        // 保留现有 Animation Event；NPC 自动开门时不会解锁玩家。
-        if (_isAnimating && _opening && _animationNormalizedTime >= 0.99f)
-        {
-            FinishDoorAnimation();
-        }
+        // 兼容旧动画事件。完成逻辑由 UpdateDoorAnimation 在采样返回后执行，
+        // 避免在 Animator.Update 的回调中再次采样 Animator。
+    }
+    private void OnTriggerStay(Collider other)
+    {
+        // 玩家可能在门开放前就已站在检测范围内（运镜期间物理暂停）。
+        // 开放后补注册，不要求玩家先退到触发器外再走回来。
+        OnTriggerEnter(other);
     }
     public override void OnTriggerEnter(Collider other)
     {
-        if (_canIOpen == false)
+        if (!_canIOpen || _playerUnlocked || _unlockPlayerAfterOpen)
         {
-            // 门还没有开放，直接不注册
+            // 未开放、正在解锁或已解锁的门不再加入交互候选。
             return;
         }
         if (other.CompareTag("Player"))
         {
             // 玩家进入范围
             PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
+            if (interactionManager == null) return;
             if (!_registered.TryGetValue(interactionManager, out var colliders))
             {
                 // 尝试获取值失败→这是第一个collider
@@ -288,15 +293,11 @@ public class SecurityDoor : Interactable, ITaskSpawnCondition
     /// </summary>
     public override void OnTriggerExit(Collider other)
     {
-        if (_canIOpen == false)
-        {
-            // 门还没有开放，直接跳过逻辑
-            return;
-        }
         if (other.CompareTag("Player"))
         {
             // 玩家离开范围
             PlayerInteractionManager interactionManager = other.GetComponentInParent<PlayerInteractionManager>();
+            if (interactionManager == null) return;
             if (_registered.TryGetValue(interactionManager, out var colliders))
             {
                 colliders.Remove(other);

@@ -75,6 +75,8 @@ namespace TapTapGameJam.Audio
             if (library == null) library = Resources.Load<SoundLibrary>("Audio/SoundLibrary");
             if (library == null) Debug.LogError("[Audio] Missing Resources/Audio/SoundLibrary.", this);
             else { master = library.masterVolume; music = library.musicVolume; effects = library.effectsVolume; }
+            music = Mathf.Clamp01(PlayerPrefs.GetFloat("Settings.Music", music));
+            effects = Mathf.Clamp01(PlayerPrefs.GetFloat("Settings.Effects", effects));
         }
         private void OnEnable()
         {
@@ -292,3 +294,4 @@ namespace TapTapGameJam.Audio
         }
     }
 }
+

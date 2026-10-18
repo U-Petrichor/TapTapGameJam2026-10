@@ -1,5 +1,20 @@
 # 门开放运镜
 
+## SecurityDoor (10) 闪退与通行修复（2026-10-19）
+
+- 三次编辑器崩溃均落在 DX12 图形线程。用本机 6000.3.25f1 的 `Unity_x64.pdb` 解析最近一次崩溃地址，得到 `GfxVersionList::Impl::ReleaseFromGfxVersionList → BufferD3D12 → GfxTaskExecutorD3D12`。这与 Unity 已知问题 [UUM-150682](https://issuetracker.unity.com/issues/24291/crash-on-gfxversionlistimplreleasefromgfxversionlist-when-performing-various-unity-operations) 的调用栈一致，官方标注 6000.3.27f1 修复。曾临时使用 DX11 验证，但用户反馈贴图错乱，已撤回项目级 DX11 设置，恢复原来的自动 API 配置；不能将 DX11 作为交付方案。DX12 下的闪退尚未解决，后续应在团队统一验证修复版引擎后处理。
+- 进屋的直接阻挡来自 `NPCManager/PatrolPoints/WorkSpace1`：这个巡逻范围的 BoxCollider 原先是实体，边界位于 z≈8.50，玩家开门后仍停在 z≈8.24。将它改为 Trigger，保留 NPC 取样所需的 bounds。
+- 门新增 `OnTriggerStay` 补注册：玩家先进入检测范围、随后到开放日期时，无需退出范围重进。解锁中和已解锁的门不再重复注册，禁用时清理候选。
+- 开门动画事件保留兼容入口，完成逻辑统一在逐帧采样返回后执行，避免动画回调重入 `Animator.Update`。
+
+`Tools/DoorRevealChecks/VerifyDoor10Passage.cs` 使用真实 GameScene 玩家、交互管理器和物理移动，覆盖开放前站在检测范围、到期获得交互、开门关闭阻挡和走进房间。结果保存到 `Temp/Door10PassageVerification.txt`。在新 Play Mode 会话执行，结束后退出 Play Mode，不保存测试状态。
+
+本次在 Direct3D11 下通行测试 7 项通过，玩家从门外 z≈6.81 走到屋内 z≈10.55；原有 `VerifyDoorReveal.cs` 的第 3/5/7 天全部 10 扇门、重复事件、输入与时间恢复、暂停共存和中断清理共 28 项也全部通过，未发生闪退。
+
+```powershell
+unity command run_script --file Tools/DoorRevealChecks/VerifyDoor10Passage.cs --timeout 20 --result-only
+```
+
 GameScene 已配置 `SecurityDoorRevealDirector`，其子物体 `SecurityDoorRevealCamera` 是独立的 Cinemachine 虚拟相机。平时禁用，播放期间以高优先级接管画面。门仍由玩家交互打开，特写只提示新的开放区域。
 
 ## 播放规则

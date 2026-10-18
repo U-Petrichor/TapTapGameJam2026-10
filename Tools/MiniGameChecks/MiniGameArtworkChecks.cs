@@ -71,12 +71,19 @@ internal class CommandScript : IRunCommand
     var start=stream.TransformPoint(new Vector3(stream.rect.center.x,stream.rect.yMax,0));
     var end=stream.TransformPoint(new Vector3(stream.rect.center.x,stream.rect.yMin,0));
     Check(Vector3.Distance(start,spout.position)<0.01f,"water starts exactly at the tilted kettle spout");
-    Check(Vector3.Distance(end,landing.position)<0.01f,"water ends at the filter receiving point");
+    var localStart=coffeeClone.transform.InverseTransformPoint(start);
+    var localEnd=coffeeClone.transform.InverseTransformPoint(end);
+    var localLanding=coffeeClone.transform.InverseTransformPoint(landing.position);
+    Check(Mathf.Abs(localEnd.x-localStart.x)<0.01f && localEnd.y<localStart.y,"water falls vertically beneath the spout");
+    Check(Mathf.Abs(localEnd.y-localLanding.y)<0.01f,"water ends at the filter height without snapping horizontally");
    }
    coffeeClone.SendMessage("SetPourEffects",true);Check(drip.activeSelf,"valid pour enables coffee stream");
    CheckStreamEnds();Capture("coffee-pouring");
+   float firstLandingX=stream.TransformPoint(new Vector3(stream.rect.center.x,stream.rect.yMin,0)).x;
    kettle.position+=new Vector3(18,12,0);kettle.localRotation=Quaternion.Euler(0,0,38);
-   coffeeClone.SendMessage("LateUpdate");CheckStreamEnds();Capture("coffee-pouring-moved");
+   coffeeClone.SendMessage("LateUpdate");CheckStreamEnds();
+   Check(Mathf.Abs(stream.TransformPoint(new Vector3(stream.rect.center.x,stream.rect.yMin,0)).x-firstLandingX)>1f,"moving the spout moves the water landing position");
+   Capture("coffee-pouring-moved");
    canvas.transform.localScale=new Vector3(1.2f,0.8f,1f);
    coffeeClone.SendMessage("LateUpdate");CheckStreamEnds();
    canvas.transform.localScale=Vector3.one;

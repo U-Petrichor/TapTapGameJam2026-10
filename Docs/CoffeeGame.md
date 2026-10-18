@@ -48,4 +48,4 @@ CoffeeCup 绑定“咖啡杯”Sprite，放在滤杯出口正下方。CoffeeDrip
 
 手柄更新已通过 Unity 编译及隔离 UI 验证：拼装比例与转轴、按住旋转、反复松手恢复、移出区域暂停、丢失松手事件与失焦处理、最后一帧按剩余时间旋转、研磨完成后锁定、退出保留角度及新回合复位；已渲染检查拼装画面。
 
-水流位置：`WaterEffect` 每帧连接 `KettleSpout` 与 `WaterLandingPoint`，起点跟随壶嘴的拖动和倾斜，终点固定在滤杯入口。`KettleArtworkFrame` 按壶图片比例适配，使壶嘴标记始终贴合图片出口；壶嘴必须高于滤杯且位于注水区域内才会推进注水。
+水流位置：`WaterEffect` 每帧从 `KettleSpout` 沿 UI 竖直方向下落。`WaterLandingPoint` 仅指定滤杯接水高度，水流落点的横坐标始终跟随壶嘴，不再吸附到滤杯中心。`KettleArtworkFrame` 按壶图片比例适配，使壶嘴标记始终贴合图片出口；壶嘴必须高于滤杯且位于注水区域内才会推进注水。

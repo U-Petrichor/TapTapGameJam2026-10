@@ -14,7 +14,8 @@ namespace TapTapGameJam.UI
     /// can be tuned in the editor without changing completion logic.
     /// </summary>
     public sealed class ParcelCutGame : MiniGameContent,
-        IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler
+        IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler,
+        IPointerExitHandler, IInitializePotentialDragHandler
     {
         [Serializable]
         private sealed class TapeEntry
@@ -44,6 +45,7 @@ namespace TapTapGameJam.UI
         private ParcelCutRound _round;
         private Action _onCompleted;
         private bool _running;
+        private bool _pointerHeld;
         private int _draggingTape = -1;
         private int _pointerId;
         private Camera _eventCamera;
@@ -148,24 +150,40 @@ namespace TapTapGameJam.UI
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!_running || _draggingTape >= 0 || eventData.button != PointerEventData.InputButton.Left) return;
-            int tape = FindTape(eventData.position, eventData.pressEventCamera);
-            if (tape < 0 || !_round.IsTarget(tape) || _round.IsCompleted(tape)) return;
-            if (!TryGetNormalizedPoint(tape, eventData.position, eventData.pressEventCamera, out _lastPoint)) return;
-            _draggingTape = tape;
+            if (!_running || _pointerHeld || eventData.button != PointerEventData.InputButton.Left) return;
+            _pointerHeld = true;
             _pointerId = eventData.pointerId;
             _eventCamera = eventData.pressEventCamera;
-            MoveCutter(eventData.position);
+            ContinueCut(eventData.position);
         }
+
+        public void OnInitializePotentialDrag(PointerEventData eventData) => eventData.useDragThreshold = false;
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (!_running || _draggingTape < 0 || eventData.pointerId != _pointerId) return;
-            if (!TryGetNormalizedPoint(_draggingTape, eventData.position, _eventCamera, out Vector2 current)) return;
+            if (!_running || !_pointerHeld || eventData.pointerId != _pointerId) return;
+            ContinueCut(eventData.position);
+        }
+
+        private void ContinueCut(Vector2 screen)
+        {
+            MoveCutter(screen);
+            int tape = FindTape(screen, _eventCamera);
+            if (tape < 0 || !TryGetNormalizedPoint(tape, screen, _eventCamera, out Vector2 current))
+            {
+                _draggingTape = -1;
+                return;
+            }
+            // 按住状态独立于当前胶带；离开、换胶带或剪断后均从新的接触点开始。
+            if (_draggingTape != tape)
+            {
+                _draggingTape = tape;
+                _lastPoint = current;
+                return;
+            }
             bool changed = _round.TryCutSegment(_draggingTape, _lastPoint, current,
                 _tapes[_draggingTape].Image.rectTransform.rect.size);
             _lastPoint = current;
-            MoveCutter(eventData.position);
             if (changed && _round.IsCompleted(_draggingTape))
             {
                 Sfx.Play(SoundId.CutTape, this);
@@ -189,6 +207,11 @@ namespace TapTapGameJam.UI
         public void OnPointerUp(PointerEventData eventData)
         {
             if (eventData.pointerId == _pointerId) ReleasePointer();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_pointerHeld && eventData.pointerId == _pointerId) _draggingTape = -1;
         }
 
         private int FindTape(Vector2 screen, Camera camera)
@@ -287,6 +310,7 @@ namespace TapTapGameJam.UI
 
         private void ReleasePointer()
         {
+            _pointerHeld = false;
             _draggingTape = -1;
             _eventCamera = null;
         }
@@ -324,5 +348,6 @@ namespace TapTapGameJam.UI
         private void OnDisable() => End();
         private void OnDestroy() => End();
         private void OnApplicationFocus(bool focused) { if (!focused) ReleasePointer(); }
+        private void OnApplicationPause(bool paused) { if (paused) ReleasePointer(); }
     }
 }
