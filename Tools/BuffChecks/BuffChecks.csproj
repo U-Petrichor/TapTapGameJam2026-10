@@ -19,6 +19,8 @@
     <Compile Include="../../Assets/Scripts/Buffs/TalentBuffSource.cs" />
     <!-- 只有常量，没有 Unity 依赖；靠反射测试保证它和 BuffKeys 的字符串不漂 -->
     <Compile Include="../../Assets/Scripts/TalentTree/Effects/TalentEffectKey.cs" />
+    <!-- 黑盒出货的概率公式，同样是纯 C# -->
+    <Compile Include="../../Assets/Scripts/Items/LootRoll.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

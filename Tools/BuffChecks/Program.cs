@@ -30,8 +30,37 @@ internal static class Program
         CheckTalentBuffSource();
         CheckTalentBuffSourceIsStable();
         CheckLegacyTalentKeysMatchBuffKeys();
+        CheckLootRoll();
 
         Console.WriteLine($"PASS: {_checks} buff checks.");
+    }
+
+    // ---------------- 黑盒出货概率 ----------------
+
+    /// <summary>
+    /// 「幸运按百分比提升稀有概率」很容易被理解成「加百分点」，
+    /// 用基准 10% + 幸运 60% → 16% 这个例子把口径钉死。
+    /// </summary>
+    private static void CheckLootRoll()
+    {
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.1f, 0f), 0.1f),
+            "没幸运时稀有概率应该就是基准 10%");
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.1f, 0.6f), 0.16f),
+            "10% × (1 + 60%) 应该是 16%");
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.1f, 1f), 0.2f),
+            "幸运 +100% 应该翻倍到 20%");
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.1f, 0.3f + 0.3f),
+                TapTapGameJam.Items.LootRoll.RareChance(0.1f, 0.6f)),
+            "幸运是加法累加：两个 +30% 应该等于 +60%");
+
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.1f, -2f), 0f),
+            "负幸运应该夹到 0，不能出现负概率");
+        Check(Approx(TapTapGameJam.Items.LootRoll.RareChance(0.9f, 5f), 1f),
+            "超过 100% 应该夹到 1");
+
+        Check(!TapTapGameJam.Items.LootRoll.IsRare(0), "SpecialLevel 0 是普通物品");
+        Check(TapTapGameJam.Items.LootRoll.IsRare(1), "SpecialLevel 1 是稀有物品");
+        Check(TapTapGameJam.Items.LootRoll.IsRare(2), "SpecialLevel 2 是稀有物品");
     }
 
     // ---------------- key 表 ----------------

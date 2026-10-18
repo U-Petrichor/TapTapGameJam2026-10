@@ -116,7 +116,10 @@ namespace TapTapGameJam.Buffs
         /// </summary>
         DressBonusPercent,
 
-        /// <summary>[预留] 幸运值（固定值）。影响 BlackBox 开出稀有物品的权重，随机池尚未实现。</summary>
+        /// <summary>
+        /// 幸运值（固定值，加法累加：两个 +30% 等于 +60%）。
+        /// 黑盒开出稀有物品的概率 = 基准 × (1 + 幸运)，公式在 <c>LootRoll.RareChance</c>。
+        /// </summary>
         LuckFlat,
 
         // ---------------- 敌人 ----------------
