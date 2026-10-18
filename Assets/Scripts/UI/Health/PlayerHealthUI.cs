@@ -1,4 +1,8 @@
+using System;
+using NUnit.Framework;
+using TapTapGameJam.Events;
 using TapTapGameJam.Player;
+using TapTapGameJam.Types;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -76,7 +80,7 @@ namespace TapTapGameJam.UI
         [SerializeField] private Image _powerIcon;
         [SerializeField] private Image _poisonIcon;
         [SerializeField] private Image _damageIcon;
-
+        
         [Header("icon 的数值 → x 映射")]
         [Tooltip("前缀 0 对应的 x")]
         [SerializeField] private float _iconXMin = -320f;
@@ -85,6 +89,7 @@ namespace TapTapGameJam.UI
         [Tooltip("icon 的数值轴参考值")]
         [SerializeField, Min(1f)] private float _iconRefValue = 80f;
 
+        private CanvasGroup _canvasGroup;
         #endregion
 
         #region 显示规则
@@ -110,6 +115,30 @@ namespace TapTapGameJam.UI
             if (_health == null)
             {
                 _health = FindFirstObjectByType<PlayerHealth>();
+            }
+            _canvasGroup = GetComponent<CanvasGroup>();
+            Assert.IsTrue(_canvasGroup, "没有挂canvas group");
+        }
+
+        private void OnEnable()
+        {
+            EventPipeline.Subscribe<GamePhaseChangedEvent>(OnPhaseChanged);
+        }
+
+        private void OnDisable()
+        {
+            EventPipeline.UnSubscribe<GamePhaseChangedEvent>(OnPhaseChanged);
+        }
+
+        void OnPhaseChanged(GamePhaseChangedEvent evt)
+        {
+            if (evt.NewPhase == GamePhase.Night)
+            {
+                _canvasGroup.alpha = 1;
+            }
+            else
+            {
+                _canvasGroup.alpha = 0;
             }
         }
 
