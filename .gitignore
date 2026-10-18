@@ -27,6 +27,10 @@
 # Unity crash reports and exported packages
 /sysinfo.txt
 *.unitypackage
+/Assets/_Recovery/
+
+# Python bytecode
+__pycache__/
 
 # Local secrets and OS files
 .env
