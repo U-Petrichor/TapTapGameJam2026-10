@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: test_dress_data
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 0
-    Value: 0.72
+  - Key: 22
+    Value: 2.27
   _description: 

@@ -143,6 +143,8 @@ namespace TapTapGameJam.Player
 
         /// <summary>是否已经受伤</summary>
         public bool HasDamaged => _damage > 0.001f;
+        public bool HasPoison => _poison > 0.001f;
+        public bool IsFullPower => _powerAvailable + 0.001f > PowerTotal;
         
         /// <summary>可用体力上限（体力条背景 power_back 的值）。降到 0 视为失败</summary>
         public float PowerTotal => Mathf.Max(0f, BuffedMaxHealth - _damage - _poison - _heavy);
@@ -287,6 +289,18 @@ namespace TapTapGameJam.Player
             float previous = _poison;
             _poison = Mathf.Max(0f, _poison - amount);
             if (previous > 0f && _poison <= 0f) Sfx.Play(SoundId.Recovery, this);
+        }
+        
+        /// <summary>手动恢复体力</summary>
+        public void AddPower(float amount)
+        {
+            if (amount <= 0f)
+            {
+                return;
+            }
+
+            _powerAvailable = Mathf.Min(PowerTotal, _powerAvailable + amount);
+            Sfx.Play(SoundId.Recovery, this);
         }
 
         /// <summary>直接改负重（正常情况下负重由背包自动换算，这个接口留给特殊玩法用）</summary>
