@@ -11,7 +11,7 @@
 - Pour Area：盆口上方的逻辑接粮区域，不需要 Image 或 Collider。
 - Food Content：位于碗后层与前沿之间的 RectTransform。所有颗粒均在此物体下创建；矩形下边作为碗底、左右边作为碗壁，上边作为碗口。调整它的位置和宽高，使矩形覆盖碗内部可堆粮区域。不要挂 LayoutGroup 或 Mask，否则会干扰颗粒运动或裁掉下落过程。进入碗内的颗粒会保持在左右边界之间，粮堆可以高于碗口。
 - Food Sprites：狗粮图案列表，当前已绑定三张 Sprite，每颗随机选择一种。
-- Progress Bar、Food Fill、Pour Effect：可选显示，已有进度条可继续使用。Pour Effect 在有效出粮时持续显示。
+- Progress Bar、Food Fill、Pour Effect：可选显示。场景的进度条及其引用已移除；完成判定只依赖实际落入碗中的数量，不依赖进度条。Pour Effect 在有效出粮时持续显示。
 
 所有装饰图片和动态狗粮 Image 均不接收射线，只有粮袋 Image 开启 Raycast Target。Canvas 需要 GraphicRaycaster，场景需要 EventSystem 及项目使用的 InputSystemUIInputModule。
 

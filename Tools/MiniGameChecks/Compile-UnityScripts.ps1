@@ -10,7 +10,7 @@ if (-not (Test-Path -LiteralPath $UnityManagedDirectory)) { throw 'Unity managed
 $checkDirectory = Join-Path $projectRoot 'Temp/MiniGameCompileChecks'
 New-Item -ItemType Directory -Path $checkDirectory -Force | Out-Null
 $dlls = @(Get-ChildItem -LiteralPath $UnityManagedDirectory -Filter '*.dll')
-foreach ($name in @('UnityEngine.UI','Unity.TextMeshPro','Unity.TextMeshPro.Editor','UnityEditor.UI','Unity.InputSystem','Unity.Cinemachine','Unity.AI.Navigation','Unity.RenderPipelines.Core.Runtime','Unity.RenderPipelines.Universal.Runtime','Unity.Mathematics','Unity.Splines','Unity.Collections','Unity.Burst')) {
+foreach ($name in @('UnityEngine.UI','Unity.TextMeshPro','Unity.TextMeshPro.Editor','UnityEditor.UI','Unity.InputSystem','Unity.Cinemachine','Unity.AI.Navigation','Unity.RenderPipelines.Core.Runtime','Unity.RenderPipelines.Universal.Runtime','Unity.Mathematics','Unity.Splines','Unity.Collections','Unity.Burst','Unity.VisualScripting.Core')) {
     $dlls += Get-Item -LiteralPath (Join-Path $projectRoot "Library/ScriptAssemblies/$name.dll")
 }
 $nunit = Get-ChildItem -Path (Join-Path $projectRoot 'Library/PackageCache/com.unity.ext.nunit*') -Filter 'nunit.framework.dll' -Recurse | Select-Object -First 1

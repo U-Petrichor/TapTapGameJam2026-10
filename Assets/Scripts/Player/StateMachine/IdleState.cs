@@ -28,6 +28,7 @@ namespace TapTapGameJam.Player
             {
                 // 说明此时有移动，切换为MoveState
                 StateMachine.ChangeState(Owner.Move);
+                return;
             }
 
             if(_idleTimer> CHANGE_IDLE)

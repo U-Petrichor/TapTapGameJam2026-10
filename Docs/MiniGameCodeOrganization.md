@@ -6,13 +6,13 @@
 
 | 目录 | 职责与本次迁入脚本 |
 | --- | --- |
-| `MiniGame/` | 公共管理器、任务与交互基类；迁入 `MiniGameContent.cs`、`MiniGamePanelUI.cs`、`MiniGameDefaultSetup.cs` |
+| `MiniGame/` | 公共管理器、任务与交互基类；迁入 `MiniGameContent.cs`、`MiniGamePanelUI.cs` |
 | `MiniGame/CleanGame/` | 清洁任务；迁入 `CleanGame.cs`、`WipeMask.cs` |
 | `MiniGame/MakeCoffeeGame/` | 咖啡任务、配方和操作；迁入 `CoffeeGame.cs` |
 | `MiniGame/PourDogFoodGame/` | 倒狗粮任务；迁入 `PourDogFoodGame.cs`、`DogFoodShakeProgress.cs` |
-| `MiniGame/SortFileGame/` | 分拣文件任务；迁入 `SortFileGame.cs`、`SortFileCard.cs`、`SortFileRound.cs`；配置工具迁入 `Editor/SortFileGameSetup.cs` |
+| `MiniGame/SortFileGame/` | 分拣文件任务；迁入 `SortFileGame.cs`、`SortFileCard.cs`、`SortFileRound.cs`；场景直接绑定四组文件与部门素材 |
 | `MiniGame/FixPrinterGame/` | 修理打印机任务；迁入 `PrinterRepairGame.cs`、`PrinterRepairRound.cs`；配置工具迁入 `Editor/PrinterRepairSetup.cs` |
-| `MiniGame/ParcelCutGame/` | 拆快递任务、随机胶带路径规则和拆胶带 UI；配置工具迁入 `Editor/ParcelCutGameSetup.cs` |
+| `MiniGame/ParcelCutGame/` | 拆快递任务、随机胶带路径规则和拆胶带 UI；配置工具迁入 `Editor/ParcelCutArtworkEditor.cs` |
 | `MiniGame/StockTradeGame/Common/` | 两个版本共用的交易、任务入口、价格生成和动态坐标轴：`StockRound.cs`、`StockPriceGenerator.cs`、`StockAxisRange.cs`、`StockQuest.cs`、`StockInstance.cs`、`StockPoint.cs` |
 | `MiniGame/StockTradeGame/V2/` | 新点线版：`StockPointGame.cs`、`StockPointChart.cs`、`StockPointPlotGraphic.cs` |
 | `MiniGame/StockTradeGame/Common/Editor/` | 两个版本的切换配置：`StockPointVersionSetup.cs` |
@@ -39,3 +39,5 @@
 - GameScene 磁盘文件未改变，编辑器中原有未保存修改仍保留。迁移前已有的 `CockroachManager` 和 `InteractionSelectorUI` 各一个 Missing Script，迁移后对象与数量一致。
 
 此次为目录迁移，验证覆盖编译、逻辑检查及引用完整性；游玩和输入操作未重新测试。
+
+2026-10-18：删除 MiniGameDefaultSetup 及旧的 Suite、CoffeeGrinder、PrinterRepair、StockPointVersion、SortFile 布局搭建工具。保留拆快递素材更新和路径校准工具，运行时 UI 以场景、预制体的显式引用为准。

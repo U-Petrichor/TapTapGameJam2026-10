@@ -23,12 +23,12 @@ internal static class Program
         });
         Run("不能跳过栈顶，错误部门不改变进度", () =>
         {
-            var round = new SortFileRound(new[] { SortFileDepartment.Technology, SortFileDepartment.Administration });
+            var round = new SortFileRound(new[] { SortFileDepartment.Technical, SortFileDepartment.Administration });
             Check(round.CanDrag(0) && !round.CanDrag(1));
             Check(!round.TrySort(1, SortFileDepartment.Administration));
-            Check(!round.TrySort(0, SortFileDepartment.Development));
-            Check(round.SortedCount == 0 && round.CountFor(SortFileDepartment.Development) == 0);
-            Check(round.TrySort(0, SortFileDepartment.Technology));
+            Check(!round.TrySort(0, SortFileDepartment.Design));
+            Check(round.SortedCount == 0 && round.CountFor(SortFileDepartment.Design) == 0);
+            Check(round.TrySort(0, SortFileDepartment.Technical));
             Check(!round.CanDrag(0) && round.CanDrag(1));
         });
         Run("最后一份归类才完成，已归类文件不能重复计数", () =>
@@ -41,7 +41,7 @@ internal static class Program
                 Check(!round.TrySort(i, round.DepartmentAt(i)));
             }
             Check(round.IsComplete && !round.CanDrag(12));
-            Check(!round.TrySort(12, SortFileDepartment.Development));
+            Check(!round.TrySort(12, SortFileDepartment.Design));
             foreach (SortFileDepartment department in Enum.GetValues<SortFileDepartment>())
                 Check(round.CountFor(department) == 3);
         });
@@ -59,7 +59,7 @@ internal static class Program
         {
             var files = new[] { SortFileDepartment.HumanResources };
             var round = new SortFileRound(files);
-            files[0] = SortFileDepartment.Development;
+            files[0] = SortFileDepartment.Design;
             Check(round.DepartmentAt(0) == SortFileDepartment.HumanResources);
         });
         Run("任务生成前不可交互；单点不重复生成", () =>

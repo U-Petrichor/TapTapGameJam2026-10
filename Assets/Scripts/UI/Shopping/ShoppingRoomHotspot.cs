@@ -10,6 +10,7 @@ namespace TapTapGameJam.UI
     public sealed class ShoppingRoomHotspot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         [SerializeField] private Image _visual;
+        [SerializeField] private Image _outline;
         [SerializeField] private Sprite _normal;
         [SerializeField] private Sprite _hover;
         [SerializeField, Min(1f)] private float _hoverScale = 1.05f;
@@ -38,6 +39,7 @@ namespace TapTapGameJam.UI
             _hovered = false;
             _fromScale = _targetScale = 1f;
             _elapsed = 0f;
+            if (_outline != null) _outline.enabled = false;
             if (_visual == null) return;
             _visual.sprite = _normal;
             _visual.rectTransform.localScale = Vector3.one;
@@ -65,6 +67,7 @@ namespace TapTapGameJam.UI
         {
             if (_visual == null || _hovered == hovered) return;
             _hovered = hovered;
+            if (_outline != null) _outline.enabled = hovered;
             _visual.sprite = hovered ? _hover : _normal;
             _fromScale = _visual.rectTransform.localScale.x;
             _targetScale = hovered ? _hoverScale : 1f;

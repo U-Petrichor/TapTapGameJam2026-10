@@ -47,7 +47,10 @@ namespace TapTapGameJam.UI
         private void EnsureSand()
         {
             if (_sand != null) return;
+            _sand = GetComponentInChildren<StockHourglassSand>(true);
+            if (_sand != null) return;
             var go = new GameObject("ColoredSand", typeof(RectTransform));
+            go.layer = gameObject.layer;
             go.transform.SetParent(transform, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = Vector2.zero;

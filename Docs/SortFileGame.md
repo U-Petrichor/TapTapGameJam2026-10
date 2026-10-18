@@ -8,17 +8,13 @@
 - `Assets/Scripts/MiniGame/SortFileGame/SortFilePoint.cs`：固定工作台交互，使用 `EventOpenMiniGamePanel(2, callback)` 打开，使用 `EventCloseMiniGamePanel` 取消窗口。
 - `SortFileQuest.cs`：单点任务候选，完成后通知管理器并结算奖励。
 
-## 快速配置现有场景
+## 场景与素材（2026-10-18）
 
-打开 GameScene，等 Unity 编译完成，在菜单点击 **Tools → MiniGames → 配置分拣文件小游戏**。
+GameScene 已保存文件堆、拖动层、禁用的文件模板、四个部门和公共面板 `MiniGameKind.SortFile` 的映射。旧的一键 Setup 菜单已移除；现在直接在 Inspector 调整并保存绑定，运行时不再补建布局。
 
-菜单会在你已有的 SortFileGame 下添加/绑定游戏脚本、中央 FileStackRoot、DragRoot、默认禁用的 FileTemplate、部门计数和进度文字；向公共 Panel 注册 Index 2。已摆好位置的部门保持现有布局；四个部门仍全部位于原点时，按参考图摆成四个区域。初始 100×100 的小游戏根区域扩展为 1100×600，不修改其他小游戏或共同的 ContentRoot 尺寸。
+素材统一使用 `Assets/Model/MiniGame/SortFile` 中的 JPG，按 Sprite Single 导入：人事、行政、技术、设计文件分别对应同部门文件夹。微信命名的紫色文件夹 `微信图片_20261018184624_150_37.jpg` 是设计部门。文件图片自带名称，因此隐藏模板上的重复文字；部门计数位于文件夹下方。
 
-默认文件模板使用可区分的部门颜色与中文部门文字，字体使用项目现有的 AlibabaPuHuiTi SDF，可以更换文件 Image 的 Sprite 和模板样式。场景配置支持 Undo，不会自动保存，请检查布局后保存 GameScene。重复运行复用已有节点，不会重复创建文件模板和任务池条目。
-
-场景中的固定分拣工作台需要挂 **SortFilePoint**，并将检测用 Trigger Collider 拖入 **Detect Collider**。菜单若发现已挂 SortFilePoint 的工作台，会自动添加/绑定 **SortFileQuest** 并加入同场景的 MiniGameTaskManager 候选池。若还没挂 SortFilePoint，可先挂并绑定，再运行一次菜单；也可以手动添加 Quest、绑定 Sort File 并拖进 Candidate Pool。
-
-没有在磁盘场景中凭空创建一个工作台，不会猜测分拣工作台的世界位置。SortFilePoint 和 UI 的编号保持一致，默认均为 **2**。
+新增工作台时，手动配置 SortFilePoint 的检测 Collider、SortFileQuest 的点位列表及管理器的 Candidate Pool。场景现有的任务绑定已保留，不依赖自动初始化。
 
 ## 玩法规则
 
@@ -32,7 +28,7 @@
 
 ## 自定义 UI 绑定
 
-SortFileGame 的 Departments 列表恰好配置四项，对应 HumanResources / Administration / Technology / Development，每项绑定独立 RectTransform 接收区域、文件颜色及可选的计数文字。区域不要互相重叠；区域本身不需要 Collider 或 DropHandler。
+SortFileGame 的 Departments 列表恰好配置四项，对应 HumanResources / Administration / Technical / Design，每项绑定独立 RectTransform 接收区域、对应 File Sprite、文件颜色及可选的计数文字。区域不要互相重叠；区域本身不需要 Collider 或 DropHandler。
 
 File Stack Root 是中央文件堆；Drag Root 建议铺满整个小游戏并与其保持相同缩放；File Template 是**默认禁用**的 SortFileCard 模板（场景对象或 Prefab），带 Image、CanvasGroup 和部门文字。文件 RectTransform 使用居中锚点及中心 Pivot。不要让 LayoutGroup/Animator 同时驱动拖动中的文件。Image 保持 Raycast Target 开启，文件文字和其他装饰关闭 Raycast Target。Canvas 需要 GraphicRaycaster、场景需要正常工作的 EventSystem UI 输入模块。
 

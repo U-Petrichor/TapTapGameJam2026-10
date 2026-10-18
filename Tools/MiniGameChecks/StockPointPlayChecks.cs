@@ -77,9 +77,7 @@ public static class StockPointPlayChecks
     {
         var point = _panel.GetComponentInChildren<StockPointGame>(true);
         Check(point != null, "point stock game exists");
-        // Exercise the same default initializer used by MiniGamePanelUI.Awake.
-        MiniGameDefaultSetup.Ensure(_panel);
-        Check(Registered() == point && point.enabled, "default initialization registers the enabled point game");
+        Check(Registered() == point && point.enabled, "scene mapping references the enabled point game");
         var chart = _panel.GetComponentInChildren<StockPointChart>(true);
 
         _playerObject = new GameObject("StockPointCheckPlayer");
@@ -128,7 +126,7 @@ public static class StockPointPlayChecks
     private static MiniGameContent Current() => typeof(MiniGamePanelUI)
         .GetField("_currentContent", Private).GetValue(_panel) as MiniGameContent;
     private static MiniGameContent Registered() => (MiniGameContent)typeof(MiniGamePanelUI)
-        .GetMethod("FindContent", Private).Invoke(_panel, new object[] { 3 });
+        .GetMethod("FindContent", Private).Invoke(_panel, new object[] { TapTapGameJam.Types.MiniGameKind.StockTrade });
     private static void Check(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);

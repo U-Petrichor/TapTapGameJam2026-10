@@ -29,7 +29,11 @@ namespace TapTapGameJam.UI
         [SerializeField] private RectTransform _kettle;
         [SerializeField] private RectTransform _kettleSpout;
         [SerializeField] private RectTransform _pourZone;
+        [Tooltip("滤杯接水点。水流从倾倒后的壶嘴连接到这里。")]
+        [SerializeField] private RectTransform _waterLandingPoint;
         [SerializeField] private GameObject _waterEffect;
+        [Tooltip("滤杯下方流入咖啡杯的咖啡液，和有效注水同步启停。")]
+        [SerializeField] private GameObject _coffeeEffect;
         [SerializeField] private float _kettlePourAngle = 25f;
         [Header("阶段和进度")]
         [SerializeField] private Image[] _stageImages = new Image[5];
@@ -67,7 +71,7 @@ namespace TapTapGameJam.UI
 
         public bool IsConfigured => _beans != null && _beansZone != null && _grindButton != null
             && _grounds != null && _groundVisual != null && _kettle != null && _kettleSpout != null
-            && _cupZone != null && _pourZone != null;
+            && _cupZone != null && _pourZone != null && _waterLandingPoint != null;
         private bool CanInteract => _running && (_panelGroup == null || _panelGroup.interactable);
         private void Awake() => CacheItems();
         private void CacheItems()
@@ -93,7 +97,7 @@ namespace TapTapGameJam.UI
                 _hasInitialHandleRotation = true;
             }
             ResetView();
-            if (!IsConfigured) throw new InvalidOperationException("请绑定咖啡豆、放豆区域、研磨机、盛粉杯与粉堆、热水壶与壶嘴、放粉及注水区域。");
+            if (!IsConfigured) throw new InvalidOperationException("请绑定咖啡豆、放豆区域、研磨机、盛粉杯与粉堆、热水壶与壶嘴、放粉及注水区域、滤杯接水点。");
             _panelGroup = GetComponentInParent<MiniGamePanelUI>()?.GetComponent<CanvasGroup>();
             _recipe = new CoffeeRecipe(Mathf.Max(0.1f, _grindSeconds), Mathf.Max(0.1f, _waterSeconds));
             _recipe.StepChanged += OnStepChanged;
@@ -163,7 +167,7 @@ namespace TapTapGameJam.UI
                 else if (item == _kettle) _recipe.StopPouringWater();
             }
             ResetItem(item);
-            SetVisible(_waterEffect, false);
+            SetPourEffects(false);
             if (_running) Refresh();
         }
         private void Update()
@@ -187,7 +191,7 @@ namespace TapTapGameJam.UI
                 _holdingGrinder = false;
                 _recipe.StopGrinding();
                 _recipe.StopPouringWater();
-                SetVisible(_waterEffect, false);
+                SetPourEffects(false);
                 Refresh();
                 return;
             }
@@ -199,7 +203,7 @@ namespace TapTapGameJam.UI
             {
                 // 使用倾倒姿态的壶嘴判定，保持不动也能持续注水。
                 _kettle.localRotation = InitialRotation(_kettle) * Quaternion.Euler(0, 0, _kettlePourAngle);
-                pouring = Over(_kettleSpout, _pourZone);
+                pouring = Over(_kettleSpout, _pourZone) && IsSpoutAboveFilter();
                 if (!pouring) _kettle.localRotation = InitialRotation(_kettle);
             }
             if (pouring)
@@ -208,11 +212,12 @@ namespace TapTapGameJam.UI
                 _recipe.PourWater(Time.unscaledDeltaTime);
             }
             else _recipe.StopPouringWater();
-            SetVisible(_waterEffect, _running && pouring);
+            SetPourEffects(_running && pouring);
             if (_running) Refresh();
         }
         private void LateUpdate()
         {
+            if (_waterEffect != null && _waterEffect.activeSelf) UpdateWaterStream();
             bool processing = CanInteract && _recipe != null && _recipe.IsProcessing;
             ActionSound.SetPlaying(SoundId.Grinding, processing && _recipe.Step == CoffeeStep.Grind
                 && _lastGrindingFrame == Time.frameCount);
@@ -255,6 +260,29 @@ namespace TapTapGameJam.UI
             SetVisible(_placedGrounds, step == CoffeeStep.PourWater || step == CoffeeStep.Complete);
         }
         private static void SetVisible(GameObject item, bool active) { if (item != null) item.SetActive(active); }
+        private void SetPourEffects(bool active)
+        {
+            if (active) UpdateWaterStream();
+            SetVisible(_waterEffect, active);
+            SetVisible(_coffeeEffect, active);
+        }
+        private bool IsSpoutAboveFilter() => _waterLandingPoint != null &&
+            _waterLandingPoint.InverseTransformPoint(_kettleSpout.position).y > 0f;
+
+        private void UpdateWaterStream()
+        {
+            if (_waterEffect == null || _kettleSpout == null || _waterLandingPoint == null
+                || !(_waterEffect.transform is RectTransform stream) || stream.parent == null) return;
+            // 在水流父物体的坐标系内连接两端，兼容 Canvas 缩放及壶身倾斜。
+            Vector3 start = stream.parent.InverseTransformPoint(_kettleSpout.position);
+            Vector3 end = stream.parent.InverseTransformPoint(_waterLandingPoint.position);
+            Vector2 direction = end - start;
+            stream.pivot = new Vector2(0.5f, 1f);
+            stream.localPosition = start;
+            stream.localRotation = Quaternion.Euler(0f, 0f,
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90f);
+            stream.sizeDelta = new Vector2(stream.sizeDelta.x, direction.magnitude);
+        }
         private Quaternion InitialRotation(RectTransform item)
         {
             for (int i = 0; i < _items.Length; i++) if (_items[i] == item) return _initialRotations[i];
@@ -279,7 +307,7 @@ namespace TapTapGameJam.UI
             _recipe?.StopPouringWater();
             if (_dragged != null) ResetItem(_dragged);
             _dragged = null;
-            SetVisible(_waterEffect, false);
+            SetPourEffects(false);
         }
         public override void End()
         {

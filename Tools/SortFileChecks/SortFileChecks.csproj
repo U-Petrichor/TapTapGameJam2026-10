@@ -21,6 +21,7 @@
     <Compile Include="../MiniGameChecks/TestDoubles.cs" Link="TestDoubles.cs" />
     <Compile Include="../../Assets/Scripts/MiniGame/SortFileGame/SortFileRound.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="TestDoubles.cs" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

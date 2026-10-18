@@ -38,7 +38,6 @@ namespace TapTapGameJam.UI
 
         private void Awake()
         {
-            MiniGameDefaultSetup.Ensure(this);
             _rect = GetComponent<RectTransform>();
             _canvasGroup = GetComponent<CanvasGroup>();
             if (ExitButton == null)
@@ -121,13 +120,6 @@ namespace TapTapGameJam.UI
                     return entry.Content;
             }
             return null;
-        }
-
-        public void RegisterContent(MiniGameKind kind, MiniGameContent content)
-        {
-            foreach (var entry in _miniGames)
-                if (entry.Kind == kind) { entry.Content = content; return; }
-            _miniGames.Add(new MiniGameEntry { Kind = kind, Content = content });
         }
 
         /// <summary>

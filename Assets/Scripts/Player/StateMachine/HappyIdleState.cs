@@ -21,6 +21,13 @@ namespace TapTapGameJam.Player
                 return;
             }
 
+            // 小游戏期间也会进入此状态；移动不能依赖待机动画的结束事件。
+            if (InputManager.HasMoveInput)
+            {
+                StateMachine.ChangeState(Owner.Move);
+                return;
+            }
+
             if(AnimationManager.IsHappyIdleFinished)
             {
                 StateMachine.ChangeState(Owner.Idle);

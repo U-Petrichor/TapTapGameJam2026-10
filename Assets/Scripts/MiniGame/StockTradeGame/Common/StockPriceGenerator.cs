@@ -12,9 +12,10 @@ namespace TapTapGameJam.UI
     public sealed class StockPriceSettings
     {
         public float ShockProbability = 0.1f;
-        public float TrendVariation = 0.2f;
-        public float GentleMinRatio = 0.01f;
-        public float GentleMaxRatio = 0.03f;
+        public float TrendVariation = 0.65f;
+        public float GentleMinRatio = 0.03f;
+        public float GentleMaxRatio = 0.07f;
+        public float PullbackProbability = 0.25f;
         public float ShockMinRatio = 0.3f;
         public float ShockMaxRatio = 0.7f;
     }
@@ -26,6 +27,8 @@ namespace TapTapGameJam.UI
         private readonly StockPriceSettings _settings;
         private readonly float _capital;
         private float _trend;
+        private int _pullbackSteps;
+        private int _forwardSteps;
         private bool _recovering;
         public float InitialPrice { get; }
         public StockPriceGenerator(int capital, Func<double> random, StockPriceSettings settings = null)
@@ -40,6 +43,7 @@ namespace TapTapGameJam.UI
         private void ValidateSettings()
         {
             if (!InRange(_settings.ShockProbability, 0, 1) || !InRange(_settings.TrendVariation, 0, 1)
+                || !InRange(_settings.PullbackProbability, 0, 1)
                 || !InRange(_settings.GentleMinRatio, 0.0001f, 1)
                 || !InRange(_settings.GentleMaxRatio, _settings.GentleMinRatio, 1)
                 || !InRange(_settings.ShockMinRatio, 0, 1)
@@ -61,6 +65,7 @@ namespace TapTapGameJam.UI
             float magnitude = Math.Max(price, _capital * 0.1f)
                 * Range(_settings.GentleMinRatio, _settings.GentleMaxRatio);
             _trend = (downward || RandomValue() < 0.5) ? -magnitude : magnitude;
+            _pullbackSteps = _forwardSteps = 0;
         }
         public float NextPrice(float currentPrice, float? ceiling)
         {
@@ -75,7 +80,23 @@ namespace TapTapGameJam.UI
             else
             {
                 if (_trend == 0) ResetTrend(currentPrice);
-                delta = _trend * Range(1 - _settings.TrendVariation, 1 + _settings.TrendVariation);
+                // 至少走两步主趋势，再允许连续一到两步回调；回调不改变主趋势。
+                if (_pullbackSteps == 0 && _forwardSteps >= 2
+                    && RandomValue() < _settings.PullbackProbability)
+                {
+                    _pullbackSteps = RandomValue() < 0.5 ? 1 : 2;
+                    _forwardSteps = 0;
+                }
+                if (_pullbackSteps > 0)
+                {
+                    delta = -_trend * Range(0.5f, 1f);
+                    _pullbackSteps--;
+                }
+                else
+                {
+                    delta = _trend * Range(1 - _settings.TrendVariation, 1 + _settings.TrendVariation);
+                    _forwardSteps = Math.Min(2, _forwardSteps + 1);
+                }
                 if (delta < 0) delta = -Math.Min(-delta, currentPrice * 0.5f);
             }
             float next = (float)Math.Max(0, Math.Min(float.MaxValue, (double)currentPrice + delta));
@@ -87,7 +108,7 @@ namespace TapTapGameJam.UI
                 _recovering = true; // 突变后的下一跳必定恢复平缓，不沿用突变差值。
             }
             else if (capped) ResetTrend(next, true);
-            else _trend = next - currentPrice;
+            // 保留独立的趋势步幅，避免随机系数连乘让走势逐渐变平。
             return next;
         }
     }

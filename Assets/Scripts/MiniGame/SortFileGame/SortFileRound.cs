@@ -5,10 +5,10 @@ namespace TapTapGameJam.UI
 {
     public enum SortFileDepartment
     {
-        HumanResources,
-        Administration,
-        Talent,
-        Development
+        HumanResources = 0,
+        Administration = 1,
+        Technical = 2,
+        Design = 3
     }
 
     // 分拣规则独立于 UI，顺序中的第一个未完成文件就是栈顶。
@@ -73,8 +73,8 @@ namespace TapTapGameJam.UI
             {
                 case SortFileDepartment.HumanResources: return "人事";
                 case SortFileDepartment.Administration: return "行政";
-                case SortFileDepartment.Talent: return "技术";
-                case SortFileDepartment.Development: return "开发";
+                case SortFileDepartment.Technical: return "技术";
+                case SortFileDepartment.Design: return "设计";
                 default: return string.Empty;
             }
         }

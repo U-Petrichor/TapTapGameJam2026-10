@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,20 @@ namespace TapTapGameJam.UI
     {
         [SerializeField] private Color _sandColor = new Color(0.96f, 0.63f, 0.16f, 1f);
         private float _progress;
+
+        // 沙漏.png 的内壁轮廓，使用原图 295×314 的像素坐标（Y 向下）。
+        // 沙面只裁切内腔，不缩窄整个沙堆，因而在任何进度都贴合直壁和斜壁。
+        private static readonly Vector2[] UpperChamber =
+        {
+            new Vector2(86f, 40f), new Vector2(208f, 40f),
+            new Vector2(208f, 82f), new Vector2(206f, 87f),
+            new Vector2(147f, 140f), new Vector2(88f, 87f), new Vector2(86f, 82f)
+        };
+        private static readonly Vector2[] LowerChamber =
+        {
+            new Vector2(147f, 174f), new Vector2(208f, 232f),
+            new Vector2(208f, 274f), new Vector2(86f, 274f), new Vector2(86f, 232f)
+        };
 
         public void SetProgress(float progress)
         {
@@ -28,55 +43,52 @@ namespace TapTapGameJam.UI
             Rect rect = rectTransform.rect;
             if (rect.width <= 0f || rect.height <= 0f) return;
 
-            float centerX = rect.center.x;
-            float topY = rect.yMax - rect.height * 0.16f;
-            float bottomY = rect.yMin + rect.height * 0.16f;
-            float neckY = rect.center.y;
-            float chamberWidth = Mathf.Min(rect.width * 0.24f, rect.height * 0.18f);
-            float neckWidth = Mathf.Max(1.5f, chamberWidth * 0.05f);
+            // 和外框 Image.preserveAspect 使用同一个等比缩放区域。
+            float scale = Mathf.Min(rect.width / 295f, rect.height / 314f);
+            Vector2 origin = rect.center + new Vector2(-147.5f, 157f) * scale;
+            if (_progress < 1f)
+                AddChamber(vh, UpperChamber, Mathf.Lerp(40f, 140f, _progress), origin, scale);
+            float lowerSurface = Mathf.Lerp(274f, 174f, _progress);
+            if (_progress > 0f)
+                AddChamber(vh, LowerChamber, lowerSurface, origin, scale);
 
-            float upperAmount = 1f - _progress;
-            float upperSurface = Mathf.Lerp(neckY + 2f, topY, upperAmount);
-            float upperWidth = Mathf.Lerp(neckWidth, chamberWidth, upperAmount);
-            AddPolygon(vh, new[]
-            {
-                new Vector2(centerX - upperWidth, upperSurface),
-                new Vector2(centerX + upperWidth, upperSurface),
-                new Vector2(centerX, neckY)
-            }, _sandColor);
-
-            float lowerSurface = Mathf.Lerp(bottomY, neckY - 2f, _progress);
-            float lowerSurfaceWidth = Mathf.Lerp(0f, neckWidth, _progress);
-            float lowerBaseWidth = chamberWidth * _progress;
-            AddPolygon(vh, new[]
-            {
-                new Vector2(centerX - lowerSurfaceWidth, lowerSurface),
-                new Vector2(centerX + lowerSurfaceWidth, lowerSurface),
-                new Vector2(centerX + lowerBaseWidth, bottomY),
-                new Vector2(centerX - lowerBaseWidth, bottomY)
-            }, _sandColor);
-
+            // 颈部的黑色框线不被沙流覆盖；可见沙流从下腔入口落到沙面。
             if (_progress > 0f && _progress < 1f)
-                AddTaperedStream(vh, centerX, neckY - rect.height * 0.12f, neckY + 1f, _sandColor);
+                AddPolygon(vh, new[]
+                {
+                    new Vector2(146.7f, 174f), new Vector2(147.3f, 174f),
+                    new Vector2(147.7f, lowerSurface), new Vector2(146.3f, lowerSurface)
+                }, origin, scale);
         }
 
-        private static void AddPolygon(VertexHelper vh, Vector2[] points, Color color)
+        private void AddChamber(VertexHelper vh, Vector2[] contour, float surface,
+            Vector2 origin, float scale)
         {
+            var clipped = new List<Vector2>(contour.Length + 2);
+            Vector2 previous = contour[contour.Length - 1];
+            foreach (Vector2 current in contour)
+            {
+                bool previousInside = previous.y >= surface;
+                bool currentInside = current.y >= surface;
+                if (previousInside != currentInside)
+                {
+                    float t = (surface - previous.y) / (current.y - previous.y);
+                    clipped.Add(Vector2.Lerp(previous, current, t));
+                }
+                if (currentInside) clipped.Add(current);
+                previous = current;
+            }
+            AddPolygon(vh, clipped, origin, scale);
+        }
+
+        private void AddPolygon(VertexHelper vh, IList<Vector2> points, Vector2 origin, float scale)
+        {
+            if (points.Count < 3) return;
             int start = vh.currentVertCount;
-            foreach (var point in points) vh.AddVert(point, color, Vector2.zero);
-            for (int i = 1; i < points.Length - 1; i++)
+            foreach (Vector2 point in points)
+                vh.AddVert(origin + new Vector2(point.x, -point.y) * scale, _sandColor, Vector2.zero);
+            for (int i = 1; i < points.Count - 1; i++)
                 vh.AddTriangle(start, start + i, start + i + 1);
-        }
-
-        private static void AddTaperedStream(VertexHelper vh, float centerX, float bottom, float top, Color color)
-        {
-            int start = vh.currentVertCount;
-            vh.AddVert(new Vector2(centerX - 2f, bottom), color, Vector2.zero);
-            vh.AddVert(new Vector2(centerX - 0.8f, top), color, Vector2.zero);
-            vh.AddVert(new Vector2(centerX + 0.8f, top), color, Vector2.zero);
-            vh.AddVert(new Vector2(centerX + 2f, bottom), color, Vector2.zero);
-            vh.AddTriangle(start, start + 1, start + 2);
-            vh.AddTriangle(start, start + 2, start + 3);
         }
     }
 }

@@ -107,9 +107,10 @@ internal static class StockChecks
             round = Round(() => wallet, n => wallet -= n, n => wallet += n, new SequencePrices(0, 0));
             Check(!round.CanBuy && !round.Buy()); round.Close(); Check(wallet == 0);
         });
-        run("Gentle stock declines use actual delta and halve near zero: 10 to 5 to 2.5", () =>
+        run("Stock declines stay positive and halve near zero: 10 to 5 to 2.5", () =>
         {
-            var settings = new StockPriceSettings { ShockProbability = 0, GentleMinRatio = 0.1f, GentleMaxRatio = 0.1f };
+            var settings = new StockPriceSettings { ShockProbability = 0, TrendVariation = 0,
+                PullbackProbability = 0, GentleMinRatio = 0.1f, GentleMaxRatio = 0.1f };
             var random = new Queue<double>(new[] { 0.0, 0.5, 0.0 });
             var generator = new StockPriceGenerator(200, () => random.Count > 0 ? random.Dequeue() : 0.5, settings);
             float price = generator.InitialPrice;
@@ -119,15 +120,41 @@ internal static class StockChecks
             price = generator.NextPrice(price, null); Near(price, 2.5f);
             price = generator.NextPrice(price, null); Near(price, 1.25f);
         });
-        run("Ordinary stock changes retain direction and fluctuate within twenty percent", () =>
+        run("Ordinary stock variation uses a stable baseline instead of compounding into flatness", () =>
         {
             var random = new Queue<double>(new[] { 0.0, 0.5, 0.9, 0.5, 0.0, 0.5, 1.0 });
             var generator = new StockPriceGenerator(200, () => random.Count > 0 ? random.Dequeue() : 0.5,
-                new StockPriceSettings { ShockProbability = 0, GentleMinRatio = 0.1f, GentleMaxRatio = 0.1f });
+                new StockPriceSettings { ShockProbability = 0, TrendVariation = 0.2f,
+                    PullbackProbability = 0, GentleMinRatio = 0.1f, GentleMaxRatio = 0.1f });
             float first = generator.NextPrice(100, null);
             Near(first, 108);
             float second = generator.NextPrice(first, null);
-            Near(second, 117.6f); // 下一跳基于实际差值 8，最多增加 9.6。
+            Near(second, 120); // 仍围绕趋势步幅 10 波动，不将上一步的随机变化继续累乘。
+        });
+        run("Ordinary stock paths have pullbacks while retaining a readable overall trend", () =>
+        {
+            int readable = 0, withPullbacks = 0;
+            for (int seed = 0; seed < 500; seed++)
+            {
+                var random = new Random(seed);
+                var generator = new StockPriceGenerator(1000, random.NextDouble,
+                    new StockPriceSettings { ShockProbability = 0 });
+                float start = generator.InitialPrice;
+                float price = generator.NextPrice(start, null);
+                bool upward = price > start, pullback = false;
+                double travel = Math.Abs(price - start);
+                for (int step = 1; step < StockRound.RefreshedPoints; step++)
+                {
+                    float next = generator.NextPrice(price, null);
+                    Check(float.IsFinite(next) && next > 0);
+                    if ((next > price) != upward && next != price) pullback = true;
+                    travel += Math.Abs(next - price);
+                    price = next;
+                }
+                if ((price > start) == upward && Math.Abs(price - start) > travel * 0.2) readable++;
+                if (pullback) withPullbacks++;
+            }
+            Check(readable >= 475 && withPullbacks >= 475);
         });
         run("Stock shocks change thirty to seventy percent of current price then force a gentle step", () =>
         {
@@ -140,7 +167,7 @@ internal static class StockChecks
                 float ratio = 0.3f + 0.4f * (float)magnitude;
                 Near(shock, 100 * (direction < 0.5 ? 1 - ratio : 1 + ratio));
                 float gentle = generator.NextPrice(shock, null);
-                Check(gentle > shock && gentle - shock < shock * 0.04f);
+                Check(gentle > shock && gentle - shock < shock * 0.12f);
             }
         });
         run("Stock ceiling resets an upward trend downward instead of locking at capital", () =>

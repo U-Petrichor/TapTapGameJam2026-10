@@ -95,9 +95,24 @@ public static class ShoppingRoomSetup
         var hover = Sprite(name + "-状态2");
         image.sprite = normal;
         image.raycastTarget = false;
+        var outlineRect = Rect("Outline", visual);
+        Stretch(outlineRect);
+        var outline = outlineRect.gameObject.AddComponent<Image>();
+        string outlineName = name switch
+        {
+            "床" => "床状态1",
+            "仓库" => "箱子状态1",
+            "电脑" => "电脑状态1",
+            "门" => "门口状态1",
+            _ => throw new System.ArgumentOutOfRangeException(nameof(name), name, "Unknown room hotspot.")
+        };
+        outline.sprite = Sprite("描边/" + outlineName);
+        outline.raycastTarget = false;
+        outline.enabled = false;
         var component = hit.gameObject.AddComponent<ShoppingRoomHotspot>();
         var so = new SerializedObject(component);
         so.FindProperty("_visual").objectReferenceValue = image;
+        so.FindProperty("_outline").objectReferenceValue = outline;
         so.FindProperty("_normal").objectReferenceValue = normal;
         so.FindProperty("_hover").objectReferenceValue = hover;
         so.FindProperty("_hoverScale").floatValue = 1.05f;
