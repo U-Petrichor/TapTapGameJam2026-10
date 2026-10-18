@@ -104,7 +104,6 @@ namespace TapTapGameJam.UI
             {
                 _bubbleImage.color = new Color(1.0f, 1.0f, 1.0f);
 
-
                 if (!_hideHintWhenPending)
                 {
                     Vector3 scale = _bubbleHintButton.localScale;

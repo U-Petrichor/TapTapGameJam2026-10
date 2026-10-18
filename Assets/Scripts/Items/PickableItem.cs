@@ -45,6 +45,10 @@ namespace TapTapGameJam.Items
         [SerializeField] protected Sprite _bagIcon;
         public virtual Sprite BagIcon => _bagIcon;
 
+        [Tooltip("物品稀有度（目前仅1, 2两级）")]
+        [SerializeField] protected int _specialLevel = 0;
+        public virtual int SpecialLevel => _specialLevel;
+        
         [Tooltip("物品名称")]
         [SerializeField] protected string _itemTitle = "";
         public virtual string ItemTitle => _itemTitle;

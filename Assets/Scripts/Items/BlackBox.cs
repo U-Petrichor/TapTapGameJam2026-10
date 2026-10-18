@@ -14,9 +14,12 @@ namespace TapTapGameJam.Items
         [Tooltip("扫描所需时间")]
         public float scanReqTime = 0.5f;
 
-        [Tooltip("黑盒内部道具")]
+        [Tooltip("黑盒内部道具，不配置即随机（受幸运值影响）")]
         public PickableItem hidedItem;
 
+        [Tooltip("商店（随机源）")]
+        public MouseStore mouseStore;
+        
         [Tooltip("扫描进度UI（整体）")]
         public Image scanUI;
         
