@@ -1,5 +1,6 @@
 using TapTapGameJam.Audio;
 using System.Collections.Generic;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
 using UnityEngine;
@@ -57,6 +58,36 @@ namespace TapTapGameJam.Cockroach
 
         [Tooltip("活动范围半径（世界单位）。超出所有巢穴范围的蟑螂会被拉回来")]
         public float range = 10f;
+
+        /// <summary>上次读到 Buff 时的 Revision，用来判断 <see cref="EffectiveRange"/> 要不要重算</summary>
+        private int _rangeRevision = int.MinValue;
+        private float _rangeFactor = 1f;
+
+        /// <summary>
+        /// 实际生效的活动范围 = <see cref="range"/> × 「巢穴探索范围」Buff 系数。
+        ///
+        /// <b>基准值仍然是 <see cref="range"/> 这个序列化字段</b>（别改名：改名等于改存档），
+        /// Buff 只乘在读取点上，绝不写回去——写回就变成不可回滚的全局改写。
+        ///
+        /// 每次读只多一次 Revision 比较，所以蟑螂每帧读也没问题。
+        /// 注意：<b>只放大 range，不放大 radius</b>——radius 是巢穴本体，放大它会让巢口交互距离、
+        /// 归巢判定、落巢散布一起变，那不是「探索范围」该管的事。
+        /// </summary>
+        public float EffectiveRange
+        {
+            get
+            {
+                PlayerBuffs buffs = PlayerBuffs.Current;
+                int revision = buffs != null ? buffs.Revision : -1;
+                if (revision != _rangeRevision)
+                {
+                    _rangeFactor = buffs != null ? buffs.CockroachSnapshot.NestRangeFactor : 1f;
+                    _rangeRevision = revision;
+                }
+
+                return range * _rangeFactor;
+            }
+        }
 
         [Header("范围虚线圈")]
         [Tooltip("范围虚线圈。留空则先从子物体里找，还找不到就在运行时建一个 RangeRing 子物体")]
@@ -162,7 +193,7 @@ namespace TapTapGameJam.Cockroach
                 _ring = ringObject.AddComponent<CockNestRing>();
             }
 
-            _ring.Regenerate(range);
+            _ring.Regenerate(EffectiveRange);
             RefreshRingVisibility();
         }
 
@@ -202,8 +233,31 @@ namespace TapTapGameJam.Cockroach
             Debug.Log("Nest created.");
         }
 
+        private void OnEnable()
+        {
+            EventPipeline.Subscribe<BuffsRebuiltEvent>(HandleBuffsRebuilt);
+        }
+
+        /// <summary>
+        /// 巢穴探索范围是 Buff 乘出来的，Buff 一变虚线圈就得跟着改，
+        /// 否则玩家看到的圈和蟑螂真实的活动范围对不上。
+        /// <see cref="CockNestRing.Regenerate"/> 半径没变会自己跳过，所以这里可以放心每次调。
+        /// </summary>
+        private void HandleBuffsRebuilt(BuffsRebuiltEvent evt)
+        {
+            if (_ring == null)
+            {
+                // Start 还没跑过：EnsureRing / HandlePhaseChanged 会按新半径建好
+                return;
+            }
+
+            _ring.Regenerate(EffectiveRange);
+            RefreshRingVisibility();
+        }
+
         private void OnDisable()
         {
+            EventPipeline.UnSubscribe<BuffsRebuiltEvent>(HandleBuffsRebuilt);
             EventPipeline.UnSubscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
             UnregisterInteractionTargets();
             if(CockroachManager.Instance)
@@ -225,7 +279,7 @@ namespace TapTapGameJam.Cockroach
             // 每次进入夜晚重建一次范围圈：夜间才看得见它，半径这时候可能已经变过
             if (enteringNight)
             {
-                _ring.Regenerate(range);
+                _ring.Regenerate(EffectiveRange);
                 RefreshDistanceField();
             }
             else
@@ -279,7 +333,9 @@ namespace TapTapGameJam.Cockroach
             CockroachSettings settings = manager.cockroachSetting;
 
             // 想吃的量和真正吃到的量分开：营养池不够时进度只按实际消耗涨
-            float wanted = settings.HatchNutritionPerSecond * InsideCount * dt;
+            // 产卵速度加成乘在「每秒消耗速率」上，不动 HatchNutritionCost：
+            // 进度条的分母是 Cost，动它 UI 就得跟着改，而乘速率进度条自动就对。
+            float wanted = settings.HatchNutritionPerSecond * InsideCount * dt * manager.BuffMods.HatchFactor;
             float spent = Mathf.Min(wanted, settings.HatchNutritionCost - _hatchNutrition);
 
             if (spent <= 0f || !manager.TrySpendSharedNutrition(spent))

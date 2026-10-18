@@ -1,4 +1,5 @@
 using TapTapGameJam.Audio;
+using System;
 using System.Collections.Generic;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
@@ -27,9 +28,14 @@ namespace TapTapGameJam.Items
     /// 【不管什么】
     /// - 不管"界面上正被拖着哪一件"。那是纯界面状态：块自己记着它从哪个槽位来
     ///   （<c>BagItemBlock.CurrentSlot</c>），放不下时靠它回退，后端没必要记。
-    /// - 不发任何事件，不引用 UI。界面每帧直接读这里的状态。
+    /// - 不引用 UI。界面每帧直接读这里的状态。
     /// - 只有 <see cref="PendingPickupItem"/> 是个例外：它是"从地图捡起来、等着被放进背包"的那一件，
     ///   属于游戏状态而不是界面状态，所以留在后端，由界面在打开背包时消费。
+    ///
+    /// 【唯一的事件：<see cref="EquippedChanged"/>】
+    /// 装备槽变化必须能被外部感知，否则「装扮提供的 Buff」永远不会重算。
+    /// 所以槽位的所有写入都收敛到 <see cref="SetEquipped"/>，由它统一发事件——
+    /// <b>不要直接写 <c>_equipped[]</c></b>，漏一处就是「换装不生效」这种极难查的 bug。
     ///
     /// 【物品状态】
     /// - OnMap：躺在地图上（也在世界物件里可见）。
@@ -229,6 +235,31 @@ namespace TapTapGameJam.Items
             return index >= 0 && index < _equipped.Length ? _equipped[index] : null;
         }
 
+        /// <summary>三个装备槽的当前内容（下标 = <see cref="EquipSlot"/>）。槽可能为 null。</summary>
+        public IReadOnlyList<PickableItem> EquippedItems => _equipped;
+
+        /// <summary>
+        /// 装备槽发生了变化（穿上 / 换下 / 摘下）。**这是装扮 Buff 唯一的刷新信号**。
+        /// 一次换装可能连续触发两次（先清旧槽、再写新槽），订阅方必须做到幂等。
+        /// </summary>
+        public event Action EquippedChanged;
+
+        /// <summary>
+        /// 写装备槽的唯一入口。所有对 <c>_equipped[]</c> 的赋值都必须走这里，
+        /// 否则订阅方（PlayerBuffs）收不到通知，装扮 Buff 会停在换装前的状态。
+        /// </summary>
+        private void SetEquipped(EquipSlot slot, PickableItem item)
+        {
+            int index = (int)slot;
+            if (index < 0 || index >= _equipped.Length || _equipped[index] == item)
+            {
+                return;
+            }
+
+            _equipped[index] = item;
+            EquippedChanged?.Invoke();
+        }
+
         /// <summary>某个物品在哪个装备槽里（不在任何槽里返回 false）</summary>
         public bool TryGetEquipSlot(PickableItem item, out EquipSlot slot)
         {
@@ -297,7 +328,7 @@ namespace TapTapGameJam.Items
                 if (GetEquipped(slot) == null)
                 {
                     MoveToBagStorage(item);
-                    _equipped[(int)slot] = item;
+                    SetEquipped(slot, item);
                     item.SetLocation(PickableItem.ItemLocation.Equipped);
                     Sfx.Play(SoundId.Equip, this);
                     PendingPickupItem = null;
@@ -338,7 +369,7 @@ namespace TapTapGameJam.Items
             TakeFromGrid(item);
             if (TryGetEquipSlot(item, out EquipSlot slot))
             {
-                _equipped[(int)slot] = null;
+                SetEquipped(slot, null);
             }
 
             // 状态上离开背包，但本体不做"回世界"的那套摆放——它其实是被界面拿在手上
@@ -458,17 +489,17 @@ namespace TapTapGameJam.Items
             TakeFromGrid(item);
             if (TryGetEquipSlot(item, out EquipSlot oldSlot))
             {
-                _equipped[(int)oldSlot] = null;
+                SetEquipped(oldSlot, null);
             }
 
             if (current != null)
             {
-                _equipped[(int)slot] = null;
+                SetEquipped(slot, null);
                 replaced = current;
             }
 
             MoveToBagStorage(item);
-            _equipped[(int)slot] = item;
+            SetEquipped(slot, item);
             item.SetLocation(PickableItem.ItemLocation.Equipped);
             Sfx.Play(SoundId.Equip, this);
 
@@ -490,7 +521,7 @@ namespace TapTapGameJam.Items
                 return false;
             }
 
-            _equipped[index] = null;
+            SetEquipped(slot, null);
             return true;
         }
 
@@ -555,7 +586,7 @@ namespace TapTapGameJam.Items
             TakeFromGrid(item);
             if (TryGetEquipSlot(item, out EquipSlot slot))
             {
-                _equipped[(int)slot] = null;
+                SetEquipped(slot, null);
             }
 
             if (PendingPickupItem == item)

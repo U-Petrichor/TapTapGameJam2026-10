@@ -1,7 +1,6 @@
 using System;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
-using TalentTree;
-using TalentTree.Effects;
 using UnityEngine;
 
 namespace TapTapGameJam.Player
@@ -17,7 +16,7 @@ namespace TapTapGameJam.Player
         
         [field: SerializeField] public int CoffeeCount { get; private set; } = 0;
 
-        private PlayerTalentTree _talentTree;
+        private PlayerBuffs _buffs;
 
 
         private void Start()
@@ -36,18 +35,24 @@ namespace TapTapGameJam.Player
 
         public void AddCoins(int amount)
         {
-            int adjustedAmount = amount > 0 ? ApplyCoinGainMultiplier(amount) : amount;
+            int adjustedAmount = ApplyGainPercent(BuffKey.CoinGainPercent, amount);
             Coins += adjustedAmount;
             EventPipeline.Publish<EventCoinsChange>(new EventCoinsChange(Coins, adjustedAmount));
         }
 
-        private int ApplyCoinGainMultiplier(int baseAmount)
+        /// <summary>
+        /// 「获得」类资源统一走这里：正数吃 Buff 倍率，非正数（扣/退）原样返回。
+        /// 找不到 PlayerBuffs 时按原额通过——早期测试场景里可能没挂玩家组件。
+        /// </summary>
+        private int ApplyGainPercent(BuffKey key, int amount)
         {
-            _talentTree ??= GetComponent<PlayerTalentTree>();
-            float multiplier = _talentTree == null
-                ? 0f
-                : Mathf.Max(0f, _talentTree.Effects.GetNumericTotal(TalentEffectKey.CoinGainMultiplier));
-            return Mathf.Max(0, Mathf.RoundToInt(baseAmount * (1f + multiplier)));
+            if (amount <= 0)
+            {
+                return amount;
+            }
+
+            _buffs ??= GetComponent<PlayerBuffs>();
+            return _buffs == null ? amount : _buffs.ApplyInt(key, amount);
         }
         public bool TrySpendCoins(int amount)
         {
@@ -62,8 +67,9 @@ namespace TapTapGameJam.Player
         }
         public void AddNutrition(int amount)
         {
-            Nutrition += amount;
-            EventPipeline.Publish<EventNutritionChange>(new EventNutritionChange(Nutrition,amount));
+            int adjustedAmount = ApplyGainPercent(BuffKey.NutritionGainPercent, amount);
+            Nutrition += adjustedAmount;
+            EventPipeline.Publish<EventNutritionChange>(new EventNutritionChange(Nutrition, adjustedAmount));
         }
         public bool TrySpendNutrition(int amount)
         {
@@ -75,10 +81,23 @@ namespace TapTapGameJam.Player
             }
             return false;
         }
+        /// <summary>
+        /// 天赋点原额增减。<b>撤销天赋的退款走这里，不吃「怒气获取」加成</b>——
+        /// 否则退回来的点数比花出去的还多，等于可以无限刷点。
+        /// </summary>
         public void AddTalentPoint(int amount)
         {
             TalentPoint += amount;
             EventPipeline.Publish<EventTalentPointChange>(new EventTalentPointChange(TalentPoint, amount));
+        }
+
+        /// <summary>
+        /// 玩家「获得」天赋点（吃「怒气获取 / 天赋点获取」加成）。
+        /// 小游戏奖励、击杀回怒这类正面来源走这里；退款请用 <see cref="AddTalentPoint"/>。
+        /// </summary>
+        public void AddTalentPointGain(int amount)
+        {
+            AddTalentPoint(ApplyGainPercent(BuffKey.TalentPointGainPercent, amount));
         }
         public bool TrySpendTalentPoint(int amount)
         {

@@ -2,6 +2,7 @@ using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
@@ -112,6 +113,19 @@ namespace TapTapGameJam.Cockroach
         private ItemManager Items => ItemManager.Instance;
 
         private CockroachManager Manager => CockroachManager.Instance;
+
+        /// <summary>
+        /// 虫群 Buff 快照。读的是 Manager 上缓存好的那一份，成本只有一次静态字段访问。
+        /// 场上没有玩家时返回全 1 倍，所以早期测试场景跑起来不会变成零速。
+        /// </summary>
+        private CockroachBuffSnapshot BuffMods
+        {
+            get
+            {
+                CockroachManager manager = Manager;
+                return manager != null ? manager.BuffMods : CockroachBuffSnapshot.Identity;
+            }
+        }
 
         #region 生命周期 / 登记
 
@@ -529,7 +543,8 @@ namespace TapTapGameJam.Cockroach
                 _forwardAngle = RotateTowards(_forwardAngle, _targetAngle, dt, _settings.TurnSpeed);
 
                 /* ---- 移动 + 碰撞反弹 ---- */
-                float speed = _settings.Speed * _speedJitter;
+                // 群里加速天赋只乘在基准速度上，不写回 _settings（那是全场共享的配置）
+                float speed = _settings.Speed * _speedJitter * BuffMods.SpeedFactor;
 
                 // 近处有墙且还没转开时减速转向，避免"顶着墙往前推" TODO: 暂时移除看效果
                 // float speedMul = 1f;
@@ -621,7 +636,8 @@ namespace TapTapGameJam.Cockroach
                 {
                     // 先记下这是什么，再 Consume —— 它可能已经把自己 Destroy 了
                     bool isDrug = food is CleanerDrugFoodItem;
-                    float take = food.Consume(_settings.CarryCapacity);
+                    // 单次取食量：同样乘在基准值上，不写回 _settings
+                    float take = food.Consume(_settings.CarryCapacity * BuffMods.CarryFactor);
 
                     // 吃到了药：立刻暴毙。危险信号由 Die() 释放，不用再谈营养和折返
                     if (isDrug)
@@ -728,7 +744,9 @@ namespace TapTapGameJam.Cockroach
             {
                 CockNest nest = nests[i];
                 float sqr = (nest.WorldPosition - pos).sqrMagnitude;
-                if (sqr <= nest.range * nest.range)
+                // 活动范围吃「巢穴探索范围」Buff；基准值仍是 CockNest.range
+                float range = nest.EffectiveRange;
+                if (sqr <= range * range)
                 {
                     insideAny = true;
                     break;

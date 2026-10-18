@@ -219,4 +219,23 @@ namespace TapTapGameJam.Events
             Reason = reason;
         }
     }
+
+    /// <summary>
+    /// 玩家身上的 Buff 集合重建了（天赋升降级、装备变化、临时效果到期）。
+    /// 只带一个 Revision，不细分「哪个 key 变了」——读具体数值请直接问 PlayerBuffs。
+    ///
+    /// 需要刷新的东西：体力条上限、背包格数、守卫光锥、Buff 列表 UI。
+    /// 注意：每帧都要读的数值（移速、蟑螂速度）不需要订阅它，直接读
+    /// <c>PlayerBuffs.CockroachSnapshot</c> / <c>GetFactor</c> 就行。
+    /// </summary>
+    public readonly struct BuffsRebuiltEvent : IEvent
+    {
+        /// <summary>重建后的 Revision，和 <c>PlayerBuffs.Revision</c> 对得上</summary>
+        public int Revision { get; }
+
+        public BuffsRebuiltEvent(int revision)
+        {
+            Revision = revision;
+        }
+    }
 }

@@ -4,6 +4,12 @@ namespace TalentTree.Effects
     /// 天赋效果的稳定标识。同一效果的不同档位共用一个 Key。
     /// 百分比增益使用小数（0.1 表示 +10%），减免也使用正数（0.1 表示 -10%）；
     /// 容量使用额外格数，能力使用 0 / 1。能力的冷却、次数与消耗由对应玩法管理。
+    ///
+    /// <b>这张表已经不是权威来源</b>：运行时解析和数值合成都在
+    /// <see cref="TapTapGameJam.Buffs.BuffKeys"/>（枚举 + snake_case 稳定名字）。
+    /// 这里保留的是「资产里能出现的字符串清单」，供对照和查历史。
+    /// 两者的字符串必须完全一致——`Tools/BuffChecks` 里有反射测试盯着，
+    /// 改了一边忘了另一边会直接失败。
     /// </summary>
     public static class TalentEffectKey
     {

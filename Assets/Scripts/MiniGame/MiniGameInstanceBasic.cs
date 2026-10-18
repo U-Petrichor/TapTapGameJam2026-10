@@ -63,7 +63,8 @@ namespace TapTapGameJam.MiniGame
                 if (success)
                 {
                     if (RewardCoins > 0) resources.AddCoins(RewardCoins);
-                    if (RewardTalentPoints > 0) resources.AddTalentPoint(RewardTalentPoints);
+                    // 玩家「获得」天赋点：吃「怒气获取」加成（退款走 AddTalentPoint，不吃加成）
+                    if (RewardTalentPoints > 0) resources.AddTalentPointGain(RewardTalentPoints);
                     if (RewardCoins > 0 || RewardTalentPoints > 0) Sfx.Play(SoundId.Coin);
                     OnSuccess(resources);
                 }

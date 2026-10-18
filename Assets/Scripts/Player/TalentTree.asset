@@ -116,7 +116,7 @@ MonoBehaviour:
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 80372350260318887, guid: 3f35429d7e44e85439c1f3313a8ed0a3, type: 3}
   _levels:
-  - _talentPointCost: 1
+  - _talentPointCost: 0
     _requirements: []
     _effects: []
   references:
@@ -231,12 +231,19 @@ MonoBehaviour:
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
   _icon: {fileID: 955801233472204380, guid: 5ea6879a19339ac449ed4689a4dd1f89, type: 3}
   _levels:
-  - _talentPointCost: 1
+  - _talentPointCost: 0
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 5638094838024896593
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5638094838024896593
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: movement_speed
+        _numericValue: 0.61
+        _payload: 
 --- !u!114 &-900000000000026000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -868,7 +875,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentTreeAsset
   _nodes:
   - _data: {fileID: 8934417477304861204}
-    _position: {x: 960, y: 1022}
+    _position: {x: 997.647, y: 1187.8824}
     _isRoot: 1
     _unlockRule: 0
   - _data: {fileID: 4510617856486047292}
@@ -880,11 +887,11 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: 3011596460981020844}
-    _position: {x: 959, y: 904}
+    _position: {x: 982.6842, y: 867.6842}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -6944253372851422959}
-    _position: {x: 836, y: 1023}
+    _position: {x: 768.94116, y: 1130.0588}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000001000}
@@ -992,7 +999,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000027000}
-    _position: {x: 1201, y: 1023}
+    _position: {x: 1230.4117, y: 1090.0588}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000028000}
@@ -1020,7 +1027,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000034000}
-    _position: {x: 1835, y: 775}
+    _position: {x: 1833.8236, y: 775}
     _isRoot: 0
     _unlockRule: 0
   _edges:
@@ -1179,7 +1186,14 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 0
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 5638094838024896513
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 5638094838024896513
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nest_exploration_range_multiplier
+        _numericValue: 50
+        _payload: 

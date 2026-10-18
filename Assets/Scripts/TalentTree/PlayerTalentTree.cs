@@ -9,7 +9,7 @@ namespace TalentTree
 {
     /// <summary>玩家在当前游戏运行中的天赋进度与操作入口。</summary>
     [RequireComponent(typeof(PlayerResources))]
-    public class PlayerTalentTree : MonoBehaviour
+    public class PlayerTalentTree : MonoBehaviour, ITalentLevelSource
     {
         [Tooltip("绑定配置好的天赋树")]
         [SerializeField] private TalentTreeAsset _talentTreeAsset;
@@ -24,6 +24,13 @@ namespace TalentTree
         public PlayerResources PlayerResources => _playerResources;
         public TalentEffectResolver Effects => _effectResolver ??= new TalentEffectResolver(this);
 
+        #region ITalentLevelSource
+
+        /// <summary>给 <see cref="TalentEffectResolver"/> 用的等级来源。等价于 <see cref="TalentTreeAsset"/>。</summary>
+        public TalentTreeAsset Asset => _talentTreeAsset;
+
+        #endregion
+
         private void Awake()
         {
             if (_playerResources == null) 
@@ -31,7 +38,12 @@ namespace TalentTree
             if (_progress == null) 
                 _progress = new TalentProgress();
             _progress.RebuildCache();
-            _effectResolver = new TalentEffectResolver(this);
+
+            // 必须是 ??=，不能无条件 new：
+            // 同一物体上组件的 Awake 顺序不保证，PlayerBuffs 可能先跑到并已经拿走了这个
+            // resolver 的引用。这里再新建一个的话，PlayerBuffs 手里的那个就没人 Invalidate 了，
+            // 它会一直返回「第一次算出来的效果」——表现就是「天赋点了没效果」。
+            _effectResolver ??= new TalentEffectResolver(this);
         }
 
         public int GetLevel(string talentId) => GetLevel(_talentTreeAsset?.FindTalent(talentId));
@@ -82,6 +94,8 @@ namespace TalentTree
                 return TalentOperationResult.Fail(TalentOperationStatus.InsufficientTalentPoints, "天赋点不足。");
 
             _progress.SetLevel(talent, 1);
+            // 必须在发事件之前失效：订阅方（PlayerBuffs）收到事件就会立刻重算效果
+            Effects.Invalidate();
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, 0, 1));
             Sfx.Play(SoundId.TalentUpgrade, this, 1);
             return TalentOperationResult.Success(0, 1, -cost);
@@ -101,6 +115,7 @@ namespace TalentTree
                 return TalentOperationResult.Fail(TalentOperationStatus.InsufficientTalentPoints, "天赋点不足。");
 
             _progress.SetLevel(talent, targetLevel);
+            Effects.Invalidate();
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, oldLevel, targetLevel));
             Sfx.Play(SoundId.TalentUpgrade, this, targetLevel);
             return TalentOperationResult.Success(oldLevel, targetLevel, -cost);
@@ -146,6 +161,7 @@ namespace TalentTree
             int oldLevel = GetLevel(talent);
             int refund = SpentPointsFor(talent, oldLevel);
             _progress.SetLevel(talent, 0);
+            Effects.Invalidate();
             if (refund > 0) _playerResources?.AddTalentPoint(refund);
             EventPipeline.Publish(new TalentLevelChangedEvent(talent, oldLevel, 0));
             Sfx.Play(SoundId.TalentRefund, this);
@@ -164,6 +180,7 @@ namespace TalentTree
 
             foreach ((TalentData talent, _) in entries)
                 _progress.SetLevel(talent, 0);
+            Effects.Invalidate();
 
             if (refund > 0) _playerResources?.AddTalentPoint(refund);
             foreach ((TalentData talent, int level) in entries)
