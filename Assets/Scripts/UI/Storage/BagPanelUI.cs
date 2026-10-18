@@ -338,13 +338,15 @@ namespace TapTapGameJam.UI
 
             _cells.Clear();
 
-            // 清掉旧格子（可能来自上一次进 Play 的残留）
+            // 清掉旧格子（可能来自上一次进 Play 的残留）。
+            // 用 Destroy 而不是 DestroyImmediate：运行时同步销毁会把"正在被检视/仍被引用的对象"
+            // 当场变成死对象，Editor 里就会出现 SerializedObjectNotCreatable / MissingReference 那一堆报错
             for (int i = _gridRoot.childCount - 1; i >= 0; i--)
             {
                 Transform child = _gridRoot.GetChild(i);
                 if (child.GetComponent<BagCell>() != null)
                 {
-                    DestroyImmediate(child.gameObject);
+                    Destroy(child.gameObject);
                 }
             }
 

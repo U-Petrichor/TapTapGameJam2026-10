@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2907433794661484344}
   - component: {fileID: 2003793037880148698}
   - component: {fileID: 7282222625071281805}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WallCornor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

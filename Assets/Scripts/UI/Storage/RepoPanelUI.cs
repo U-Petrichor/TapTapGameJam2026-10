@@ -119,7 +119,7 @@ namespace TapTapGameJam.UI
 
         #region 生命周期
 
-        private void Awake()
+        private void Start()
         {
             Assert.IsTrue(_foodGridRoot && _toolGridRoot && _dressGridRoot,
                 "RepoPanelUI：三个 GridRoot（Food / Tool / Dress）要连全");
@@ -141,21 +141,13 @@ namespace TapTapGameJam.UI
             // 一开始就停在隐藏位、透明、不吃射线：不然第一次打开之前它会亮在屏幕中间
             ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
             _canvasGroup.alpha = 0f;
-            ApplyVisibility(false);
+            CloseContainer();
 
             BuildPages();
 
             // 默认停在第一页（Food），并且保证只有它显示
             ShowPage(ItemCategories.All[0]);
-        }
-
-        public void OpenRepoTemp()
-        {
-            EventPipeline.Publish<RepoOnOffEvent>(new RepoOnOffEvent(true));
-        }
-
-        private void Start()
-        {
+            
             EventPipeline.Subscribe<RepoOnOffEvent>(OnRepoEvent);
         }
 
@@ -364,13 +356,14 @@ namespace TapTapGameJam.UI
             {
                 RectTransform root = _pageRoots[page];
 
-                // 清掉旧格子（可能来自上一次进 Play 的残留）
+                // 清掉旧格子（可能来自上一次进 Play 的残留）。
+                // 用 Destroy 而不是 DestroyImmediate：运行时同步销毁会让正在被检视的对象变成死对象
                 for (int i = root.childCount - 1; i >= 0; i--)
                 {
                     Transform child = root.GetChild(i);
                     if (child.GetComponent<RepoCellUI>() != null)
                     {
-                        DestroyImmediate(child.gameObject);
+                        Destroy(child.gameObject);
                     }
                 }
 

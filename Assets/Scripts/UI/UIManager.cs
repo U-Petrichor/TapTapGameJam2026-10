@@ -97,6 +97,21 @@ namespace TapTapGameJam.UI
         /// <summary>格心间距（块内相邻格的距离也是它）</summary>
         public float CellPitch => _cellSize + _cellSpacing;
 
+        
+        /// <summary>打开仓库和背包</summary>
+        public void OpenRepoAndBag()
+        {
+            _repoContainer.OpenContainer();
+            _bagContainer.OpenContainer();
+        }
+                
+        /// <summary>打开商店和背包和背包</summary>
+        public void OpenStoreAndBag()
+        {
+            _storeContainer.OpenContainer();
+            _bagContainer.OpenContainer();
+        }
+        
         /// <summary>格子中心相对网格左上角的位置（x 向右、y 向下，所以 y 取负）。格子布局和块内格子框都用它</summary>
         public Vector2 CellLocalPosition(Vector2Int cell)
         {

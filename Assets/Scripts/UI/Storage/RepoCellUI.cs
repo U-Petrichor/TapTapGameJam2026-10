@@ -69,6 +69,7 @@ namespace TapTapGameJam.UI
         public bool OnPickUpItem(BagItemBlock block)
         {
             Assert.IsTrue(repoPanelUI != null, "RepoCellUI：没连 repoPanelUI");
+            repoPanelUI.OnClickCell(this);
             return repoPanelUI.OnItemPickedUp(block);
         }
 

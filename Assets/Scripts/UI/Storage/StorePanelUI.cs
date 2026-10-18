@@ -5,6 +5,7 @@ using NUnit.Framework;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TapTapGameJam.Types;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -123,7 +124,7 @@ namespace TapTapGameJam.UI
 
         #region 生命周期
 
-        private void Awake()
+        private void Start()
         {
             Assert.IsTrue(_foodGridRoot && _toolGridRoot && _dressGridRoot,
                 "StorePanelUI：三个 GridRoot（Food / Tool / Dress）要连全");
@@ -146,36 +147,21 @@ namespace TapTapGameJam.UI
             // 一开始就停在隐藏位、透明、不吃射线：不然第一次打开之前它会亮在屏幕中间
             ((RectTransform)transform).anchoredPosition = _shownPosition + _hiddenOffset;
             _canvasGroup.alpha = 0f;
-            ApplyVisibility(false);
 
             BuildPages();
+            CloseContainer();
 
             // 默认停在第一页（Food），并且保证只有它显示
             ShowPage(ItemCategories.All[0]);
-        }
-
-        /// <summary>调试用：直接开店（正规入口应该是商店 NPC / Shopping 阶段那边发事件）</summary>
-        public void RefreshAndOpenTemp()
-        {
-            if (IsOpen)
-            {
-                EventPipeline.Publish<StoreOnOffEvent>(new StoreOnOffEvent(false));
-            }
-            else
-            {
-                mouseStore.RefreshStore();
-                EventPipeline.Publish<StoreOnOffEvent>(new StoreOnOffEvent(true));
-            }
-        }
-
-        private void Start()
-        {
+            
             EventPipeline.Subscribe<StoreOnOffEvent>(OnStoreEvent);
+            EventPipeline.Subscribe<GamePhaseChangedEvent>(OnPhaseChanged);
         }
 
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<StoreOnOffEvent>(OnStoreEvent);
+            EventPipeline.UnSubscribe<GamePhaseChangedEvent>(OnPhaseChanged);
         }
 
         #endregion
@@ -193,6 +179,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
+            Debug.Log("商店打开");
+            
             // 上一次离场动画还没播完：先把它的收尾（销毁块）补掉，否则下面 CreateBlock 会撞"已经有块了"
             FinishPendingClose();
 
@@ -234,6 +222,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
+            Debug.Log("商店关闭");
+            
             // 拖到一半就关：这块已经不属于任何容器了，按约定直接销毁
             UIManager.Instance.DestroyDraggingBlock();
 
@@ -375,13 +365,14 @@ namespace TapTapGameJam.UI
             {
                 RectTransform root = _pageRoots[page];
 
-                // 清掉旧格子（可能来自上一次进 Play 的残留）
+                // 清掉旧格子（可能来自上一次进 Play 的残留）。
+                // 用 Destroy 而不是同步销毁：运行时同步销毁会让正在被检视的对象变成死对象
                 for (int i = root.childCount - 1; i >= 0; i--)
                 {
                     Transform child = root.GetChild(i);
                     if (child.GetComponent<StoreCellUI>() != null)
                     {
-                        DestroyImmediate(child.gameObject);
+                        Destroy(child.gameObject);
                     }
                 }
 
@@ -733,11 +724,21 @@ namespace TapTapGameJam.UI
         {
             if (evt.IsOpen)
             {
+                Debug.Log("StorePanelUI.StoreOnOffEvent");
                 OpenContainer();
             }
             else
             {
                 CloseContainer();
+            }
+        }
+
+        private void OnPhaseChanged(GamePhaseChangedEvent evt)
+        {
+            if (evt.NewPhase == GamePhase.Shopping)
+            {
+                // 每天刷新
+                mouseStore.RefreshStore();
             }
         }
 

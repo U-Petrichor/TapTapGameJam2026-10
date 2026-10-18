@@ -1,6 +1,9 @@
 using NUnit.Framework;
+using TapTapGameJam.Events;
 using TapTapGameJam.Items;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace TapTapGameJam.UI
@@ -17,7 +20,7 @@ namespace TapTapGameJam.UI
     ///   它平时贴在屏幕最下层，不关掉就会一直挡着鼠标点击。
     /// </summary>
     [DisallowMultipleComponent]
-    public class EmptySlot : MonoBehaviour, IItemSlot
+    public class EmptySlot : MonoBehaviour, IItemSlot, IPointerClickHandler
     {
         /// <summary>真正挡射线的是它身上那块 Image；光关组件挡不住</summary>
         private Image _raycastImage;
@@ -85,5 +88,13 @@ namespace TapTapGameJam.UI
         }
 
         #endregion
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                UIManager.Instance.CloseAllContainer();
+            }
+        }
     }
 }
