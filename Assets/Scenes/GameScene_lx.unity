@@ -23379,6 +23379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.ShoppingRoomHotspot
   _visual: {fileID: 1960886296}
+  _outline: {fileID: 0}
   _normal: {fileID: 6517929018374013447, guid: 17cfce014a67bae47bf1eb441b5c785b, type: 3}
   _hover: {fileID: -899510134954748608, guid: cad6539076ef0a34892d2f76ec1ac858, type: 3}
   _hoverScale: 1.05
@@ -56798,6 +56799,101 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!1001 &1184779845
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 503440497}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.3
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -2366438668149821281, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 521b3c5b26aa9bb4a95cc4fc891db840, type: 2}
+    - target: {fileID: 919132149155446097, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_Name
+      value: zhanglang(5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: fe2f4a22bb200bf4698dbcb32ec365bc, type: 2}
+    - target: {fileID: 5866666021909216657, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+--- !u!4 &1184779846 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+  m_PrefabInstance: {fileID: 1184779845}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1184779847 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f40962b45886dbf4e8433efce84c92e4, type: 3}
+  m_PrefabInstance: {fileID: 1184779845}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1186523945
 GameObject:
   m_ObjectHideFlags: 0
@@ -76774,6 +76870,7 @@ MonoBehaviour:
     TrendVariation: 0.2
     GentleMinRatio: 0.01
     GentleMaxRatio: 0.03
+    PullbackProbability: 0.25
     ShockMinRatio: 0.3
     ShockMaxRatio: 0.7
 --- !u!1001 &1598120363
@@ -79358,6 +79455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.ShoppingRoomHotspot
   _visual: {fileID: 517319398}
+  _outline: {fileID: 0}
   _normal: {fileID: 3833929873820443044, guid: 726d5a92eae00264a96001cb7af0ecd0, type: 3}
   _hover: {fileID: 2171273839675484329, guid: 0a1c4ba49e026844b810ce929019ea19, type: 3}
   _hoverScale: 1.05
@@ -83724,7 +83822,9 @@ MonoBehaviour:
   _kettle: {fileID: 690144146}
   _kettleSpout: {fileID: 0}
   _pourZone: {fileID: 991715921}
+  _waterLandingPoint: {fileID: 0}
   _waterEffect: {fileID: 1564288322}
+  _coffeeEffect: {fileID: 0}
   _kettlePourAngle: 25
   _stageImages:
   - {fileID: 0}
@@ -90383,6 +90483,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.ShoppingRoomHotspot
   _visual: {fileID: 334220685}
+  _outline: {fileID: 0}
   _normal: {fileID: -3590556831534180694, guid: 8647a887c9bfeb34b876fac37792aeef, type: 3}
   _hover: {fileID: -4985238846732290701, guid: 30a865f0a6fcdb54ba18850d9d76e579, type: 3}
   _hoverScale: 1.05
@@ -96481,6 +96582,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.ShoppingRoomHotspot
   _visual: {fileID: 1559968757}
+  _outline: {fileID: 0}
   _normal: {fileID: 6835009859025678978, guid: a3fbeae8489e7734b861d600ca9478fd, type: 3}
   _hover: {fileID: -184445072631842346, guid: 9e208192725c83d478221857c33f1dab, type: 3}
   _hoverScale: 1.05
@@ -482280,7 +482382,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5554098798829651593, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6364880056919982120, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: _camTransform
@@ -482289,7 +482391,7 @@ PrefabInstance:
     - target: {fileID: 7701233578754936596, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: _nightModel
       value: 
-      objectReference: {fileID: 4853131174117530460}
+      objectReference: {fileID: 1184779847}
     - target: {fileID: 7966909714225381019, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: m_Name
       value: Player
@@ -482299,8 +482401,12 @@ PrefabInstance:
       value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5554098798829651593, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 4584462922487478431, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1184779846}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
 --- !u!114 &4853131174117530459 stripped
@@ -482314,11 +482420,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c49e85e5a864fb143b39f86dc15976dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Player.PlayerInputManager
---- !u!1 &4853131174117530460 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5554098798829651593, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
-  m_PrefabInstance: {fileID: 4853131174117530458}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &4853131174117530461 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1530149381192232540, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}

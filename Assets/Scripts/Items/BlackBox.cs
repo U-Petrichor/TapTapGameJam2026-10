@@ -19,6 +19,7 @@ namespace TapTapGameJam.Items
 
         [Tooltip("商店（随机源）")]
         public MouseStore mouseStore;
+        // TODO: 做随机，且受幸运值影响
         
         [Tooltip("扫描进度UI（整体）")]
         public Image scanUI;
