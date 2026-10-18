@@ -67,8 +67,8 @@ namespace TapTapGameJam.UI
         {
             if (_visual == null || _hovered == hovered) return;
             _hovered = hovered;
-            if (_outline != null) _outline.enabled = hovered;
-            _visual.sprite = hovered ? _hover : _normal;
+            if (_outline != null) _outline.enabled = hovered && _outline.sprite != null;
+            _visual.sprite = hovered && _hover != null ? _hover : _normal;
             _fromScale = _visual.rectTransform.localScale.x;
             _targetScale = hovered ? _hoverScale : 1f;
             _elapsed = 0f;
