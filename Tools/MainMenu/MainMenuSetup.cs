@@ -68,35 +68,14 @@ public static class MainMenuSetup
             element.preferredHeight = 90; element.preferredWidth = 300;
         }
         cont.interactable = false;
-        // Reuse the existing Settings Canvas, replacing only its unfinished contents.
-        var settingsRoot = scene.GetRootGameObjects().First(g => g.name == "Settings");
-        foreach (Transform child in settingsRoot.transform.Cast<Transform>().ToArray()) UnityEngine.Object.DestroyImmediate(child.gameObject);
+        // Build the final artwork prefab explicitly before rebuilding the menu.
+        var settingsAsset = AssetDatabase.LoadAssetAtPath<GameObject>(SettingsArtworkBuilder.PrefabPath);
+        if (settingsAsset == null) { SettingsArtworkBuilder.Build(); settingsAsset = AssetDatabase.LoadAssetAtPath<GameObject>(SettingsArtworkBuilder.PrefabPath); }
+        var oldSettings = scene.GetRootGameObjects().First(g => g.name == "Settings");
+        UnityEngine.Object.DestroyImmediate(oldSettings);
+        var settingsRoot = (GameObject)PrefabUtility.InstantiatePrefab(settingsAsset, scene);
         settingsRoot.SetActive(false);
-        settingsRoot.GetComponent<Canvas>().sortingOrder = 20;
-        var bg = Image("Backdrop", settingsRoot.transform, Vector2.zero, new Vector2(1920,1080), new Color(.32f,.36f,.45f)); Stretch(bg.rectTransform);
-        var board = Image("BookPlaceholder", bg.transform, Vector2.zero, new Vector2(1460,820), new Color(.78f,.69f,.38f));
-        var back = Button("Back", bg.transform, "返回", new Vector2(-820,445), new Vector2(160,70));
-        var shortcutTab = Button("ShortcutsTab", board.transform, "快捷键", new Vector2(-620,270), new Vector2(180,70));
-        var soundTab = Button("SoundTab", board.transform, "声音设置", new Vector2(-620,175), new Vector2(180,70));
-        var shortcutPage = Image("ShortcutsPage", board.transform, new Vector2(110,0), new Vector2(1120,730), Paper);
-        Label("Title", shortcutPage.transform, "快捷键", new Vector2(0,290), new Vector2(900,65),42);
-        Label("MouseHelp", shortcutPage.transform, "鼠标左键    选择 / 操作\n\n鼠标右键    次要操作\n\n鼠标滚轮    缩放视角", new Vector2(-270,0), new Vector2(480,460),30);
-        Label("KeyboardHelp", shortcutPage.transform, "移动    WASD\n\n交互    E / F\n\n切换目标    Q\n\n冲刺    Shift\n\n暂停 / 返回    Esc\n\n存档    暂未开放", new Vector2(270,0), new Vector2(480,530),30);
-        var soundPage = Image("SoundPage", board.transform, new Vector2(110,0), new Vector2(1120,730), Paper);
-        Label("Title", soundPage.transform, "声音设置", new Vector2(0,290), new Vector2(900,65),42);
-        Label("EffectsLabel", soundPage.transform,"音效",new Vector2(-400,150),new Vector2(160,60),34);
-        Label("MusicLabel", soundPage.transform,"音乐",new Vector2(-400,0),new Vector2(160,60),34);
-        Label("AnimationLabel", soundPage.transform,"动画",new Vector2(-400,-150),new Vector2(160,60),34);
-        var effects = Slider("EffectsSlider",soundPage.transform,new Vector2(100,150));
-        var music = Slider("MusicSlider",soundPage.transform,new Vector2(100,0));
-        var animation = Button("AnimationToggle",soundPage.transform,"ON",new Vector2(350,-150),new Vector2(180,65));
-        var settingsController = settingsRoot.GetComponent<SettingsMenu>() ?? settingsRoot.AddComponent<SettingsMenu>();
-        var config = new SerializedObject(settingsController);
-        Set(config,"shortcutsTab",shortcutTab); Set(config,"soundTab",soundTab);
-        Set(config,"shortcutsPage",shortcutPage.gameObject); Set(config,"soundPage",soundPage.gameObject);
-        Set(config,"effectsSlider",effects); Set(config,"musicSlider",music);
-        Set(config,"animationButton",animation); Set(config,"animationLabel",animation.GetComponentInChildren<TMP_Text>());
-        config.ApplyModifiedPropertiesWithoutUndo(); soundPage.gameObject.SetActive(false);
+        var back = settingsRoot.GetComponent<SettingsMenu>().BackButton;
         var galleryRoot = CanvasRoot("GalleryCanvas", 21);
         var galleryBg = Image("Background",galleryRoot.transform,Vector2.zero,new Vector2(1920,1080),Paper); Stretch(galleryBg.rectTransform);
         Label("Title",galleryBg.transform,"图鉴",new Vector2(0,420),new Vector2(600,90),48);

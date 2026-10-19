@@ -14,24 +14,31 @@ namespace TapTapGameJam.Player
         [Tooltip("天赋点/天赋点")]
         [field: SerializeField] public int TalentPoint { get; private set; } = 0;
         
-        [field: SerializeField] public int CoffeeCount { get; private set; } = 0;
 
         private PlayerBuffs _buffs;
 
 
         private void Start()
         {
+            PublishCurrentResources();
+        }
+
+        // 直接恢复快照，不走获得资源的 Buff 倍率，也不产生奖励增量。
+        public void RestoreResources(int coins, int nutrition, int talentPoint)
+        {
+            Coins = Mathf.Max(0, coins);
+            Nutrition = Mathf.Max(0, nutrition);
+            TalentPoint = Mathf.Max(0, talentPoint);
+            PublishCurrentResources();
+        }
+
+        private void PublishCurrentResources()
+        {
             EventPipeline.Publish<EventCoinsChange>(new EventCoinsChange(Coins,0));
             EventPipeline.Publish<EventNutritionChange>(new EventNutritionChange(Nutrition,0));
             EventPipeline.Publish<EventTalentPointChange>(new EventTalentPointChange(TalentPoint, 0));
         }
         
-        // 一次完整制作结束时获得一份咖啡，取消或超时不调用。
-        public void AddCoffee()
-        {
-            CoffeeCount++;
-            EventPipeline.Publish(new EventCoffeeCountChange(CoffeeCount));
-        }
 
         public void AddCoins(int amount)
         {

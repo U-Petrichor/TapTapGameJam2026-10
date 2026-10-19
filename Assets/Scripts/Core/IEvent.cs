@@ -83,7 +83,7 @@ namespace TapTapGameJam.Events
             DayCount = dayCount;
         }
     }
-    /// <summary>门首次达到开放日期；此时仍需要玩家交互开门。</summary>
+    /// <summary>门首次达到开放日期；玩家靠近后自动开门。</summary>
     public readonly struct EventSecurityDoorAvailable : IEvent
     {
         public SecurityDoor Door { get; }
@@ -202,11 +202,6 @@ namespace TapTapGameJam.Events
             RemainingCockroach = remainingCockroach;
             ChangeValue = changeValue;
         }
-    }
-    public readonly struct EventCoffeeCountChange : IEvent
-    {
-        public int CoffeeCount { get; }
-        public EventCoffeeCountChange(int coffeeCount) => CoffeeCount = coffeeCount;
     }
 
     public readonly struct EventGameOver : IEvent

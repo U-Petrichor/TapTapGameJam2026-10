@@ -1,8 +1,8 @@
 # 天赋节点图标对应表
 
 图标按桌面《天赋表格.md》内嵌配图逐项核对。
-Talent0「觉醒」未在表格中列出，保留无图标。
-Talent17「瞬息落卵」按用户要求留空，等待对应 PNG；未使用表格中的低分辨率图。
+Talent0「觉醒」使用 talent0.png 的 talent0_TalentIcon 裁切 Sprite。
+Talent17「瞬息落卵」使用 talent17.png 的 talent17_TalentIcon 裁切 Sprite。
 
 显示层级：Button 边框 → TalentIcon → SelectedIndicator。
 TalentIcon 居中，使用 Button 宽高的 52% 作为容器，保持比例，不接收射线。

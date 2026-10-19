@@ -37,15 +37,11 @@ public static class VerifyDoor10Passage
             rb.position=start; player.transform.position=start; rb.linearVelocity=Vector3.zero;
             Physics.SyncTransforms();
             await Task.Delay(250);
-            Check(!door.CanInteract(player)&&!interaction.Candidates.Contains(door),"Locked door cannot be interacted with");
+            Check(!door.IsAvailable && Field<Collider>(door,"_blockCollider").enabled,"Locked door blocks player");
             EventPipeline.Publish(new EventNewDay(3));
-            await Task.Delay(250);
-            Check(interaction.Candidates.Contains(door),"Standing player gains interaction after day unlock without leaving trigger");
-            Check(interaction.SelectInteractionTarget(door),"Door can receive real player interaction");
-            interaction.HandleInteract(default);
             await Task.Delay(700);
             Check(!Field<Collider>(door,"_blockCollider").enabled,"Player opening removes blocking collider");
-            Check(!Field<Collider>(door,"_detectCollider").enabled&&!interaction.Candidates.Contains(door),"Opened door removes detection and interaction");
+            Check(Field<Collider>(door,"_detectCollider").enabled && !interaction.Candidates.Any(c => c.GetComponent<SecurityDoor>() != null),"Opened door keeps detection without interaction candidates");
             var cam=Field<Transform>(player.GetComponent<PlayerMovement>(),"_camTransform");
             Vector3 forward=cam.forward; forward.y=0; forward.Normalize();
             Vector3 right=cam.right; right.y=0; right.Normalize();

@@ -16,6 +16,9 @@ namespace TapTapGameJam.Interactables
     public abstract class Interactable : MonoBehaviour
     {
         public abstract string InteractionPrompt { get; }
+        [SerializeField, Tooltip("左下角的完整任务提示图；不配置时不显示任务提示。")]
+        private Sprite _interactionPromptSprite;
+        public Sprite InteractionPromptSprite => _interactionPromptSprite;
 
         /// <summary>
         /// 是否处于就绪状态（已被选中，准备交互），由 PlayerInteractionManager 维护，只有当前选中的对象为 true

@@ -51,6 +51,7 @@ MonoBehaviour:
   _carryLocalEulerAngles: {x: -105.601, y: -687.739, z: 483.525}
   _carryLocalScale: {x: 0.3, y: 0.3, z: 0.3}
   IsFree: 1
+  _interactionPromptSprite: {fileID: 21300000, guid: e0aedd8949fd10443a40b3de57104d75, type: 3}
 --- !u!136 &2918996098975626861
 CapsuleCollider:
   m_ObjectHideFlags: 0

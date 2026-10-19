@@ -39,9 +39,16 @@ namespace TapTapGameJam.Cockroach
         // TODO： 和PlayerResources合并取其一
         [Header("共享总营养")] public float sharedNutrition;
 
+        [Header("胜利目标")]
+        [Min(1), SerializeField] private int victoryPopulation = 2000;
+        public int VictoryPopulation => Mathf.Max(1, victoryPopulation);
+        public bool HasWon { get; private set; }
+
         public List<CockNest> CockNestList { get; private set; } = new List<CockNest>();
 
         private int _decisionFrameCounter;
+        private int _lastPopulation = -1;
+        private bool _gameEnded;
 
         private CockroachBuffSnapshot _buffMods = CockroachBuffSnapshot.Identity;
         private int _buffRevision = int.MinValue;
@@ -76,6 +83,31 @@ namespace TapTapGameJam.Cockroach
         private void Awake()
         {
             _instance = this;
+        }
+
+        private void OnEnable() => EventPipeline.Subscribe<EventGameOver>(OnGameOver);
+        private void OnDisable() => EventPipeline.UnSubscribe<EventGameOver>(OnGameOver);
+        private void OnGameOver(EventGameOver evt) { _gameEnded = true; }
+
+        // Reconcile once per frame, including nest removal and initial scene population.
+        // Only sum nest list lengths; never scan all individual cockroaches here.
+        private void LateUpdate()
+        {
+            int population = CockroachTotalCount();
+            if (population != _lastPopulation)
+            {
+                int change = _lastPopulation < 0 ? 0 : population - _lastPopulation;
+                _lastPopulation = population;
+                EventPipeline.Publish(new EventCockroachCountChange(population, change));
+            }
+
+            if (!_gameEnded && population >= VictoryPopulation)
+            {
+                HasWon = true;
+                _gameEnded = true;
+                Debug.Log($"[CockroachManager] 胜利：蟑螂数量达到 {population}/{VictoryPopulation}。");
+                EventPipeline.Publish(new EventGameOver(true, $"蟑螂数量达到 {VictoryPopulation}"));
+            }
         }
 
         private void Start()
@@ -115,7 +147,8 @@ namespace TapTapGameJam.Cockroach
             int total = 0;
             foreach (CockNest nest in CockNestList)
             {
-                if (nest.isCockroachActive) total += nest.CockroachList.Count;
+                // Daytime pauses activity; surviving cockroaches still count toward victory.
+                if (nest != null) total += nest.CockroachList.Count;
             }
 
             return total;

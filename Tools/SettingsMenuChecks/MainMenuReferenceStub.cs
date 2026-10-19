@@ -1,0 +1,1 @@
+using UnityEngine;using UnityEngine.UI;namespace TapTapGameJam.UI {public class MainMenuUIInteract:MonoBehaviour {public GameObject settingsCanvas;public Button settingsBackBtn;}}

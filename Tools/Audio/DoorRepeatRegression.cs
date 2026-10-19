@@ -28,23 +28,23 @@ public static class DoorRepeatRegression
         EventPipeline.Subscribe(record);
         try
         {
-            Call(door, "OpenForNpc");
-            for (int i = 0; i < 60; i++) Call(door, "OpenForNpc");
+            Request(door, true);
+            for (int i = 0; i < 60; i++) Request(door, true);
             check(requests == 1, "NPC requests during opening issue one door sound");
             Call(door, "FinishDoorAnimation");
-            for (int i = 0; i < 60; i++) Call(door, "OpenForNpc");
+            for (int i = 0; i < 60; i++) Request(door, true);
             check(requests == 1, "NPC staying beside an already-open door never replays its sound");
-            Call(door, "CloseForNpc");
-            for (int i = 0; i < 60; i++) Call(door, "CloseForNpc");
+            Request(door, false);
+            for (int i = 0; i < 60; i++) Request(door, false);
             check(closeRequests == 1, "Closing uses its own sound once despite repeated requests");
             Call(door, "FinishDoorAnimation");
-            for (int i = 0; i < 60; i++) Call(door, "CloseForNpc");
+            for (int i = 0; i < 60; i++) Request(door, false);
             check(closeRequests == 1, "An already-closed door never replays its closing sound");
-            Call(door, "OpenForNpc");
+            Request(door, true);
             check(requests == 2, "A genuinely new opening after closing still plays once");
             Call(door, "FinishDoorAnimation");
-            Call(door, "CloseForNpc");
-            Call(door, "OpenForNpc");
+            Request(door, false);
+            Request(door, true);
             check(requests == 3, "Reversing a closing door can play a new opening cue");
             check(closeRequests == 2, "A new closing transition plays one closing cue");
         }
@@ -54,6 +54,8 @@ public static class DoorRepeatRegression
             UnityEngine.Object.Destroy(go);
         }
     }
+    private static void Request(SecurityDoor door, bool opening) =>
+        typeof(SecurityDoor).GetMethod("StartDoorAnimation", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(door, new object[] { opening });
     private static void Field(SecurityDoor door, string name, object value) =>
         typeof(SecurityDoor).GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(door, value);
     private static void Call(SecurityDoor door, string name) =>

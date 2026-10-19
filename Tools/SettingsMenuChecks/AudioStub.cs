@@ -1,0 +1,1 @@
+namespace TapTapGameJam.Audio { public class SoundManager { public static SoundManager Instance => null; public float EffectsVolume {get;set;} public float MusicVolume {get;set;} } }

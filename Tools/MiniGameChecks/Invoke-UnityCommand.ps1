@@ -1,5 +1,33 @@
-param([string]$CodePath, [string]$Tool = 'Unity_RunCommand', [string]$ParamsPath, [int]$TimeoutSeconds = 45)
+param([string]$CodePath, [string]$Tool = 'Unity_RunCommand', [string]$ParamsPath, [ValidateRange(1,300)][int]$TimeoutSeconds = 45, [switch]$Worker)
 $ErrorActionPreference = 'Stop'
+# The deadline must cover discovery, connect and write too, not just response reads.
+# Keep the potentially blocking pipe operations in a disposable, memory-limited worker.
+if (-not $Worker) {
+    $stdoutPath = [IO.Path]::GetTempFileName()
+    $stderrPath = [IO.Path]::GetTempFileName()
+    $workerProcess = $null
+    try {
+        $workerArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + $PSCommandPath + '"'), '-Worker', '-TimeoutSeconds', $TimeoutSeconds, '-Tool', ('"' + $Tool + '"'))
+        if ($CodePath) { $workerArgs += @('-CodePath', ('"' + (Resolve-Path -LiteralPath $CodePath).Path + '"')) }
+        if ($ParamsPath) { $workerArgs += @('-ParamsPath', ('"' + (Resolve-Path -LiteralPath $ParamsPath).Path + '"')) }
+        $workerProcess = Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList $workerArgs -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+        $deadline = [Diagnostics.Stopwatch]::StartNew()
+        while (-not $workerProcess.WaitForExit(100)) {
+            $workerProcess.Refresh()
+            if ($deadline.Elapsed.TotalSeconds -ge $TimeoutSeconds) { throw 'Unity bridge exceeded its total time limit; worker terminated.' }
+            if ($workerProcess.WorkingSet64 -gt 256MB) { throw 'Unity bridge exceeded its 256 MB memory limit; worker terminated.' }
+        }
+        if ((Get-Item -LiteralPath $stdoutPath).Length -gt 4MB -or (Get-Item -LiteralPath $stderrPath).Length -gt 4MB) { throw 'Unity bridge output exceeded 4 MB.' }
+        $workerOutput = Get-Content -LiteralPath $stdoutPath -Raw
+        if ($workerOutput) { Write-Output $workerOutput }
+        if ($workerProcess.ExitCode -ne 0) { throw (Get-Content -LiteralPath $stderrPath -Raw) }
+    } finally {
+        if ($workerProcess -and -not $workerProcess.HasExited) { $workerProcess.Kill(); $workerProcess.WaitForExit() }
+        if ($workerProcess) { $workerProcess.Dispose() }
+        Remove-Item -LiteralPath $stdoutPath, $stderrPath -Force -ErrorAction SilentlyContinue
+    }
+    return
+}
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $editorProcess = Get-CimInstance Win32_Process -Filter "name = 'Unity.exe'" | Where-Object {
     $_.CommandLine -and $_.CommandLine.Contains($projectRoot) -and $_.CommandLine -notmatch 'AssetImportWorker'

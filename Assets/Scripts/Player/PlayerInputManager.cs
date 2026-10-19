@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using TapTapGameJam.Events;
@@ -265,6 +265,8 @@ namespace TapTapGameJam.Player
         #region 打开ESC菜单
         public void SwitchESCMenu(InputAction.CallbackContext context)
         {
+            // Settings sits above the paused ESC menu; the first Escape only closes settings.
+            if (context.performed && SettingsMenu.CloseGameSettings()) return;
             if (WorldInputBlocked) return;
             if (!context.performed)
             {

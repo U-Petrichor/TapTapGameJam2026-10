@@ -34,6 +34,10 @@ namespace TapTapGameJam.NPC
         [SerializeField] private bool _startInIdle = true;
 
         private Vector3 _homePosition;
+        private Quaternion _homeRotation;
+        private bool _hasSpawnPose;
+        private bool _pendingDayReset;
+        private bool _pendingNavigationReset;
 
         public NpcStateMachine StateMachine { get; private set; }
         public IdleState Idle { get; private set; }
@@ -45,10 +49,24 @@ namespace TapTapGameJam.NPC
 
         protected virtual void Awake()
         {
+            InitializeIfNeeded();
+        }
+
+        internal void CaptureSpawnPose()
+        {
+            if (_hasSpawnPose) return;
+            _homePosition = transform.position;
+            _homeRotation = transform.rotation;
+            _hasSpawnPose = true;
+        }
+
+        private void InitializeIfNeeded()
+        {
+            if (StateMachine != null) return;
             if (_animator == null) _animator = GetComponent<Animator>();
             if (_agent == null) _agent = GetComponent<NavMeshAgent>();
 
-            _homePosition = transform.position;
+            CaptureSpawnPose();
             NormalizeSettings();
 
             StateMachine = new NpcStateMachine();
@@ -57,8 +75,65 @@ namespace TapTapGameJam.NPC
             OnNpcAwake();
         }
 
+        /// <summary>在显示前回到出生点，清空导航和昨天的行为。</summary>
+        public void ResetForNewDay()
+        {
+            InitializeIfNeeded();
+            StateMachine.CurrentState?.Exit();
+            StopMoving();
+
+            // 先解除导航代理与旧位置的绑定，再从出生点重新注册。
+            bool agentEnabled = _agent != null && _agent.enabled;
+            if (agentEnabled) _agent.enabled = false;
+            transform.SetPositionAndRotation(_homePosition, _homeRotation);
+            if (agentEnabled) _agent.enabled = true;
+
+            OnNewDayReset();
+            StateMachine = new NpcStateMachine();
+            Idle = new IdleState(this);
+            Walk = new WalkState(this);
+            _pendingDayReset = true;
+            if (isActiveAndEnabled) CompleteDayReset();
+        }
+
+        protected virtual void OnNewDayReset() { }
+
+        protected virtual void OnEnable()
+        {
+            if (_pendingDayReset) CompleteDayReset();
+        }
+
+        private void CompleteDayReset()
+        {
+            _pendingDayReset = false;
+            _pendingNavigationReset = true;
+            if (_animator != null && _animator.isActiveAndEnabled)
+            {
+                _animator.Rebind();
+                if (_animator.HasState(0, IdleStateHash))
+                    _animator.Play(IdleStateHash, 0, 0f);
+            }
+            transform.rotation = _homeRotation;
+            StateMachine.ChangeState(Idle);
+        }
+
+        private void TryCompleteNavigationReset()
+        {
+            if (!_pendingNavigationReset) return;
+            if (_agent != null)
+            {
+                // 重新激活后的导航注册可能要到下一帧才完成。
+                if (!_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
+                StopMoving();
+                _agent.velocity = Vector3.zero;
+                transform.rotation = _homeRotation;
+            }
+            _pendingNavigationReset = false;
+        }
+
         protected virtual void Start()
         {
+            if (StateMachine.CurrentState != null) return;
             if (_startInIdle)
             {
                 StateMachine.ChangeState(Idle);
@@ -71,6 +146,7 @@ namespace TapTapGameJam.NPC
 
         protected virtual void Update()
         {
+            TryCompleteNavigationReset();
             StateMachine?.Update();
         }
 
@@ -216,10 +292,11 @@ namespace TapTapGameJam.NPC
 
         public void StopMoving()
         {
-            if (_agent == null || !_agent.isOnNavMesh) return;
+            if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh) return;
 
-            _agent.isStopped = true;
             _agent.ResetPath();
+            // ResetPath 会清除代理的停止标记，因此在清除路径后再停止。
+            _agent.isStopped = true;
         }
 
         public void PlayIdleAnimation() => PlayAnimation(IdleStateHash);

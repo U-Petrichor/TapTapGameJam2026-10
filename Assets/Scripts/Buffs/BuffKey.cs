@@ -104,7 +104,7 @@ namespace TapTapGameJam.Buffs
         /// <summary>天赋点（怒气）获取加成。只作用于「获得」，撤销天赋的退款必须原额返还。[对应天赋 积怨成怒/怒火翻涌]</summary>
         TalentPointGainPercent,
 
-        /// <summary>[预留] 咖啡获取加成。PlayerResources.CoffeeCount 已在用，倍率尚未接线。</summary>
+        /// <summary>[预留] 咖啡获取加成。倍率尚未接线。</summary>
         CoffeeGainPercent,
 
         // ---------------- 元属性 / 特殊 ----------------

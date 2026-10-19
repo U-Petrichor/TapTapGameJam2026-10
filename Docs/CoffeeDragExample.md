@@ -31,7 +31,7 @@
 
 研磨结束时显示一个咖啡粉容器，作为第六步可拖动的对象。咖啡粉容器可以先用小 Cube 表示，摆在研磨机旁。粉粒、蒸汽、水流等是可选表现，不做液体物理模拟。
 
-成功后自动调用 PlayerResources.AddCoffee()，CoffeeCount 增加 1，并发布 EventCoffeeCountChange。玩家资源组件的 Inspector 中可以看到咖啡数。现有项目尚没有通用物品背包，所以先将咖啡作为玩家持有的资源记录。
+成功后自动结束小游戏并结算配置的金币、天赋点奖励。
 
 ## 3. 场景结构
 
@@ -171,7 +171,7 @@ CoffeeCanvas 使用 Screen Space - Overlay。文本、进度条和整屏背景�
 每帧 → Recipe.Tick → 倒粉完成 → PourWater
 水壶持续有效拖拽 → UpdateDraggedItem → Recipe.PourWater
 每帧 → Recipe.Tick → 滴滤完成 → CompleteCoffee
-CompleteCoffee → 自动关闭 + PlayerResources.AddCoffee
+CompleteCoffee → 自动关闭 + 结算配置奖励
 ~~~
 
 ## 9. 验证
@@ -184,7 +184,7 @@ dotnet run --project Tools/CoffeeRecipeChecks/CoffeeRecipeChecks.csproj
 
 覆盖顺序限制、加热启动、研磨松手、分次注水、自动滴滤完成、重复完成保护、重新开始及无效时间参数。
 
-Unity 中仍需连接器具/UI 后进行 Play 验证：开始/取消、每步拖错位置、注水移出区域、完整制作后自动退出且 CoffeeCount 只增加 1，以及倒计时到期中止。代码编译和配方测试不等于已完成场景中的鼠标操作验证。
+Unity 中仍需连接器具/UI 后进行 Play 验证：开始/取消、每步拖错位置、注水移出区域、完整制作后自动退出且配置奖励只结算一次，以及倒计时到期中止。代码编译和配方测试不等于已完成场景中的鼠标操作验证。
 # 旧版 3D 咖啡交互记录（Legacy）
 
 本文记录的是已经移除的 3D 咖啡控制器和交互器，仅用于历史参考。当前主场景使用 `MakeCoffeeQuest → MakeCoffeeInstance → MakeCoffeePoint → CoffeeGame` 的三步 2D 面板流程：研磨 1.5 秒、移动粉杯、注水 2 秒。文中的 `CoffeeMinigameManager` 与 `CoffeeDeskInteractor` 已不再存在。

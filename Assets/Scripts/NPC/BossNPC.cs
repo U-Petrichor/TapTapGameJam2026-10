@@ -39,7 +39,13 @@ namespace TapTapGameJam.NPC
             _exitProbabilityMax = Mathf.Clamp01(_exitProbabilityMax);
             _maxWandersBeforeExit = Mathf.Max(1, _maxWandersBeforeExit);
 
+            OnNewDayReset();
+        }
+
+        protected override void OnNewDayReset()
+        {
             _currentRegion = FindRegionAtPosition() ?? FirstValidRegion();
+            _pendingRegion = null;
             _wanderCount = 0;
         }
 

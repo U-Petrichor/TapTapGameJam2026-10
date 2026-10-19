@@ -1,4 +1,5 @@
 using TapTapGameJam.Audio;
+using TapTapGameJam.Core;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
@@ -31,8 +32,8 @@ namespace TapTapGameJam.UI
         {
             SetMenuInteractable(true);
             startGameBtn.onClick.AddListener(StartGame);
-            // Reserved until a save system is available.
-            continueGameBtn.interactable = false;
+            continueGameBtn.interactable = SaveManager.TryRead(out _);
+            continueGameBtn.onClick.AddListener(ContinueGame);
             settingsBtn.onClick.AddListener(OpenSettings);
             galleryBtn.onClick.AddListener(OpenGallery);
             exitBtn.onClick.AddListener(OpenExit);
@@ -53,6 +54,13 @@ namespace TapTapGameJam.UI
 
         private void StartGame()
         {
+            BeginGame(false);
+        }
+
+        private void ContinueGame() => BeginGame(true);
+
+        private void BeginGame(bool continueSave)
+        {
             if (startingGame) return;
             Sfx.Play(SoundId.Click, this);
             if (introTransition == null)
@@ -60,7 +68,20 @@ namespace TapTapGameJam.UI
                 Debug.LogError("开始游戏：请绑定 VideoCanvas 上的 IntroVideoTransition。", this);
                 return;
             }
-            if (!introTransition.Begin()) return;
+            if (continueSave)
+            {
+                if (!SaveManager.PrepareContinue())
+                {
+                    continueGameBtn.interactable = false;
+                    return;
+                }
+            }
+            else SaveManager.PrepareNewGame();
+            if (!introTransition.Begin(!continueSave && !PlayerProfile.HasWatchedIntro))
+            {
+                SaveManager.PrepareNewGame();
+                return;
+            }
             startingGame = true;
             SetMenuInteractable(false);
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);

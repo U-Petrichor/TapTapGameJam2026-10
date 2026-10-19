@@ -35,6 +35,7 @@ namespace TapTapGameJam.UI
         private TMP_Text loadingLabel;
         private AsyncOperation loading;
         private bool videoFinished;
+        private bool videoCompletedSuccessfully;
         private bool gameLoaded;
         private bool ownsPause;
         private float previousTimeScale;
@@ -52,6 +53,11 @@ namespace TapTapGameJam.UI
 
         // Called by the existing main-menu button. Validate before locking the menu.
         public bool Begin()
+        {
+            return Begin(true);
+        }
+
+        public bool Begin(bool playIntro)
         {
             if (IsTransitioning) return false;
             if (!Application.CanStreamedLevelBeLoaded(gameSceneName))
@@ -82,14 +88,20 @@ namespace TapTapGameJam.UI
             SceneManager.sceneLoaded += OnSceneLoaded;
             CreateLoadingUI();
             canvas.enabled = true;
-            StartCoroutine(RunTransition());
+            StartCoroutine(RunTransition(playIntro));
             return true;
         }
 
-        private IEnumerator RunTransition()
+        private IEnumerator RunTransition(bool playIntro)
         {
             videoFinished = false;
-            if (videoPlayer == null || videoGroup == null ||
+            videoCompletedSuccessfully = false;
+            if (!playIntro)
+            {
+                videoFinished = true;
+                if (videoGroup != null) videoGroup.alpha = 0f;
+            }
+            else if (videoPlayer == null || videoGroup == null ||
                 (videoPlayer.source == VideoSource.VideoClip && videoPlayer.clip == null))
             {
                 FailVideo("没有配置视频或 CanvasGroup，跳过开场视频。");
@@ -150,6 +162,8 @@ namespace TapTapGameJam.UI
                 yield return null;
             }
 
+            // 只有视频正常结束且游戏场景已载入，才视为已看过。
+            if (videoCompletedSuccessfully) PlayerProfile.MarkIntroWatched();
             ReleasePauseAndInput();
             canvas.enabled = false;
             Destroy(gameObject);
@@ -188,7 +202,11 @@ namespace TapTapGameJam.UI
             }
         }
 
-        private void OnVideoEnded(VideoPlayer player) => videoFinished = true;
+        private void OnVideoEnded(VideoPlayer player)
+        {
+            videoCompletedSuccessfully = true;
+            videoFinished = true;
+        }
         private void OnVideoError(VideoPlayer player, string message) => FailVideo(message);
 
         private void FailVideo(string message)

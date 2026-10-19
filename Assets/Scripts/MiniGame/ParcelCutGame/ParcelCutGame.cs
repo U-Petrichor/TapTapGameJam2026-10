@@ -34,9 +34,9 @@ namespace TapTapGameJam.UI
         [SerializeField, Range(0.03f, 0.4f)] private float _pathTolerance = 0.25f;
         [Tooltip("覆盖此比例的不同判定点即可剪开；60% 对应 32 个点中的至少 20 个。")]
         [SerializeField, Range(0.1f, 1f)] private float _completionThreshold = ParcelCutRound.DefaultCompletionThreshold;
-        [Header("判定点显示")]
-        [Tooltip("橙色表示未覆盖，绿色表示已覆盖；显示的点与实际剪切判定一致。")]
-        [SerializeField] private bool _showCheckpoints = true;
+        [Header("切割路径提示")]
+        [Tooltip("虚线沿实际判定路径常驻显示；开启此项可额外显示调试点，橙色未覆盖、绿色已覆盖。")]
+        [SerializeField] private bool _showCheckpoints = false;
         [SerializeField, Min(1f)] private float _checkpointRadius = 5f;
 
         private ParcelCutCheckpointGraphic _checkpointGraphic;
@@ -300,9 +300,9 @@ namespace TapTapGameJam.UI
         private void RefreshCheckpoints()
         {
             if (_checkpointGraphic == null) return;
-            bool show = _running && _showCheckpoints;
+            bool show = _running;
             _checkpointGraphic.gameObject.SetActive(show);
-            if (show) _checkpointGraphic.Configure(_round, _checkpointTapeRects, _checkpointRadius);
+            if (show) _checkpointGraphic.Configure(_round, _checkpointTapeRects, _checkpointRadius, _showCheckpoints);
         }
 
         // Also follows edits to tape transforms and the display toggle during Play.

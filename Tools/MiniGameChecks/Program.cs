@@ -48,7 +48,6 @@ internal static class Program
                 old(true); old(true); f.Task.Cancel();
                 Check(f.Manager.Tasks.Count == 0 && f.Quest.CanSpawn && f.Task.WasSuccessful);
                 Check(f.Player.PlayerResources.Coins == 17 && f.Player.PlayerResources.TalentPoint == 2);
-                Check(f.Player.PlayerResources.CoffeeCount == (kind == "coffee" ? 1 : 0));
                 f.Spawn(); f.Point.Interact(f.Player, InteractKey.E); old(true);
                 Check(f.Manager.Tasks.Count == 1 && f.Player.PlayerResources.Coins == 17);
                 f.Callback(true);

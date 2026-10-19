@@ -17,6 +17,7 @@ namespace TapTapGameJam.Player
         public bool HasInteractionTargets => _candidates.Count > 0;
         public string CurrentInteractionPrompt => _currentTarget != null ? _currentTarget.InteractionPrompt : string.Empty;
         private Interactable _currentTarget;
+        public Interactable CurrentTarget => _currentTarget;
         private bool _isUIVisible;
 
         // 新 UI 只接收显示、隐藏和文字通知，不维护交互对象列表。

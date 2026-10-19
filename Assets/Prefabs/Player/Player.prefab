@@ -437,7 +437,6 @@ MonoBehaviour:
   <Coins>k__BackingField: 100
   <Nutrition>k__BackingField: 0
   <TalentPoint>k__BackingField: 0
-  <CoffeeCount>k__BackingField: 0
 --- !u!114 &1619057078572079941
 MonoBehaviour:
   m_ObjectHideFlags: 0

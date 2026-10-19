@@ -288,7 +288,6 @@ public static class MiniGameSuiteSmokeChecks
         coffeeData.FindProperty("_waterSeconds").floatValue = 0.1f;
         coffeeData.ApplyModifiedPropertiesWithoutUndo();
         before = _player.PlayerResources.Coins;
-        int coffeeBefore = _player.PlayerResources.CoffeeCount;
         var coffeeTask = coffeeQuest.CreateTask();
         Assert(coffeeTask != null, "coffee task generated");
         coffeePoint.Interact(_player, InteractKey.E);
@@ -334,7 +333,7 @@ public static class MiniGameSuiteSmokeChecks
         while (!coffeeTask.IsFinished)
         { _mouse.MakeCurrent(); Assert(Time.realtimeSinceStartup < deadline, "coffee pour timeout"); yield return null; }
         InputState.Change(_mouse, new MouseState());
-        Assert(coffeeTask.WasSuccessful && _player.PlayerResources.CoffeeCount == coffeeBefore + 1, "2D coffee awards exactly one coffee");
+        Assert(coffeeTask.WasSuccessful, "2D coffee completes successfully");
         Assert(_player.PlayerResources.Coins == before + coffeeTask.RewardCoins, "coffee reward matches task configuration");
         Assert(!_panel.GetComponent<CanvasGroup>().blocksRaycasts, "completed panel releases UI raycasts");
         coffeeTask = coffeeQuest.CreateTask(); coffeePoint.Interact(_player, InteractKey.E);
@@ -344,7 +343,6 @@ public static class MiniGameSuiteSmokeChecks
         Assert(Field<CoffeeRecipe>(coffee, "_recipe").Step == CoffeeStep.LoadBeans, "coffee retry starts with loading beans");
         coffeeTask.Cancel();
         Assert(coffeeTask.IsFinished && !_panel.GetComponent<CanvasGroup>().blocksRaycasts, "task cancellation closes its panel");
-        Assert(_player.PlayerResources.CoffeeCount == coffeeBefore + 1, "coffee cancellation gives no extra coffee");
         var printerChecks = PrinterChecks(taskManager, arrows);
         while (printerChecks.MoveNext()) yield return printerChecks.Current;
         yield return null;

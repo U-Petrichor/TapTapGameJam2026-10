@@ -82,7 +82,7 @@ public static class VerifyDoorReveal
             }
 
             // 用 Play Mode 临时复制的一扇门验证中断，退出 Play Mode 后副本自动丢弃。
-            var template = doors.First(d => Field<int>(d, "_whichDayOpen") < 0);
+            var template = doors.First(d => Field<int>(d, "_whichDayOpen") < 0 && !Field<bool>(d, "_requiresAccessCard"));
             var extra = Object.Instantiate(template);
             extra.GetType().GetField("_whichDayOpen", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(extra, 9);
             phase.DayIndex = 8;

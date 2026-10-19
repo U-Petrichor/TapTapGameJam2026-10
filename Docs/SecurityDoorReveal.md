@@ -1,5 +1,29 @@
 # 门开放运镜
 
+## 当前开门与门禁卡规则（2026-10-19）
+
+- `SecurityDoor` 继承 `MonoBehaviour`，不再参与交互候选、按键或交互提示。普通门达到日期后，玩家靠近自动开启，离开自动关闭；NPC 继续临时开关门，不能替玩家解锁。
+- `SecurityDoor (5)` 已勾选 `Requires Access Card`，只受门禁卡控制，日期事件不能覆盖卡片权限。
+- `CardSpawnPoint` 上的 `AccessCardSpawner` 引用 `Card.prefab`、`Day2Night`、`Day4Night` 和 5 号门。第二晚生成，没捡则天亮销毁，第四晚在另一点再生成；两晚都错过后不再生成。
+- 卡片沿用夜晚交互检测和 `ToolBubbleCanvas`，只显示 E「获得门禁卡」。F 不收进背包，拾取不占格、不登记为普通物品；立即注销候选并销毁，仅留下本局权限状态。
+- 捡卡立即让远处的 5 号门完整打开一次，无人在旁则随后关闭；后续白天、夜晚都按靠近/离开开关。拾取不会播放开放特写，第四晚也不会再次刷新。
+- 日期开放特写仍保留，只提示可进入区域，不直接让远处的普通门开启。
+
+验证：项目脚本编译通过，已检查保存后的真实场景与预制体引用。使用同一份生产门、卡片、阶段与事件脚本，在 Unity 无图形 Play Mode 中通过 56 项检查，覆盖真实物理触发、第二晚拾取、第四晚补捡、全部错过、跨昼夜权限、NPC 开关和音效去重。该环境仅替换了无关的玩家/NPC/音频依赖，并禁用了没有控制器的测试 Animator，不验证完整场景画面。完整 GameScene 的 Play Mode 验证因编辑器失去响应、连接中断而未完成。
+
+可重复的检查入口：
+
+```powershell
+python Tools/DoorRevealChecks/prepare_headless.py
+# 使用输出目录作为 -projectPath，添加 -batchmode -nographics -executeMethod DoorChecksEditor.Run。
+# 输出目录中的 result.txt 包含检查结果。
+unity command run_script --file Tools/DoorRevealChecks/InspectAccessCard.cs --result-only
+# 完整场景检查：在全新 GameScene Play Mode 中运行，args 取 [2]、[4] 或 [0]。
+unity command run_script --file Tools/DoorRevealChecks/VerifyAccessCard.cs --args '[2]' --timeout_ms 40000 --timeout 45 --result-only
+```
+
+以下保留早前修复与验证记录，其中按键开门的描述已被上述规则替代。
+
 ## SecurityDoor (10) 闪退与通行修复（2026-10-19）
 
 - 三次编辑器崩溃均落在 DX12 图形线程。用本机 6000.3.25f1 的 `Unity_x64.pdb` 解析最近一次崩溃地址，得到 `GfxVersionList::Impl::ReleaseFromGfxVersionList → BufferD3D12 → GfxTaskExecutorD3D12`。这与 Unity 已知问题 [UUM-150682](https://issuetracker.unity.com/issues/24291/crash-on-gfxversionlistimplreleasefromgfxversionlist-when-performing-various-unity-operations) 的调用栈一致，官方标注 6000.3.27f1 修复。曾临时使用 DX11 验证，但用户反馈贴图错乱，已撤回项目级 DX11 设置，恢复原来的自动 API 配置；不能将 DX11 作为交付方案。DX12 下的闪退尚未解决，后续应在团队统一验证修复版引擎后处理。
@@ -15,7 +39,7 @@
 unity command run_script --file Tools/DoorRevealChecks/VerifyDoor10Passage.cs --timeout 20 --result-only
 ```
 
-GameScene 已配置 `SecurityDoorRevealDirector`，其子物体 `SecurityDoorRevealCamera` 是独立的 Cinemachine 虚拟相机。平时禁用，播放期间以高优先级接管画面。门仍由玩家交互打开，特写只提示新的开放区域。
+GameScene 已配置 `SecurityDoorRevealDirector`，其子物体 `SecurityDoorRevealCamera` 是独立的 Cinemachine 虚拟相机。平时禁用，播放期间以高优先级接管画面。门由玩家靠近自动打开，特写只提示新的开放区域。
 
 ## 播放规则
 

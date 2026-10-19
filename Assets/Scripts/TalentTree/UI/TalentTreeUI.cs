@@ -31,6 +31,11 @@ namespace TalentTree
         [SerializeField, Min(0.1f)] private float _maximumZoom = 2.5f;
         [SerializeField, Min(1.01f)] private float _zoomStep = 1.1f;
 
+        [Header("Talent tree background shadow")]
+        [SerializeField, Range(0f, 1f)] private float _backgroundShadowOpacity = 0.94f;
+        [SerializeField] private Vector2 _backgroundShadowCenter = new(0.5f, 0.12f);
+        [SerializeField] private Vector2 _backgroundShadowRadius = new(0.58f, 0.95f);
+
         private readonly Dictionary<TalentData, Button> _nodeButtons = new();
         private readonly Dictionary<TalentData, TMP_Text> _nodeLabels = new();
         private GameObject _panel;
@@ -56,12 +61,14 @@ namespace TalentTree
         private RectTransform _treeContent;
         private RectTransform _introducePanelRect;
         private RectTransform _detailsRect;
+        private RectTransform _backgroundShadowRect;
         private Vector3 _initialTreeContentPosition;
         private Vector3 _initialTreeContentScale;
         private float _zoom = 1f;
         private bool _isPanning;
         private Vector2 _lastPanPointer;
         private static Sprite _defaultSprite;
+        private static Texture2D _backgroundShadowTexture;
         private static TMP_FontAsset _activeFontAsset;
 
         private void OnValidate()
@@ -421,6 +428,7 @@ namespace TalentTree
             if (_panelRect == null) return;
 
             _treeContent = FindRectTransform("Nodes") ?? FindRectTransform("Graph");
+            InitializeBackgroundShadow();
             if (_treeContent == null) return;
 
             _introducePanelRect = FindRectTransform("IntroducePanel");
@@ -442,6 +450,59 @@ namespace TalentTree
             // The panel itself is the clipping viewport. Fixed sibling UI is
             // rendered after Nodes and therefore remains above the moving tree.
             if (_panel.GetComponent<RectMask2D>() == null) _panel.AddComponent<RectMask2D>();
+        }
+
+        private void InitializeBackgroundShadow()
+        {
+            // A fixed layer behind the tree keeps nodes, connections and labels crisp.
+            Transform shadowParent = !_usingAuthoredUi && _treeContent != null ? _treeContent : _panel.transform;
+            Transform existing = shadowParent.Find("BackgroundShadow");
+            RawImage shadow = existing != null ? existing.GetComponent<RawImage>() : null;
+            if (shadow == null)
+            {
+                GameObject go = new("BackgroundShadow", typeof(RectTransform), typeof(RawImage));
+                go.layer = _panel.layer;
+                go.transform.SetParent(shadowParent, false);
+                shadow = go.GetComponent<RawImage>();
+            }
+
+            if (_backgroundShadowTexture == null)
+            {
+                const int resolution = 512;
+                _backgroundShadowTexture = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false)
+                {
+                    name = "TalentTreeSoftShadow",
+                    hideFlags = HideFlags.HideAndDontSave,
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear
+                };
+                Color32[] pixels = new Color32[resolution * resolution];
+                for (int y = 0; y < resolution; y++)
+                {
+                    for (int x = 0; x < resolution; x++)
+                    {
+                        Vector2 point = new Vector2(x, y) / (resolution - 1f) * 2f - Vector2.one;
+                        float fade = Mathf.InverseLerp(0.12f, 1f, point.magnitude);
+                        float alpha = 1f - Mathf.SmoothStep(0f, 1f, fade);
+                        pixels[y * resolution + x] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(alpha * 255f));
+                    }
+                }
+                _backgroundShadowTexture.SetPixels32(pixels);
+                _backgroundShadowTexture.Apply(false, true);
+            }
+
+            Vector2 radius = new(Mathf.Max(0.01f, _backgroundShadowRadius.x), Mathf.Max(0.01f, _backgroundShadowRadius.y));
+            RectTransform rect = shadow.rectTransform;
+            _backgroundShadowRect = rect;
+            rect.anchorMin = _backgroundShadowCenter - radius;
+            rect.anchorMax = _backgroundShadowCenter + radius;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            // Immediately below the tree, above any authored background images.
+            rect.SetSiblingIndex(_usingAuthoredUi && _treeContent != null ? _treeContent.GetSiblingIndex() : 0);
+            shadow.texture = _backgroundShadowTexture;
+            shadow.color = new Color(1f, 1f, 1f, _backgroundShadowOpacity);
+            shadow.raycastTarget = false;
         }
 
         private RectTransform FindRectTransform(string childName)
@@ -597,7 +658,7 @@ namespace TalentTree
             bool hasBounds = false;
             for (int i = 0; i < _treeContent.childCount; i++)
             {
-                if (!(_treeContent.GetChild(i) is RectTransform child) || !child.gameObject.activeInHierarchy) continue;
+                if (!(_treeContent.GetChild(i) is RectTransform child) || child == _backgroundShadowRect || !child.gameObject.activeInHierarchy) continue;
                 Vector3[] corners = new Vector3[4];
                 child.GetWorldCorners(corners);
                 for (int corner = 0; corner < corners.Length; corner++)

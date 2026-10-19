@@ -36,6 +36,13 @@ namespace TapTapGameJam.NPC
             _maxExternalStops = Mathf.Max(1, _maxExternalStops);
             _officeArrivalDistance = Mathf.Max(0.1f, _officeArrivalDistance);
 
+            OnNewDayReset();
+        }
+
+        protected override void OnNewDayReset()
+        {
+            _lastStop = null;
+            _pendingStop = null;
             _atOffice = IsNearOffice();
             _pendingOffice = !_atOffice && _office != null;
             _externalStopCount = 0;

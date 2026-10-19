@@ -28,7 +28,7 @@ namespace TapTapGameJam.UI
             // 在Insepctor中这个按钮还绑定了另一个方法，那个方法负责让玩家切回
             if (ContinueGameBtn != null) ContinueGameBtn.onClick.AddListener(() => EventPipeline.Publish<ESCMenuEvent>(new ESCMenuEvent(false)));
             // if (RestartTheGameBtn != null) RestartTheGameBtn.onClick.AddListener(() => UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name));
-            // if(SettingsBtn!=null) SettingsBtn.onClick.AddListener(() => EventPipeline.Publish(new SettingsMenuEvent(true)));
+            if (SettingsBtn != null) SettingsBtn.onClick.AddListener(OpenSettingsMenu);
             if (ReturnToMainMenuBtn != null) ReturnToMainMenuBtn.onClick.AddListener(ReturnToMainMenu);
             if (ExitGameBtn != null) ExitGameBtn.onClick.AddListener(ExitGame);
         }
@@ -68,6 +68,7 @@ namespace TapTapGameJam.UI
         }
         public void CloseESCMenu()
         {
+            SettingsMenu.CloseGameSettings();
             foreach (Transform child in transform)
             {
                 child.gameObject.SetActive(false);
@@ -80,7 +81,11 @@ namespace TapTapGameJam.UI
         }
         private void OpenSettingsMenu()
         {
-            // 这里添加打开设置菜单的逻辑
+            SettingsMenu.OpenInGame(() =>
+            {
+                if (SettingsBtn != null && UnityEngine.EventSystems.EventSystem.current != null)
+                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(SettingsBtn.gameObject);
+            });
         }
         private void ReturnToMainMenu()
         {

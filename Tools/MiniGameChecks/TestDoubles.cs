@@ -55,10 +55,9 @@ namespace TapTapGameJam.Player
     public class PlayerBasic { public PlayerResources PlayerResources = new(); }
     public class PlayerResources
     {
-        public int Coins, TalentPoint, CoffeeCount;
+        public int Coins, TalentPoint;
         public void AddCoins(int amount) => Coins += amount;
         public void AddTalentPoint(int amount) => TalentPoint += amount;
-        public void AddCoffee() => CoffeeCount++;
         public bool TrySpendCoins(int amount) { if (amount <= 0 || Coins < amount) return false; Coins -= amount; return true; }
     }
 }

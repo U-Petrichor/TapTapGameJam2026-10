@@ -31,8 +31,13 @@ namespace TapTapGameJam.Core
             else
             {
                 _instance = this;
-                DontDestroyOnLoad(this.gameObject);
+                // 持有的玩家和阶段管理器都属于当前场景，随场景一起销毁。
             }
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this) _instance = null;
         }
     }
 
