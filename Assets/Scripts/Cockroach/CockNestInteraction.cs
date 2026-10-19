@@ -35,12 +35,22 @@ namespace TapTapGameJam.Cockroach
         private readonly Dictionary<PlayerInteractionManager, HashSet<Collider>> _interactionPlayers = new();
 
         public bool IsCarried => _carrier != null;
-        public override string InteractionPrompt => IsCarried ? "按 E 放下巢穴" : "按 E 搬运巢穴";
+
+        public override string InteractionPrompt =>
+            nestLockState == NestLockState.UnFounded ? "按 E 标记巢穴"
+            : IsCarried ? "按 E 放下巢穴"
+            : "按 E 搬运巢穴";
 
         public override bool CanInteract(PlayerBasic player)
         {
             if (player == null || !isActiveAndEnabled) return false;
             if (!player.CompareTag("Player")) return false;
+
+            // 还没标记的巢穴：只有白天能交互（点一次就认领），而且不能搬
+            if (nestLockState == NestLockState.UnFounded)
+            {
+                return GameManager.IsDay && !IsCarried && !player.IsCarry;
+            }
 
             if (GameManager.IsDay)
             {
@@ -67,6 +77,14 @@ namespace TapTapGameJam.Cockroach
             if (GameManager.IsDay)
             {
                 if (!CanInteract(player)) return;
+
+                // 未标记：白天点一次就认领，不进搬运流程
+                if (nestLockState == NestLockState.UnFounded)
+                {
+                    TryFoundNest();
+                    return;
+                }
+
                 if (IsCarried)
                     player.CarryController.EndCarry(false);
                 else
@@ -84,6 +102,8 @@ namespace TapTapGameJam.Cockroach
 
         public bool TryPickUp(PlayerBasic player)
         {
+            // 未标记的巢穴不能被搬走：必须在白天的标记交互之后才能拿
+            if (nestLockState == NestLockState.UnFounded) return false;
             if (!CanInteract(player) || IsCarried || !player.CompareTag("Player")) return false;
             Transform anchor = player.CarryController.GetCarryAnchor();
             if (anchor == null)

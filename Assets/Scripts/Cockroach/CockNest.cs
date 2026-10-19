@@ -18,13 +18,17 @@ namespace TapTapGameJam.Cockroach
     {
         public enum NestLockState
         {
+            /// <summary>
+            /// 还没被玩家认领。只有白天能交互：点一次就标记成 <see cref="Locked"/>，且此状态下不能被搬走。
+            /// </summary>
+            UnFounded,
             Locked,
             FirstHatching,
             Unlocked
         }
 
-        [Tooltip("巢穴解锁状态")] 
-        public NestLockState nestLockState = NestLockState.Locked;
+        [Tooltip("巢穴解锁状态。新巢穴默认 UnFounded：白天标记一次后才会进入 Locked")] 
+        public NestLockState nestLockState = NestLockState.UnFounded;
 
         [Tooltip("产卵（解锁）所需时间")] [SerializeField]
         private float _spawnTime = 5.0f;
@@ -197,10 +201,14 @@ namespace TapTapGameJam.Cockroach
             RefreshRingVisibility();
         }
 
-        /// <summary>范围圈只在夜间、已解锁、且没被玩家搬着的时候显示</summary>
+        /// <summary>
+        /// 范围圈只在夜间、已标记（UnFounded 不算）、且没被玩家搬着的时候显示。
+        /// 未标记的巢穴玩家还没"发现"，连范围都不该露出来。
+        /// </summary>
         private void RefreshRingVisibility()
         {
-            bool visible = GameManager.IsNight && !IsCarried && nestLockState != NestLockState.Locked;
+            bool founded = nestLockState != NestLockState.UnFounded;
+            bool visible = GameManager.IsNight && !IsCarried && founded && nestLockState != NestLockState.Locked;
             if (_ring == null || _ring.IsVisible == visible) return;
 
             if (visible)
@@ -220,6 +228,25 @@ namespace TapTapGameJam.Cockroach
             nestLockState = state;
             Sfx.Play(SoundId.Achievement, this);
             RefreshRingVisibility();
+        }
+
+        /// <summary>
+        /// 玩家在白天认领一个还没标记的巢穴：UnFounded → Locked。
+        /// 标记之后就要回夜里交互（产卵），而白天则允许搬运。
+        /// 返回是否真的完成了标记：已经标记过 / 不是白天 / 正被搬着，都返回 false。
+        /// </summary>
+        public bool TryFoundNest()
+        {
+            if (nestLockState != NestLockState.UnFounded) return false;
+            if (IsCarried) return false;
+            if (!GameManager.IsDay) return false;
+
+            SetLockState(NestLockState.Locked);
+
+            // 这是一次性交互，做完要把状态打回 Pending：
+            // 否则 Interacting 会一直留到夜里，巢穴会以为玩家一直按着 E，不用按就自己攒产卵进度
+            InteractState = InteractState.InteractPending;
+            return true;
         }
 
         private void Start()
