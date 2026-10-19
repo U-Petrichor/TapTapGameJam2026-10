@@ -202,13 +202,24 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
+        /// 范围圈是否该显示：夜间、已标记、没被搬着，且已经过了"产卵"阶段（那会儿还没有活动范围可言）。
+        ///
+        /// <b>巢穴的命令按钮也用这一条判断</b>（见 <c>UI/NestCommandButton</c>），
+        /// 所以圈和按钮永远同进同出 —— 要改显示时机只改这里一处。
+        /// </summary>
+        public bool IsRangeRingVisible =>
+            GameManager.IsNight
+            && !IsCarried
+            && nestLockState != NestLockState.UnFounded
+            && nestLockState != NestLockState.Locked;
+
+        /// <summary>
         /// 范围圈只在夜间、已标记（UnFounded 不算）、且没被玩家搬着的时候显示。
         /// 未标记的巢穴玩家还没"发现"，连范围都不该露出来。
         /// </summary>
         private void RefreshRingVisibility()
         {
-            bool founded = nestLockState != NestLockState.UnFounded;
-            bool visible = GameManager.IsNight && !IsCarried && founded && nestLockState != NestLockState.Locked;
+            bool visible = IsRangeRingVisible;
             if (_ring == null || _ring.IsVisible == visible) return;
 
             if (visible)
