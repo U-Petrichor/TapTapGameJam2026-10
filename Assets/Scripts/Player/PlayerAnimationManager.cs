@@ -25,6 +25,13 @@ namespace TapTapGameJam.Player
 
         [field: SerializeField] public Animator Animator { get; private set; }
 
+        /// <summary>
+        /// 夜晚（蟑螂）模型根物体的 Transform。
+        /// 给"挂在骨骼上的东西"（<see cref="PlayerDressView"/>）找挂点用：
+        /// 它白天是 inactive 的，但那不影响按名字遍历骨骼层级。
+        /// </summary>
+        public Transform NightModelRoot => _nightModel != null ? _nightModel.transform : null;
+
         private static readonly int IdleStateHash = Animator.StringToHash("Base Layer.Idle");
         private static readonly int HappyIdleStateHash = Animator.StringToHash("Base Layer.HappyIdle");
         private static readonly int MoveStateHash = Animator.StringToHash("Base Layer.Move");
