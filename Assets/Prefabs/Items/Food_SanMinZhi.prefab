@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4200676842829491771}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 15.941, y: 0, z: 5.281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
@@ -76,7 +76,7 @@ MonoBehaviour:
     - {x: 0, y: 0}
     - {x: 1, y: 0}
     - {x: 0, y: 1}
-    - {x: 0, y: 2}
+    - {x: 1, y: 1}
     _rotationSteps: 0
   _bagIcon: {fileID: -1331926212133831817, guid: 1a9c78fc2fd1c2e488effd28671fa1f5, type: 3}
   _specialLevel: 1

@@ -452,6 +452,7 @@ namespace TapTapGameJam.UI
 
             if (!mouseStore.TryBuy(goods))
             {
+                ShowNoMoneyInfo();
                 return false; // 钱不够 / 已经买过 / 已售罄：什么都不改
             }
 
@@ -637,6 +638,11 @@ namespace TapTapGameJam.UI
         private void ShowBuyInfo()
         {
             ShowInfo("谢谢惠顾", "请收好", DefaultTitleColor);
+        }
+        
+        private void ShowNoMoneyInfo()
+        {
+            ShowInfo("钱不够哦", "快去上班吧", Color.red);
         }
         
         private void ShowInfo(string title, string content, Color titleColor)

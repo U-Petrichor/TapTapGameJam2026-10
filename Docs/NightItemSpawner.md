@@ -34,20 +34,32 @@
 | `_wallClearance` | 墙体检测半径，单位是**格**。0 = 只查自己那一格，1 = 3x3 |
 | `_blackBoxPrefab` | 黑盒预制体 |
 | `_blackBoxChance` / `_foodChance` | 两种物品的概率 |
-| `_foodPrefabs` | 食物预制体列表，等概率抽一个 |
+| `_itemPool` | 商品池资产。这里只取它里面 `Category == Food` 的条目当食物来源，工具/装扮不参与 |
 | `_spawnYOffset` | 生成高度偏移，相对网格平面（默认 0 = 贴地平面） |
-| `_blackBoxLootSource` | 黑盒的出货源（MouseStore）。留空则运行时自己找场上那一个 |
 | `_cleanupAtDay` | 天亮是否清场 |
 | `_keepHandPlacedOnFirstDay` | 第一个白天不清场，保留场景里手工摆的东西 |
 
 两个带 `[ContextMenu]` 的方法可以直接右键组件测试，不用真的等阶段切换：
 **立即刷一批夜晚物品（测试用）** / **立即清场（天亮逻辑）**。
 
+## 商品池（`ItemPool.asset`）
+
+`Assets/Prefabs/Items/ItemPool.asset` 是一份**纯数据**商品列表（模板 + 售价范围），
+商店进货、黑盒出货、夜晚刷食物**挂的是同一个资产**，加一件商品只改它。
+
+| 谁用 | 怎么用 |
+|---|---|
+| `MouseStore._itemPool` | 按 `Category` 分页进货，价格从各条的 `priceRange` 抽 |
+| `BlackBox.itemPool` | 按稀有度分档等概率抽一件 |
+| `NightManager._itemPool` | 只抽 `Category == Food` 的，当夜晚刷点的食物来源 |
+
+分类不用单独配：由物品自己的 `PickableItem.Category` 决定（`FoodItem` → Food，`ToolItem` → Tool）。
+
 ## 注意
 
-- **黑盒预制体的 `mouseStore` 是空的**（那是场景物体，预制体里连不上），
-  所以生成器会把场上那一个 `MouseStore` 补进去，否则新刷出来的黑盒扫完什么都吐不出来。
-  预制体里自己连了 `mouseStore` 的不会被覆盖。
+- **黑盒的出货源是资产，不是场景物体**：`BlackBox.itemPool` 在预制体里就已经连上商品池了，
+  所以刷出来的黑盒和场景里手摆的那一个都能正常出货。
+  万一以后新建的黑盒预制体忘了连，`NightManager.WireBlackBox` 会用夜晚上这一份补上。
 - **黑盒不会在天亮被清掉**（只有食物会）。没被扫掉的黑盒会一直留在场上，一夜一夜累积。
   如果不想累积，要么在天亮时也清一遍，要么把黑盒概率调低。
 - **只清地图上的食物**：玩家背包里的、装备槽里的、商店/仓库里的都不动。

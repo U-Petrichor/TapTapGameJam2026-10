@@ -15,7 +15,7 @@ namespace TapTapGameJam.Items
     /// 出货规则（没配 <see cref="hidedItem"/> 时）：
     /// 1. 先按概率决定这一盒抽「普通」还是「稀有」——基准 <see cref="rareChance"/>，
     ///    幸运值按<b>比例</b>提升它（见 <see cref="LootRoll.RareChance"/>）；
-    /// 2. 再从 <see cref="mouseStore"/> 商品池里对应稀有度的那一档<b>等概率</b>抽一个模板；
+    /// 2. 再从 <see cref="itemPool"/>（商品池数据资产）里对应稀有度的那一档<b>等概率</b>抽一个模板；
     /// 3. 抽到稀有物品时，扫描时间乘以 <see cref="rareScanTimeMultiplier"/>（默认翻倍）。
     ///
     /// 抽取发生在 <see cref="OnEnable"/>（盒子出现的瞬间），不是扫完的瞬间——
@@ -31,8 +31,8 @@ namespace TapTapGameJam.Items
         [Tooltip("黑盒内部道具。配了就固定出这个，不随机、扫描时间也不翻倍")]
         public PickableItem hidedItem;
 
-        [Tooltip("商店（随机源：出货的模板从它的商品池里抽）")]
-        public MouseStore mouseStore;
+        [Tooltip("随机出货源：商品池资产。留空则开不出东西")]
+        public ItemPool itemPool;
 
         [Header("随机出货")]
         [Tooltip("开出稀有物品的基准概率。0.1 = 10%")]
@@ -148,9 +148,9 @@ namespace TapTapGameJam.Items
                 return;
             }
 
-            if (mouseStore == null)
+            if (itemPool == null)
             {
-                Debug.LogWarning($"[{name}]：没连 MouseStore，黑盒开不出任何东西", this);
+                Debug.LogWarning($"[{name}]：没连商品池资产（ItemPool），黑盒开不出任何东西", this);
                 return;
             }
 
@@ -159,10 +159,10 @@ namespace TapTapGameJam.Items
 
             // 先抽目标档位；那一档是空的（例如还没人配稀有物品）就退到另一档，
             // 否则「抽中了稀有空档」这盒就白开了。
-            if (!mouseStore.TryPickRandomLoot(wantRare, out template) &&
-                !mouseStore.TryPickRandomLoot(!wantRare, out template))
+            if (!itemPool.TryPickRandom(wantRare, out template) &&
+                !itemPool.TryPickRandom(!wantRare, out template))
             {
-                Debug.LogWarning($"[{name}]：MouseStore 的商品池是空的，黑盒开不出任何东西", this);
+                Debug.LogWarning($"[{name}]：商品池里一件东西都没有，黑盒开不出任何东西", this);
                 return;
             }
 

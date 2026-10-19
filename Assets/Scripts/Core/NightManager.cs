@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TapTapGameJam.Cockroach;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
-using TapTapGameJam.Player;
 using TapTapGameJam.Types;
 using TMPro;
 using UnityEngine;
@@ -61,17 +60,14 @@ namespace TapTapGameJam.Core
         [Tooltip("黑盒概率。和下面的食物概率相加不能超过 1，超了会自动压食物概率")]
         [SerializeField, Range(0f, 1f)] private float _blackBoxChance = 0.3f;
 
-        [Tooltip("食物预制体列表。空位从中随机等概率抽一个")]
-        [SerializeField] private GameObject[] _foodPrefabs = new GameObject[0];
+        [Tooltip("商品池数据资产。这里只取它里面的**食物**当刷点产物（工具 / 装扮不参与）")]
+        [SerializeField] private ItemPool _itemPool;
 
         [Tooltip("食物概率。默认 0.3 + 0.5 = 30% 黑盒、50% 食物、20% 这个点空着")]
         [SerializeField, Range(0f, 1f)] private float _foodChance = 0.5f;
 
         [Tooltip("生成高度偏移，相对网格平面。摆放不对就微调这个")]
         [SerializeField] private float _spawnYOffset;
-
-        [Tooltip("黑盒的随机出货源（MouseStore）。留空则运行时自己找一个。已经连好的黑盒不会被覆盖")]
-        [SerializeField] private MouseStore _blackBoxLootSource;
 
         #endregion
 
@@ -319,11 +315,23 @@ namespace TapTapGameJam.Core
                 return;
             }
 
+            if (_itemPool == null)
+            {
+                Debug.LogWarning("[NightManager]：没连商品池资产（ItemPool），夜晚不会刷任何东西。", this);
+                return;
+            }
+
+            // 食物不在这里再配一份列表：直接从商品池资产里把 Category == Food 的全抽出来。
+            // 商店 / 黑盒 / 夜晚生成看到的是同一份，加一件食物只改资产
+            List<PickableItem> foodTemplates = _itemPool.ItemsOf(ItemCategory.Food);
+
             bool hasBlackBox = _blackBoxPrefab != null;
-            bool hasFood = HasAnyFoodPrefab();
+            bool hasFood = foodTemplates.Count > 0;
             if (!hasBlackBox && !hasFood)
             {
-                Debug.LogWarning("[NightManager]：黑盒和食物预制体都没配，夜晚不会刷任何东西。", this);
+                Debug.LogWarning(
+                    $"[NightManager]：商品池「{_itemPool.name}」里没有食物，黑盒预制体也没连，夜晚不会刷任何东西。",
+                    this);
                 return;
             }
 
@@ -348,7 +356,7 @@ namespace TapTapGameJam.Core
                 }
 
                 usedCells.Add(cell);
-                if (SpawnAt(grid, cell, foodChance))
+                if (SpawnAt(grid, cell, foodChance, foodTemplates))
                 {
                     spawned++;
                 }
@@ -377,7 +385,11 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>在某个格子上掷一次骰：黑盒 / 食物 / 什么都不刷。返回是否真的生成了东西</summary>
-        private bool SpawnAt(GridManager grid, Vector2Int cell, float foodChance)
+        private bool SpawnAt(
+            GridManager grid,
+            Vector2Int cell,
+            float foodChance,
+            List<PickableItem> foodTemplates)
         {
             GameObject prefab;
             bool isBlackBox = false;
@@ -390,7 +402,7 @@ namespace TapTapGameJam.Core
             }
             else if (roll < _blackBoxChance + foodChance)
             {
-                prefab = PickFoodPrefab();
+                prefab = PickFoodPrefab(foodTemplates)?.gameObject;
             }
             else
             {
@@ -416,87 +428,30 @@ namespace TapTapGameJam.Core
             return true;
         }
 
-        private bool HasAnyFoodPrefab()
+        /// <summary>从商品池里的食物模板中等概率抽一个</summary>
+        private static PickableItem PickFoodPrefab(List<PickableItem> foodTemplates)
         {
-            if (_foodPrefabs == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < _foodPrefabs.Length; i++)
-            {
-                if (_foodPrefabs[i] != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>从食物列表里等概率抽一个。数组里留空不影响其它食物被抽中的概率</summary>
-        private GameObject PickFoodPrefab()
-        {
-            if (_foodPrefabs == null || _foodPrefabs.Length == 0)
+            if (foodTemplates == null || foodTemplates.Count == 0)
             {
                 return null;
             }
 
-            int validCount = 0;
-            for (int i = 0; i < _foodPrefabs.Length; i++)
-            {
-                if (_foodPrefabs[i] != null)
-                {
-                    validCount++;
-                }
-            }
-
-            if (validCount == 0)
-            {
-                return null;
-            }
-
-            int pick = Random.Range(0, validCount);
-            for (int i = 0; i < _foodPrefabs.Length; i++)
-            {
-                if (_foodPrefabs[i] == null)
-                {
-                    continue;
-                }
-
-                if (pick == 0)
-                {
-                    return _foodPrefabs[i];
-                }
-
-                pick--;
-            }
-
-            return null;
+            return foodTemplates[Random.Range(0, foodTemplates.Count)];
         }
 
         /// <summary>
-        /// 给新刷出来的黑盒补上出货源。
-        /// 黑盒预制体里的 <c>mouseStore</c> 只能是空的（那是场景物体，预制体里连不上），
-        /// 不补的话扫完什么都吐不出来。已经连好的（包括配了 hidedItem 的）不覆盖。
+        /// 给新刷出来的黑盒补上出货源：黑盒预制体上没连商品池的话，用夜晚上这一份补上，
+        /// 免得刷出来的盒子扫完什么都吐不出来。已经连好的（包括配了 hidedItem 的）不覆盖。
         /// </summary>
         private void WireBlackBox(GameObject instance)
         {
             BlackBox box = instance.GetComponent<BlackBox>();
-            if (box == null || box.mouseStore != null)
+            if (box == null || box.itemPool != null)
             {
                 return;
             }
 
-            if (_blackBoxLootSource == null)
-            {
-                _blackBoxLootSource = FindFirstObjectByType<MouseStore>();
-            }
-
-            if (_blackBoxLootSource != null)
-            {
-                box.mouseStore = _blackBoxLootSource;
-            }
+            box.itemPool = _itemPool;
         }
 
         #endregion

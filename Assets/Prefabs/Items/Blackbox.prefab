@@ -48,8 +48,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.BlackBox
   scanReqTime: 1
-  hidedItem: {fileID: 3098097176822516037, guid: 8cd372d8f2922b847b216d7b490e263a, type: 3}
-  mouseStore: {fileID: 0}
+  hidedItem: {fileID: 0}
+  itemPool: {fileID: 11400000, guid: 9d4b6e2f1a8c43d79b05e6f2c7a13d84, type: 2}
   rareChance: 0.1
   rareScanTimeMultiplier: 2
   scanUI: {fileID: 2893641379470245848}

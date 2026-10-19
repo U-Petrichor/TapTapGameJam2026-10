@@ -48,10 +48,10 @@ namespace TapTapGameJam.UI
 
         [Header("格子尺寸（背包用；仓库将来要另一套）")]
         [Tooltip("单格边长")]
-        [SerializeField] private float _cellSize = 100f;
+        [SerializeField] private float _cellSize = 70f;
 
         [Tooltip("格与格的间隙")]
-        [SerializeField] private float _cellSpacing = 3f;
+        [SerializeField] private float _cellSpacing = 1f;
 
         [Header("分类配色（Food / Tool / Dress）")]
         [Tooltip("这三类物品的代表色。影响：块上的格子框、背包/仓库的放置预览、待拾取位的标题")]

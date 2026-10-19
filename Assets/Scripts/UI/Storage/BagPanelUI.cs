@@ -304,6 +304,9 @@ namespace TapTapGameJam.UI
         /// <summary>部位用槽位自己记的那个（slot.Slot，Inspector 里指定的），不按字段顺序假设</summary>
         private void OpenEquippedBlock(EquipSlot slot)
         {
+            // 先清掉槽上可能残留的图：空槽也要回到"没有物品"的样子
+            slot.SetShownItem(null);
+
             PickableItem item = _bag.GetEquipped(slot.Slot);
             if (item == null)
             {
@@ -430,9 +433,9 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>
-        /// 把块穿到装备槽上。<paramref name="isTry"/> = 只预览不改状态：
-        /// 装备槽永远放得下（会替换掉原来那件），但**类型和部位必须对**，
-        /// 否则会出现"预览是绿的、松手才发现放不进去"。
+        /// 把块穿到装备槽上。<paramref name="isTry"/> = 只预览不改状态。
+        /// 两种情况都先过**部位判定**：必须是 <see cref="DressItem"/> 且部位正好是这个槽
+        /// （以前只靠 PlayerBag.TryEquip 自己找部位，往脚部槽丢帽子也会被穿到头上去）。
         /// </summary>
         public bool TryEquipToSlot(EquipSlot slot, BagItemBlock block, bool isTry = false)
         {
@@ -440,10 +443,29 @@ namespace TapTapGameJam.UI
             Assert.IsTrue(block != null, "TryEquipToSlot：block 是 null");
 
             PickableItem item = block.boundedItem;
+            bool fits = item is DressItem dress && dress.ToSlot() == slot.Slot;
 
             if (isTry)
             {
-                return item is DressItem dress && dress.ToSlot() == slot.Slot;
+                // 对得上：把试放那件的图贴到槽上（松手或换目标时 ClearDropPreview 会收掉）
+                if (fits)
+                {
+                    slot.SetDropPreview(item);
+                }
+
+                return fits;
+            }
+
+            if (!fits)
+            {
+                return false; // 类型 / 部位不对：这一槽不收（状态一律不动）
+            }
+
+            // 拖的就是这一槽里已有的那件：当"放回原处"处理，别让 TryEquip 的"同一件"分支把它判死
+            if (_bag.GetEquipped(slot.Slot) == item)
+            {
+                LayoutBlockToEquipSlot(block, slot);
+                return true;
             }
 
             if (!_bag.TryEquip(item, out PickableItem replaced))
@@ -505,7 +527,11 @@ namespace TapTapGameJam.UI
             block.transform.position = cell.transform.position;
         }
 
-        /// <summary>把块停进装备槽中心。TODO: 槽里要不要隐藏底部格子框 / 换成槽位图标还没定</summary>
+        /// <summary>
+        /// 把块停进装备槽中心，并让它进**代理模式**：块不画出来（alpha 0）但射线照旧挡着 ——
+        /// 所以按在槽上就是在按这块，拖拽直接落到块自己身上（<see cref="EquipSlot"/> 不用接拖拽/点击）。
+        /// 物品图由槽自己贴在自己的 Image 上（见 <see cref="EquipSlot.SetShownItem"/>）。
+        /// </summary>
         public void LayoutBlockToEquipSlot(BagItemBlock block, EquipSlot slot)
         {
             Assert.IsTrue(block != null, "LayoutBlockToEquipSlot：block 是 null");
@@ -515,6 +541,16 @@ namespace TapTapGameJam.UI
             block.CurrentSlot = slot;
             block.transform.SetParent(transform, false);
             block.transform.position = slot.transform.position;
+
+            slot.SetShownItem(block.boundedItem);
+            block.SetProxyHidden(true);
+
+            // 代理模式下把块缩到槽的大小：它挡射线的范围正好是这一格，不会盖到旁边的槽上
+            // （多格装扮的 bbox 可能比槽宽）。拖起来时 EquipSlot.OnPickUpItem 会把大小恢复成背包形态。
+            RectTransform slotRect = (RectTransform)slot.transform;
+            Vector2 iconSize = block.Icon.rect.size;
+            float fit = Mathf.Min(slotRect.rect.width, slotRect.rect.height) / Mathf.Max(iconSize.x, iconSize.y);
+            block.transform.localScale = Vector3.one * fit;
         }
 
         #endregion

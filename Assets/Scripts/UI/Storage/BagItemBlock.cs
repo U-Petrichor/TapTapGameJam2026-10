@@ -59,15 +59,44 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>
-        /// 恢复成"背包那套表现"：显示格子框、缩放归 1、朝向跟物品形状一致。
-        /// 从仓库（隐藏格子框 + 缩放过）转到背包 / 装备槽 / 待拾取位之前必须来这一下。
+        /// 恢复成"背包那套表现"：显示格子框、缩放归 1、朝向跟物品形状一致，并且退出代理（可见）模式。
+        /// 从仓库（隐藏格子框 + 缩放过）/ 装备槽（代理模式）转到背包 / 待拾取位之前必须来这一下。
         /// </summary>
         public void ApplyBagPresentation()
         {
+            SetProxyHidden(false);
             SetCellFramesVisible(true);
             transform.localScale = Vector3.one;
             SyncRotationWithItem();
         }
+
+        /// <summary>
+        /// **代理模式**：块不画出来（CanvasGroup alpha = 0），但射线和交互照旧挡着 ——
+        /// 于是"按在它身上"就是在按这块，拖拽/点击事件全部自然落到块自己身上。
+        /// 装备槽就是靠这一招当隐藏块的代理（槽位不用自己接点击/拖拽）。
+        ///
+        /// 注意 alpha **不参与** UGUI 射线判定：看不见 ≠ 点不到，这正是这里要的。
+        /// </summary>
+        public void SetProxyHidden(bool hidden)
+        {
+            if (_proxyGroup == null)
+            {
+                _proxyGroup = GetComponent<CanvasGroup>();
+                if (_proxyGroup == null)
+                {
+                    _proxyGroup = gameObject.AddComponent<CanvasGroup>();
+                }
+            }
+
+            _proxyGroup.alpha = hidden ? 0f : 1f;
+
+            // 隐形但必须可点：射线和交互都留着
+            _proxyGroup.blocksRaycasts = true;
+            _proxyGroup.interactable = true;
+        }
+
+        /// <summary>代理模式用的 CanvasGroup（第一次进代理时才创建）</summary>
+        private CanvasGroup _proxyGroup;
 
         /// <summary>上一次命中的槽位。换目标 / 松手时要靠它把预览收掉</summary>
         private IItemSlot _previewSlot;
