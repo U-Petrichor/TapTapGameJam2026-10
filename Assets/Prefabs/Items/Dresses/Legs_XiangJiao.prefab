@@ -82,9 +82,9 @@ MonoBehaviour:
   _bagIcon: {fileID: -3451074030420840585, guid: 476986669872b2e41a6d42ffb3847cfd, type: 3}
   _specialLevel: 0
   _itemTitle: "\u9999\u8549"
-  _itemDesc: "\u4E00\u4E2A\u88C5\u5907"
+  _itemDesc: "\u8E29\u4E0A\u53BB\u786E\u5B9E\u6ED1\uFF0C\u4F46\u4E5F\u786E\u5B9E\u5FEB\u3002\u51B2\u523A\u901F\u5EA6 +20%\uFF0C\u51B2\u523A\u6D88\u8017 -10%\u3002"
   dressType: 2
-  _data: {fileID: 11400000, guid: bd59a6de68a5b464fbfa718bf7f4fbcf, type: 2}
+  _data: {fileID: 11400000, guid: b1e83a5ac29fa706b83d5ceb7ea2a178, type: 2}
 --- !u!1001 &4857766556885810068
 PrefabInstance:
   m_ObjectHideFlags: 0

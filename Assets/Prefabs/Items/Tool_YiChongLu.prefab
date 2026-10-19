@@ -81,8 +81,8 @@ MonoBehaviour:
     _rotationSteps: 0
   _bagIcon: {fileID: -8511955132745323697, guid: 7e2cf2619eb83734493ab2252b5a8b30, type: 3}
   _specialLevel: 0
-  _itemTitle: "\u76CAi\u866B\u9732"
-  _itemDesc: "\u89E3\u6BD2"
+  _itemTitle: "\u76CA\u866B\u9732"
+  _itemDesc: "\u751C\u751C\u7684\u55B7\u96FE\uFF0C\u559D\u4E0B\u53BB\u6BD2\u5C31\u6563\u4E86\u3002\u89E3\u6BD2 100\u3002"
   recoverDamage: 0
   recoverPower: 0
   recoverPoison: 100

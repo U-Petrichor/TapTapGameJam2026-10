@@ -82,7 +82,7 @@ MonoBehaviour:
   _bagIcon: {fileID: -1331926212133831817, guid: 1a9c78fc2fd1c2e488effd28671fa1f5, type: 3}
   _specialLevel: 0
   _itemTitle: "\u5976\u916A"
-  _itemDesc: "\u4E00\u79CD\u98DF\u7269"
+  _itemDesc: "\u4E00\u5C0F\u5757\u5C31\u9876\u997F\uFF0C\u5976\u9999\u6700\u5BB9\u6613\u62DB\u866B\u5B50\u3002\u8425\u517B 120\u3002"
   totalNutrition: 120
   remainingNutrition: 120
   interactRaius: 0.5

@@ -278763,6 +278763,10 @@ PrefabInstance:
       propertyPath: _repo
       value: 
       objectReference: {fileID: 829027059}
+    - target: {fileID: 2534785073195104352, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4105684027726821111, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 151
@@ -278847,6 +278851,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6212224678909274028, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -178
+      objectReference: {fileID: 0}
     - target: {fileID: 7109622329076889368, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
       propertyPath: _bag
       value: 
@@ -278855,6 +278863,14 @@ PrefabInstance:
       propertyPath: _resources
       value: 
       objectReference: {fileID: 4853131174117530462}
+    - target: {fileID: 7781941475052845150, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
+      propertyPath: m_fontSize
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7781941475052845150, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 8738817006033509321, guid: b0a09084848c6954389453d0bcfeb1f4, type: 3}
       propertyPath: m_Name
       value: StoragePanel
