@@ -425,13 +425,20 @@ namespace TapTapGameJam.UI
         #region 容器操作（槽位转发到这里）
 
         /// <summary>
-        /// 点一下商品格：**直接尝试买下**（钱不够 / 已经买过 / 已售罄 → 什么都不发生）。
-        /// 悬停时这一格已经高亮了，所以点击时信息面板上就是它在展示。
+        /// 点一下商品格 = **选中它**（全商店唯一、互斥）。空格位 / 已售罄的格子点不出高亮来。
+        /// 购买不走这里 —— 玩家的购买按钮调 <see cref="TryBuyHighlighted"/>。
         /// </summary>
         public void OnClickCell(StoreCellUI cell)
         {
             AssertCellBelongsToThisPanel(cell);
-            TryBuyCell(cell);
+
+            if (cell.Goods == null || cell.Goods.item == null)
+            {
+                ClearHighlight();
+                return;
+            }
+
+            SetHighlight(cell);
         }
 
         /// <summary>买某一格。成功返回 true，并把所有格子的价格 / 提示刷一遍</summary>
@@ -496,8 +503,8 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>
-        /// 从货架上拿货 = 顺手买单：没买下就先试着买，买不成（钱不够等）就当场拒绝，块一步都不动；
-        /// 买成了 / 本来就买过，才真的取出去。
+        /// 从货架上拿货：**只有已经买下的才放行**。没买下就当场拒绝，块一步都不动
+        /// （买是"选中 + 购买按钮"的事，拖拽不替玩家买单，也不改高亮）。
         /// </summary>
         public bool OnItemPickedUp(StoreCellUI cell, BagItemBlock block)
         {
@@ -512,9 +519,9 @@ namespace TapTapGameJam.UI
                 return false; // 空格位：本来就没东西可拿
             }
 
-            if (!goods.purchased && !TryBuyCell(cell))
+            if (!goods.purchased)
             {
-                return false; // 买不了就不许拿（钱不够 / 已售罄）
+                return false; // 没买下不许拿
             }
 
             Assert.IsTrue(mouseStore.TryTakeOut(goods, out PickableItem item),
@@ -525,19 +532,29 @@ namespace TapTapGameJam.UI
             // 从商店出去之后按背包形态拖（显示格子框、缩放归 1），本体按统一规则回世界
             block.ApplyBagPresentation();
             ClearHighlight();
+            cell.Refresh(); // 这一格已经售罄：价格 / 绿色都要回到"空货位"的样子
             UIManager.Instance.DetachItemToWorld(item);
             return true;
         }
 
-        /// <summary>买下当前高亮（悬停）的那件。和点格子是同一件事</summary>
-        public void OnBuyButton()
+        /// <summary>
+        /// 尝试买下**当前选中（高亮）**的那件 —— 给购买按钮绑这个。
+        /// 成功返回 true（价格 / 底色会跟着刷）；没选中 / 空格位 / 钱不够 / 已经买过 / 已售罄 → false，什么都不发生。
+        /// </summary>
+        public bool TryBuyHighlighted()
         {
             if (_highlightedCell == null)
             {
-                return;
+                return false;
             }
 
-            TryBuyCell(_highlightedCell);
+            return TryBuyCell(_highlightedCell);
+        }
+
+        /// <summary>按钮入口的 void 版本（UnityEvent 直接绑这个也行）</summary>
+        public void OnBuyButton()
+        {
+            TryBuyHighlighted();
         }
 
         private void RefreshAllCell()
@@ -547,50 +564,53 @@ namespace TapTapGameJam.UI
                 List<StoreCellUI> cells = kv.Value;
                 for (int i = 0; i < cells.Count; i++)
                 {
-                    StoreCellUI cell = cells[i];
-                    MouseStore.Goods goods = cell.Goods;
-                    
-                    cell.Refresh();
+                    cells[i].Refresh();
                 }
             }
         }
 
-        #region 悬停高亮 / 显示信息
+        #region 选中高亮 / 显示信息
 
         /// <summary>
-        /// 鼠标进入某一格：立刻高亮它、把它的信息刷到显示区，并把块恢复成背包形态（看清真实形状 / 大小）。
-        ///
-        /// 这里**不强制"只能亮一个"**：离开那一格时它自己会灭（<see cref="OnCellHoverExit"/>），
-        /// 正常只会有一格亮着；真出现两格同时亮也不会状态错乱。
+        /// 选中某一格：全商店**同时只有一格亮着**（互斥）。表现有两条：
+        /// 1. 那一格的块**恢复成背包形态**（显示格子框、缩放归 1）—— 也就是"放大显示网格"，
+        ///    能看清这件货真实占几格；取消选中时再摆回商店样式；
+        /// 2. 把它的标题 / 描述刷到显示区。
         /// </summary>
-        public void OnCellHoverEnter(StoreCellUI cell)
+        private void SetHighlight(StoreCellUI cell)
         {
-            AssertCellBelongsToThisPanel(cell);
+            if (ReferenceEquals(_highlightedCell, cell))
+            {
+                return;
+            }
+
+            if (_highlightedCell != null)
+            {
+                _highlightedCell.SetHighlighted(false);
+                RestoreCellBlock(_highlightedCell);
+            }
 
             _highlightedCell = cell;
-            cell.SetHighlighted(true);
-            ShowInfo(cell);
 
-            if (TryGetBlockOf(cell, out BagItemBlock block))
+            if (_highlightedCell == null)
+            {
+                ShowWellcomeInfo();
+                return;
+            }
+
+            _highlightedCell.SetHighlighted(true);
+            ShowInfo(_highlightedCell);
+
+            if (TryGetBlockOf(_highlightedCell, out BagItemBlock block))
             {
                 block.ApplyBagPresentation();
             }
         }
 
-        /// <summary>鼠标离开：退出高亮、清掉显示信息（回默认语），块缩回商店样式</summary>
-        public void OnCellHoverExit(StoreCellUI cell)
+        /// <summary>把某一格的块摆回商店样式（取消选中用）；没货 / 没块就跳过</summary>
+        private void RestoreCellBlock(StoreCellUI cell)
         {
-            AssertCellBelongsToThisPanel(cell);
-
-            cell.SetHighlighted(false);
-
-            if (ReferenceEquals(_highlightedCell, cell))
-            {
-                _highlightedCell = null;
-                ShowWellcomeInfo();
-            }
-
-            if (TryGetBlockOf(cell, out BagItemBlock block))
+            if (cell != null && TryGetBlockOf(cell, out BagItemBlock block))
             {
                 LayoutBlockToCell(block, cell);
             }
@@ -642,14 +662,16 @@ namespace TapTapGameJam.UI
                    && UIManager.Instance.TryGetBlock(goods.item, out block);
         }
 
-        /// <summary>退出所有高亮（切页 / 关店时用）：灭掉当前那格并回默认语</summary>
+        /// <summary>退出所有高亮（切页 / 关店 / 点到空格时用）：灭掉当前那格、块摆回商店样式、回默认语</summary>
         private void ClearHighlight()
         {
             if (_highlightedCell != null)
             {
                 _highlightedCell.SetHighlighted(false);
+                RestoreCellBlock(_highlightedCell);
                 _highlightedCell = null;
             }
+
             ShowWellcomeInfo();
         }
 
