@@ -18,7 +18,12 @@ namespace TapTapGameJam.Player
         private bool _isESCMenuOpen = false; // 当前是否打开了ESC菜单
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
-        public bool WorldInputBlocked { get; set; }
+        private bool worldInputBlocked;
+        public bool WorldInputBlocked
+        {
+            get => worldInputBlocked || IntroVideoTransition.IsTransitioning;
+            set => worldInputBlocked = value;
+        }
         public bool HasMoveInput => !WorldInputBlocked && MoveInput.sqrMagnitude > 0.0001f;
 
         /// <summary>交互键按下，参数是这一次按的是哪个键（E / F）</summary>
@@ -248,6 +253,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnCloseBackpack(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;
@@ -259,6 +265,7 @@ namespace TapTapGameJam.Player
         #region 打开ESC菜单
         public void SwitchESCMenu(InputAction.CallbackContext context)
         {
+            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;

@@ -20,7 +20,7 @@ namespace TapTapGameJam.Core
         // "有没有 UI 面板开着"不再自己记一份：去问 UIManager —— 它才知道受监控容器的开/关，
         // 这样仓库、以后的商店也一起算数，不用在暂停这边一个个订阅。
         public bool IsPaused =>
-            _escOpen || UIManager.Instance.AnyContainerOpen || _doorRevealPlaying;
+            IntroVideoTransition.IsTransitioning || _escOpen || UIManager.Instance.AnyContainerOpen || _doorRevealPlaying;
 
         public void SetDoorRevealPlaying(bool playing)
         {
@@ -72,7 +72,7 @@ namespace TapTapGameJam.Core
             RefreshPause();
         }
 
-        private void RefreshPause()
+        public void RefreshPause()
         {
             // 本例正常游戏速度为 1，没有慢动作。
             Time.timeScale = IsPaused ? 0f : 1f;

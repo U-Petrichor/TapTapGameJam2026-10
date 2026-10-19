@@ -119,6 +119,7 @@ namespace TalentTree
 
         private void Update()
         {
+            if (TapTapGameJam.UI.IntroVideoTransition.IsTransitioning) return;
             if (_panel == null) return;
 
             if (!_panel.activeSelf)

@@ -97,6 +97,7 @@ namespace TapTapGameJam.UI
 
         private void Update()
         {
+            if (IntroVideoTransition.IsTransitioning) return;
             Mouse mouse = Mouse.current;
             if (mouse == null)
             {

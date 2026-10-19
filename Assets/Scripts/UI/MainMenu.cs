@@ -1,7 +1,6 @@
 using TapTapGameJam.Audio;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
@@ -22,6 +21,8 @@ namespace TapTapGameJam.UI
         [SerializeField] private Button galleryBackBtn;
         [SerializeField] private Button cancelExitBtn;
         [SerializeField] private Button confirmExitBtn;
+        [SerializeField] private IntroVideoTransition introTransition;
+        private bool startingGame;
         private CanvasGroup menuGroup;
         private GameObject currentPanel;
         private Button returnButton;
@@ -52,8 +53,17 @@ namespace TapTapGameJam.UI
 
         private void StartGame()
         {
+            if (startingGame) return;
             Sfx.Play(SoundId.Click, this);
-            SceneManager.LoadScene("GameScene");
+            if (introTransition == null)
+            {
+                Debug.LogError("开始游戏：请绑定 VideoCanvas 上的 IntroVideoTransition。", this);
+                return;
+            }
+            if (!introTransition.Begin()) return;
+            startingGame = true;
+            SetMenuInteractable(false);
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         }
         public void OpenSettings() => OpenPanel(settingsCanvas, settingsBtn, settingsBackBtn);
         public void OpenGallery() => OpenPanel(galleryCanvas, galleryBtn, galleryBackBtn);
