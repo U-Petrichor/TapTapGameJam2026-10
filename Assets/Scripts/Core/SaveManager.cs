@@ -15,25 +15,30 @@ namespace TapTapGameJam.Core
         public int coins;
         public int nutrition;
         public int talentPoint;
+        public bool hasDailySettlement;
+        public int dailyCoinsEarned;
+        public int dailyTalentEarned;
     }
 
-    /// <summary>单槽阶段检查点。只在阶段开始时写盘，不在退出时保存中途资源。</summary>
+    /// <summary>单槽阶段检查点。阶段开始时捕获，保存退出时重试写盘，不保存中途资源。</summary>
     public static class SaveManager
     {
         public const int CurrentVersion = 1;
         public static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
         private static SaveData _pendingLoad;
+        private static SaveData _latestCheckpoint;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetSession() => _pendingLoad = null;
+        private static void ResetSession() { _pendingLoad = null; _latestCheckpoint = null; }
 
-        public static void PrepareNewGame() => _pendingLoad = null;
+        public static void PrepareNewGame() { _pendingLoad = null; _latestCheckpoint = null; }
 
         public static bool PrepareContinue()
         {
             _pendingLoad = null;
             if (!TryRead(out var data)) return false;
             _pendingLoad = data;
+            _latestCheckpoint = data;
             return true;
         }
 
@@ -78,8 +83,21 @@ namespace TapTapGameJam.Core
             {
                 version = CurrentVersion, dayIndex = phases.DayIndex, phase = phases.CurrentPhase,
                 coins = resources.Coins, nutrition = resources.Nutrition,
-                talentPoint = resources.TalentPoint
+                talentPoint = resources.TalentPoint,
+                hasDailySettlement = true,
+                dailyCoinsEarned = phases.DailyCoinsEarned,
+                dailyTalentEarned = phases.DailyTalentEarned
             };
+            _latestCheckpoint = data;
+            return WriteCheckpoint(data);
+        }
+
+        // Saving partial resources without the rest of the world would duplicate rewards
+        // when continuing at the beginning of the phase. Persist the captured checkpoint.
+        public static bool SaveLatestCheckpoint() => _latestCheckpoint != null && WriteCheckpoint(_latestCheckpoint);
+
+        private static bool WriteCheckpoint(SaveData data)
+        {
             try
             {
                 Directory.CreateDirectory(Application.persistentDataPath);

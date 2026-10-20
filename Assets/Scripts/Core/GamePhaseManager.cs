@@ -21,6 +21,10 @@ namespace TapTapGameJam.Core
         [SerializeField] private Vector3 _phaseStartPosition = new Vector3(32.51f, 0f, 20.76f);
         private PlayerResources _saveResources;
         private bool _initialized;
+        private int _dayStartCoins;
+        private int _dayStartTalent;
+        public int DailyCoinsEarned { get; private set; }
+        public int DailyTalentEarned { get; private set; }
         
         public float DayProcess => CurrentPhase == GamePhase.Day ? RemainingTime / DAY_DURATION : -1.0f;
         public float NightProcess => CurrentPhase == GamePhase.Night ? RemainingTime / NIGHT_DURATION : -1.0f;
@@ -63,6 +67,9 @@ namespace TapTapGameJam.Core
                     data.phase == GamePhase.Night ? NIGHT_DURATION : 0f;
                 TimeCouldWork = data.phase != GamePhase.Shopping;
                 _saveResources.RestoreResources(data.coins, data.nutrition, data.talentPoint);
+                RecordDayStart();
+                DailyCoinsEarned = data.hasDailySettlement ? data.dailyCoinsEarned : 0;
+                DailyTalentEarned = data.hasDailySettlement ? data.dailyTalentEarned : 0;
                 ResetPlayerPosition(CurrentPhase);
                 // 重建当天的场景条件，不调用 EnterPhase，因此不会增加天数。
                 EventPipeline.Publish(new EventNewDay(DayIndex));
@@ -116,6 +123,13 @@ namespace TapTapGameJam.Core
         /// <param name="phase"></param>
         public void EnterPhase(GamePhase phase)
         {
+            if (_saveResources == null) _saveResources = FindFirstObjectByType<PlayerResources>();
+            if (phase == GamePhase.Shopping && CurrentPhase == GamePhase.Day && _saveResources != null)
+            {
+                DailyCoinsEarned = _saveResources.Coins - _dayStartCoins;
+                DailyTalentEarned = _saveResources.TalentPoint - _dayStartTalent;
+            }
+            if (phase == GamePhase.Day) RecordDayStart();
             Debug.Log($"<color=#00ff00>进入了新的阶段{phase}”</color>");
             switch (phase)
             {
@@ -149,6 +163,14 @@ namespace TapTapGameJam.Core
             if (phase == GamePhase.Day)
                 EventPipeline.Publish(new EventNewDay(DayIndex));
             if (_initialized) SaveManager.SaveCheckpoint(this, _saveResources);
+        }
+
+        private void RecordDayStart()
+        {
+            _dayStartCoins = _saveResources != null ? _saveResources.Coins : 0;
+            _dayStartTalent = _saveResources != null ? _saveResources.TalentPoint : 0;
+            DailyCoinsEarned = 0;
+            DailyTalentEarned = 0;
         }
 
         private void ResetPlayerPosition(GamePhase phase)

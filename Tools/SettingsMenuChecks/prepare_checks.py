@@ -18,6 +18,10 @@ for name in ['Assets/Editor', 'Assets/Integration', 'Packages', 'ProjectSettings
 for relative in ['Assets/Model/UI/菜单组件/系统设置', 'Assets/TextMesh Pro/Fonts',
                  'Assets/TextMesh Pro/Shaders', 'Assets/TextMesh Pro/Resources', 'Assets/Resources/UI']:
     shutil.copytree(ROOT / relative, TARGET / relative, dirs_exist_ok=True)
+font = 'Assets/TextMesh Pro/Examples & Extras/Fonts/fusion-pixel-12px-monospaced-zh_hans 2 SDF.asset'
+(TARGET / font).parent.mkdir(parents=True, exist_ok=True)
+for relative in [font, font + '.meta']:
+    shutil.copy2(ROOT / relative, TARGET / relative)
 for relative in ['Assets/Scripts/UI/SettingsMenu.cs', 'Assets/Scripts/UI/SettingsGuideArrow.cs',
                  'Assets/Editor/SettingsArtworkBuilder.cs']:
     destination = TARGET / relative

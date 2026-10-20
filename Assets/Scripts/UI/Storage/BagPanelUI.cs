@@ -2,7 +2,7 @@ using TapTapGameJam.Audio;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
+using UnityEngine.Assertions;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
@@ -518,7 +518,8 @@ namespace TapTapGameJam.UI
         public void LayoutBlockToCell(BagItemBlock block, Vector2Int origin)
         {
             Assert.IsTrue(block != null, "LayoutBlockToCell：block 是 null");
-            Assert.IsTrue(TryGetCell(origin, out BagCell cell), $"LayoutBlockToCell：格子 {origin} 不在背包里");
+            bool foundCell = TryGetCell(origin, out BagCell cell);
+            Assert.IsTrue(foundCell, $"LayoutBlockToCell：格子 {origin} 不在背包里");
 
             // 从仓库（隐藏格子框 + 缩放过）过来的块要先恢复成背包形态
             block.ApplyBagPresentation();

@@ -2,7 +2,7 @@ using TapTapGameJam.Audio;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
+using UnityEngine.Assertions;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
@@ -463,7 +463,8 @@ namespace TapTapGameJam.UI
 
             block.ApplyBagPresentation();
 
-            Assert.IsTrue(_repo.TakeFromRepo(block.boundedItem),
+            bool takenFromRepo = _repo.TakeFromRepo(block.boundedItem);
+            Assert.IsTrue(takenFromRepo,
                 $"RepoPanelUI.OnItemPickedUp：{block.boundedItem} 不在仓库里");
 
             UIManager.Instance.DetachItemToWorld(block.boundedItem);

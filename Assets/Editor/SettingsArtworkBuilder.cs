@@ -37,7 +37,7 @@ public static class SettingsArtworkBuilder
         var i=Pic(name,parent,sprite,x,y,w,h,true);var b=i.gameObject.AddComponent<Button>();b.targetGraphic=i;
         // All labels and art stay at their authored colours when selected.
         b.transition=Selectable.Transition.None;
-        if(label!=null) Text("Label",i.transform,label,w/2,h/2,w,h,size,label=="快捷键"||label=="声音设置"?Color.white:Color.black);
+        if(label!=null) Text("Label",i.transform,label,w/2,h/2,w,h,size,label=="按键介绍"||label=="声音设置"?Color.white:Color.black);
         return b;
     }
     static Slider Slider(string name,Transform parent,float y)
@@ -56,7 +56,7 @@ public static class SettingsArtworkBuilder
     [MenuItem("Tools/UI/Build Settings Artwork Prefab")]
     public static void Build()
     {
-        font=AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Fonts/MiniGameUI SDF.asset");
+        font=AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Examples & Extras/Fonts/fusion-pixel-12px-monospaced-zh_hans 2 SDF.asset");
         var root=new GameObject("Settings",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler),typeof(GraphicRaycaster)); root.layer=5;
         root.SetActive(false);
         var canvas=root.GetComponent<Canvas>(); canvas.renderMode=RenderMode.ScreenSpaceOverlay;canvas.sortingOrder=40;
@@ -72,9 +72,10 @@ public static class SettingsArtworkBuilder
         Pic("RightPaper",shortcuts,"右页",1277,539,617,759);
         var clip=Pic("Paperclip",shortcuts,"曲型针",494,251,75,184);clip.rectTransform.localEulerAngles=new Vector3(0,0,-48);
         Pic("Tape",shortcuts,"胶带",640,213,185,70);
-        var leftMouse=Pic("LeftMouse",shortcuts,"右键",482,406,145,175);leftMouse.rectTransform.localScale=new Vector3(-1,1,1);
-        Pic("RightMouse",shortcuts,"右键",482,580,145,175);
-        Pic("MiddleMouse",shortcuts,"滚轮高亮",482,756,110,133);
+        var leftMouse=Pic("LeftMouse",shortcuts,"右键",482,406,145,175);leftMouse.rectTransform.localScale=new Vector3(-1,1,1);leftMouse.preserveAspect=true;
+        Pic("RightMouse",shortcuts,"右键",482,565,145,175).preserveAspect=true;
+        // The wheel artwork has more transparent padding; match the visible mouse body.
+        Pic("MiddleMouse",shortcuts,"滚轮高亮",482,743,190f*1142f/1377f,190).preserveAspect=true;
         for(int direction=0;direction<4;direction++)
         {
             var angle=direction*90f;var offset=new Vector2(Mathf.Cos(angle*Mathf.Deg2Rad),-Mathf.Sin(angle*Mathf.Deg2Rad))*62;
@@ -83,14 +84,14 @@ public static class SettingsArtworkBuilder
         }
         string[] mouseHelp={"选择 / 操作","次要操作","缩放视角"};float[] my={419,574,757};
         for(int i=0;i<3;i++){Pic("MouseInfo"+i,shortcuts,"信息栏",708,my[i],245,55);Text("MouseText"+i,shortcuts,mouseHelp[i],708,my[i],238,50,25);}
-        string[] actions={"移动","存档","交互","切换目标"};string[] keys={"WASD","暂未开放","E / F","Q"};float[] ys={294,490,582,684};
-        for(int i=0;i<4;i++)
+        string[] actions={"移动","交互","切换目标","丢下（仅夜晚）","背包","天赋（仅家园）","切换镜头角度"};
+        string[] keys={"WASD","E","Q","X","B","T","[、]"};
+        for(int i=0;i<actions.Length;i++)
         {
-            Text("Action"+i,shortcuts,actions[i],1104,ys[i],176,65,i==3?32:40);
-            Pic("LeftArrow"+i,shortcuts,"左",1223,ys[i],35,48);
-            Pic("KeyField"+i,shortcuts,i==1?"off信息栏":"信息栏",1336,ys[i],153,34);
-            Text("Key"+i,shortcuts,keys[i],1336,ys[i],151,48,i==1?23:35);
-            Pic("RightArrow"+i,shortcuts,"右",1440,ys[i],35,26);
+            float y=294+i*80;
+            Text("Action"+i,shortcuts,actions[i],1180,y,300,60,32).alignment=TextAlignmentOptions.MidlineLeft;
+            Pic("KeyField"+i,shortcuts,"信息栏",1420,y,153,48);
+            Text("Key"+i,shortcuts,keys[i],1420,y,151,48,35);
         }
         var sound=Rect("SoundPage",content,960,540,1920,1080);
         Pic("Paper",sound,"左页",906,571,1436,759);
@@ -101,7 +102,7 @@ public static class SettingsArtworkBuilder
         Text("AnimationTitle",sound,"动画",490,719,130,65,40);Pic("AnimationIcon",sound,"动画",621,707,94,109);
         var effects=Slider("EffectsSlider",sound,426);var music=Slider("MusicSlider",sound,564);
         var animation=Button("AnimationToggle",sound,"信息栏",1378,738,210,63,"ON");
-        var shortcutTab=Button("ShortcutsTab",content,"胶带 · 选中",275,332,181,75,"快捷键");
+        var shortcutTab=Button("ShortcutsTab",content,"胶带 · 选中",275,332,181,75,"按键介绍");
         var soundTab=Button("SoundTab",content,"胶带 · 灰",275,453,181,75,"声音设置");
         var pin=Pic("SelectedPin",content,"IMG_4803 3",170,285,70,68);
         var back=Button("Back",content,"返回键",99,100,148,148);

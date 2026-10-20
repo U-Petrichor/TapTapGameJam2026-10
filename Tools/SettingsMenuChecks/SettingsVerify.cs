@@ -6,15 +6,29 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 public static class SettingsVerify
 {
  public static void Run()
  {
-  SettingsArtworkBuilder.Build();
+  // Verify the authored production prefab, preserving its existing scene references.
   var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
   var asset=AssetDatabase.LoadAssetAtPath<GameObject>(SettingsArtworkBuilder.PrefabPath);
   var instance=(GameObject)PrefabUtility.InstantiatePrefab(asset);
   var controller=instance.GetComponent<SettingsMenu>();
+  var guide=instance.transform.Find("Design/ShortcutsPage");
+  string[] actions={"移动","交互","切换目标","丢下（仅夜晚）","背包","天赋（仅家园）","切换镜头角度"};
+  string[] keys={"WASD","E","Q","X","B","T","[、]"};
+  if(instance.transform.Find("Design/ShortcutsTab/Label").GetComponent<TMP_Text>().text!="按键介绍")throw new Exception("Guide tab label mismatch");
+  if(guide.Cast<Transform>().Any(t=>t.name.StartsWith("LeftArrow")||t.name.StartsWith("RightArrow")))throw new Exception("Guide still has arrows");
+  for(int i=0;i<actions.Length;i++)
+  {
+   var action=guide.Find("Action"+i).GetComponent<TMP_Text>();
+   var key=guide.Find("Key"+i).GetComponent<TMP_Text>();
+   if(action.text!=actions[i]||key.text!=keys[i])throw new Exception("Guide row mismatch: "+i);
+   foreach(var text in new[]{action,key})
+    if(text.GetPreferredValues().x>text.rectTransform.rect.width)throw new Exception("Guide text overflow: "+text.name);
+  }
   var probe=new GameObject("References").AddComponent<SettingsReferenceProbe>();probe.settings=instance;probe.back=controller.BackButton;
   EditorSceneManager.SaveScene(scene,"Assets/SettingsIntegration.unity");
   foreach(var slider in instance.GetComponentsInChildren<Slider>(true))
@@ -60,15 +74,16 @@ public static class SettingsVerify
   cam.transform.position=new Vector3(0,0,-1000);cam.nearClipPlane=.1f;cam.farClipPlane=2000;
   canvas.renderMode=RenderMode.ScreenSpaceCamera;canvas.worldCamera=cam;canvas.planeDistance=100;
   instance.SetActive(true);
-  foreach(var pair in new[]{("shortcuts",false),("sound",true)})
+  foreach(var pair in new[]{("shortcuts",false),("sound",true),("shortcuts-4x3",false),("shortcuts-ultrawide",false)})
   {
    method.Invoke(controller,new object[]{pair.Item2});
-   var rt=new RenderTexture(1920,1080,24);cam.targetTexture=rt;rt.Create();
+   int width=pair.Item1=="shortcuts-4x3"?1440:pair.Item1=="shortcuts-ultrawide"?2560:1920;
+   var rt=new RenderTexture(width,1080,24);cam.targetTexture=rt;rt.Create();
    Canvas.ForceUpdateCanvases();
    foreach(var slider in instance.GetComponentsInChildren<Slider>(true))
     if(Mathf.Abs(slider.handleRect.rect.height-84)>1) throw new Exception("Handle height: "+slider.handleRect.rect.height);
    cam.Render();RenderTexture.active=rt;
-   var tex=new Texture2D(1920,1080,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,1920,1080),0,0);tex.Apply();
+   var tex=new Texture2D(width,1080,TextureFormat.RGB24,false);tex.ReadPixels(new Rect(0,0,width,1080),0,0);tex.Apply();
    File.WriteAllBytes(pair.Item1+".png",tex.EncodeToPNG());RenderTexture.active=null;cam.targetTexture=null;UnityEngine.Object.DestroyImmediate(tex);rt.Release();UnityEngine.Object.DestroyImmediate(rt);
   }
   File.WriteAllText("settings-verify-result.txt","PASS: prefab references, slider ranges/handle height, page switching, volume persistence/reload, animation preference, in-game open/close callback, background rendering");

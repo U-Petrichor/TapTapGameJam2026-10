@@ -23,6 +23,9 @@ namespace TapTapGameJam.UI
         [SerializeField] private Button cancelExitBtn;
         [SerializeField] private Button confirmExitBtn;
         [SerializeField] private IntroVideoTransition introTransition;
+        [Header("继续游戏可用状态（可选美术引用）")]
+        [SerializeField] private CanvasGroup continueAvailabilityVisual;
+        [SerializeField] private GameObject continueUnavailableHint;
         private bool startingGame;
         private CanvasGroup menuGroup;
         private GameObject currentPanel;
@@ -32,7 +35,7 @@ namespace TapTapGameJam.UI
         {
             SetMenuInteractable(true);
             startGameBtn.onClick.AddListener(StartGame);
-            continueGameBtn.interactable = SaveManager.TryRead(out _);
+            SetContinueAvailable(SaveManager.TryRead(out _));
             continueGameBtn.onClick.AddListener(ContinueGame);
             settingsBtn.onClick.AddListener(OpenSettings);
             galleryBtn.onClick.AddListener(OpenGallery);
@@ -50,6 +53,28 @@ namespace TapTapGameJam.UI
         {
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame && currentPanel != null)
                 ClosePanel();
+        }
+
+        private void Start()
+        {
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == null)
+                EventSystem.current.SetSelectedGameObject(startGameBtn.gameObject);
+        }
+
+        private void SetContinueAvailable(bool available)
+        {
+            continueGameBtn.interactable = available;
+            if (continueAvailabilityVisual != null) continueAvailabilityVisual.alpha = available ? 1f : .45f;
+            if (continueUnavailableHint != null) continueUnavailableHint.SetActive(!available);
+            var startNavigation = startGameBtn.navigation;
+            if (startNavigation.mode == Navigation.Mode.Explicit)
+            {
+                startNavigation.selectOnDown = available ? continueGameBtn : settingsBtn;
+                startGameBtn.navigation = startNavigation;
+                var settingsNavigation = settingsBtn.navigation;
+                settingsNavigation.selectOnUp = available ? continueGameBtn : startGameBtn;
+                settingsBtn.navigation = settingsNavigation;
+            }
         }
 
         private void StartGame()
@@ -72,7 +97,7 @@ namespace TapTapGameJam.UI
             {
                 if (!SaveManager.PrepareContinue())
                 {
-                    continueGameBtn.interactable = false;
+                    SetContinueAvailable(false);
                     return;
                 }
             }

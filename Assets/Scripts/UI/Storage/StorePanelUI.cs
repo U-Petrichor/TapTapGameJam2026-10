@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using NUnit.Framework;
+using UnityEngine.Assertions;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
@@ -525,7 +525,8 @@ namespace TapTapGameJam.UI
                 return false; // 没买下不许拿
             }
 
-            Assert.IsTrue(mouseStore.TryTakeOut(goods, out PickableItem item),
+            bool takenFromStore = mouseStore.TryTakeOut(goods, out PickableItem item);
+            Assert.IsTrue(takenFromStore,
                 $"StorePanelUI.OnItemPickedUp：{goods.item} 取不出来（没买下 / 已售罄）");
             Assert.IsTrue(item == block.boundedItem,
                 $"StorePanelUI.OnItemPickedUp：取出来的不是这一格的那件（格子是 {item}，块是 {block.boundedItem}）");

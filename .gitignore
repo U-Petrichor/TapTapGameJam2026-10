@@ -38,3 +38,9 @@ __pycache__/
 !.env.example
 .DS_Store
 Thumbs.db
+
+# Build/tool logs and temp folders
+.codex-save-build.log
+/Assets/Temp/
+/Assets/Temp.meta
+/Assets/_Recovery.meta

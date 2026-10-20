@@ -5,13 +5,24 @@ using UnityEngine.UI;
 
 namespace TapTapGameJam.UI
 {
-    /// <summary>一个 Arrow 只绑定一个任务；根物体平移，只有 ArrowImage 旋转。</summary>
+    /// <summary>内容保持正向，箭头根据任务方向绕内容中心移动并旋转。</summary>
     [RequireComponent(typeof(RectTransform), typeof(CanvasGroup))]
     public class Arrow : MonoBehaviour
     {
-        [SerializeField] private TMP_Text _taskName;
+        [SerializeField] private Image _taskIcon;
+        [SerializeField] private Sprite _deliveryIcon;
+        [SerializeField] private Sprite _coffeeIcon;
+        [SerializeField] private Sprite _dogFoodIcon;
+        [SerializeField] private Sprite _printerIcon;
+        [SerializeField] private Sprite _cleanIcon;
+        [SerializeField] private Sprite _parcelIcon;
+        [SerializeField] private Sprite _stockIcon;
         [SerializeField] private TMP_Text _taskReward;
         [SerializeField] private RectTransform _arrowImage;
+        [Tooltip("圆周中心与半径参考点，可在预制体中调整。")]
+        [SerializeField] private RectTransform _orbitCenter;
+        [SerializeField] private RectTransform _orbitRadiusPoint;
+        [SerializeField, Min(0f)] private float _directionSmoothTime = 0.08f;
         [Tooltip("图片默认朝上时为 -90，朝右时为 0。")]
         [SerializeField] private float _angleOffset = -90f;
         private MiniGameInstanceBasic _instance;
@@ -19,15 +30,16 @@ namespace TapTapGameJam.UI
         private CanvasGroup _group;
         private Canvas _canvas;
         private bool _visible;
-        private static Sprite _defaultArrowSprite;
+        private float _displayAngle;
+        private float _angleVelocity;
+        private RectTransform[] _visualRects;
+        private readonly Vector3[] _corners = new Vector3[4];
 
         private void Awake()
         {
             _rect = (RectTransform)transform;
             _group = GetComponent<CanvasGroup>();
             _canvas = GetComponentInParent<Canvas>();
-            if (_taskName == null)
-                _taskName = transform.Find("TaskName")?.GetComponent<TMP_Text>();
             if (_taskReward == null)
                 _taskReward = transform.Find("TaskReward")?.GetComponent<TMP_Text>();
             if (_arrowImage == null)
@@ -36,12 +48,13 @@ namespace TapTapGameJam.UI
             // 隐藏只改变透明度，组件继续参与位置更新；指引不拦截鼠标。
             _group.interactable = false;
             _group.blocksRaycasts = false;
-            foreach (var graphic in GetComponentsInChildren<Graphic>(true))
+            var graphics = GetComponentsInChildren<Graphic>(true);
+            _visualRects = new RectTransform[graphics.Length];
+            for (int i = 0; i < graphics.Length; i++)
             {
-                graphic.raycastTarget = false;
+                graphics[i].raycastTarget = false;
+                _visualRects[i] = graphics[i].rectTransform;
             }
-                
-            EnsureArrowSprite();
             SetVisible(false);
         }
 
@@ -67,11 +80,19 @@ namespace TapTapGameJam.UI
         }
         private void Refresh(MiniGameInstanceBasic instance)
         {
-            if (_taskName != null)
-                _taskName.text = string.IsNullOrEmpty(instance.GuideText)
-                    ? "前往任务地点" : instance.GuideText;
+            if (_taskIcon != null)
+                _taskIcon.sprite = instance switch
+                {
+                    MakeCoffeeInstance _ => _coffeeIcon,
+                    PourDogFoodInstance _ => _dogFoodIcon,
+                    PrinterRepairInstance _ => _printerIcon,
+                    CleanInstance _ => _cleanIcon,
+                    ParcelCutInstance _ => _parcelIcon,
+                    StockInstance _ => _stockIcon,
+                    _ => _deliveryIcon // 送文件、分拣文件共用文件图案。
+                };
             if (_taskReward != null)
-                _taskReward.text = instance.IsDailyActivity ? instance.AvailabilityText : instance.RewardTalentPoints > 0
+                _taskReward.text = instance.IsDailyActivity ? instance.AvailabilityText.Replace(" · ", "\n") : instance.RewardTalentPoints > 0
                     ? $"{instance.RewardCoins} 金币 · {instance.RewardTalentPoints} 天赋点"
                     : $"{instance.RewardCoins} 金币";
         }
@@ -120,8 +141,11 @@ namespace TapTapGameJam.UI
             }
             if (direction.sqrMagnitude < 0.0001f) direction = Vector2.down;
 
-            float halfWidth = area.rect.width * 0.5f - _rect.rect.width * 0.5f - padding;
-            float halfHeight = area.rect.height * 0.5f - _rect.rect.height * 0.5f - padding;
+            UpdateOrbit(direction);
+            // 使用实际图案、奖励和旋转后箭头的范围，避免靠边时被裁切。
+            Vector2 extents = GetVisualExtents(area);
+            float halfWidth = area.rect.width * 0.5f - extents.x - padding;
+            float halfHeight = area.rect.height * 0.5f - extents.y - padding;
             if (!TaskIndicatorGeometry.TryGetEdgePosition(direction.x, direction.y,
                 halfWidth, halfHeight, out float x, out float y))
             {
@@ -129,10 +153,8 @@ namespace TapTapGameJam.UI
                 return;
             }
 
-            _rect.anchoredPosition = new Vector2(x, y);
-            if (_arrowImage != null)
-                _arrowImage.localRotation = Quaternion.Euler(0f, 0f,
-                    Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + _angleOffset);
+            Vector2 position = area.rect.center + new Vector2(x, y);
+            _rect.localPosition = new Vector3(position.x, position.y, _rect.localPosition.z);
             SetVisible(true);
         }
 
@@ -148,35 +170,43 @@ namespace TapTapGameJam.UI
             Unbind();
         }
 
-        /// <summary>
-        /// 没有提供箭头Image时自己画一个
-        /// </summary>
-        private void EnsureArrowSprite()
+        private void UpdateOrbit(Vector2 direction)
         {
-            Image image = _arrowImage != null ? _arrowImage.GetComponent<Image>() : null;
-            if (image == null || image.sprite != null) return;
-            // 预制体尚未指定 Sprite 时，提供一个默认向上的箭头。
-            if (_defaultArrowSprite == null)
+            if (_arrowImage == null || _orbitCenter == null || _orbitRadiusPoint == null) return;
+            float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            if (!_visible || _directionSmoothTime <= 0f)
             {
-                const int size = 32;
-                var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-                texture.name = "TaskIndicatorArrow";
-                texture.wrapMode = TextureWrapMode.Clamp;
-                var pixels = new Color[size * size];
-                for (int y = 0; y < size; y++)
-                    for (int x = 0; x < size; x++)
-                    {
-                        bool head = y >= 16 && Mathf.Abs(x - 15.5f) <= (31 - y) + 0.5f;
-                        bool shaft = y >= 2 && y <= 17 && x >= 11 && x <= 20;
-                        pixels[y * size + x] = head || shaft ? Color.white : Color.clear;
-                    }
-                texture.SetPixels(pixels);
-                texture.Apply();
-                _defaultArrowSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
-                    new Vector2(0.5f, 0.5f), size);
+                _displayAngle = targetAngle;
+                _angleVelocity = 0f;
             }
-            image.sprite = _defaultArrowSprite;
-            image.preserveAspect = true;
+            else
+                _displayAngle = Mathf.SmoothDampAngle(_displayAngle, targetAngle, ref _angleVelocity,
+                    _directionSmoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
+
+            Vector3 center = _rect.InverseTransformPoint(_orbitCenter.position);
+            Vector3 radiusPoint = _rect.InverseTransformPoint(_orbitRadiusPoint.position);
+            float radius = Vector2.Distance(center, radiusPoint);
+            float radians = _displayAngle * Mathf.Deg2Rad;
+            _arrowImage.localPosition = center + new Vector3(Mathf.Cos(radians), Mathf.Sin(radians)) * radius;
+            _arrowImage.localRotation = Quaternion.Euler(0f, 0f, _displayAngle + _angleOffset);
+        }
+
+        private Vector2 GetVisualExtents(RectTransform area)
+        {
+            Vector2 extents = Vector2.zero;
+            Vector3 origin = area.InverseTransformPoint(_rect.position);
+            foreach (var visual in _visualRects)
+            {
+                if (!visual.gameObject.activeInHierarchy) continue;
+                visual.GetWorldCorners(_corners);
+                foreach (var corner in _corners)
+                {
+                    Vector3 relative = area.InverseTransformPoint(corner) - origin;
+                    extents.x = Mathf.Max(extents.x, Mathf.Abs(relative.x));
+                    extents.y = Mathf.Max(extents.y, Mathf.Abs(relative.y));
+                }
+            }
+            return extents;
         }
 
     }

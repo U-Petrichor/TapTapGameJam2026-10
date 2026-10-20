@@ -265,7 +265,8 @@ namespace TapTapGameJam.Player
         #region 打开ESC菜单
         public void SwitchESCMenu(InputAction.CallbackContext context)
         {
-            // Settings sits above the paused ESC menu; the first Escape only closes settings.
+            // Close the topmost pause subpage before resuming gameplay.
+            if (context.performed && ESCMenu.Instance != null && ESCMenu.Instance.TryCloseSubPanel()) return;
             if (context.performed && SettingsMenu.CloseGameSettings()) return;
             if (WorldInputBlocked) return;
             if (!context.performed)

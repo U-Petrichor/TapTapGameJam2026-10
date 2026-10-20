@@ -20,8 +20,9 @@ namespace TapTapGameJam.Core
         [SerializeField] private Image _fadeImage;
         [SerializeField] private TMP_Text _fadeText;
         [SerializeField] private TalentTreeUI _talentTreeUI;
+        [SerializeField] private DailySettlementView _settlementView;
+        [SerializeField] private GamePhaseManager _phaseManager;
         [Header("过渡时间（秒）")]
-        [SerializeField, Min(0f)] private float _textDisplayDuration = 0.5f;
         [SerializeField, Min(0f)] private float _fadeDuration = 0.5f;
 
         private Coroutine _transition;
@@ -48,6 +49,7 @@ namespace TapTapGameJam.Core
                 _body = _player.GetComponent<Rigidbody>();
             }
             if (_shoppingRoom != null) _shoppingRoom.gameObject.SetActive(false);
+            if (_settlementView != null) _settlementView.gameObject.SetActive(false);
             if (_talentTreeUI != null) _talentTreeUI.enabled = false;
             HideOverlay();
         }
@@ -71,9 +73,10 @@ namespace TapTapGameJam.Core
             }
             if (_nightExitPending) LeaveShopping();
             if (_shopping) return;
-            if (_shoppingRoom == null || _fadeOverlayCanvas == null || _fadeImage == null || _fadeText == null)
+            if (_shoppingRoom == null || _fadeOverlayCanvas == null || _fadeImage == null || _fadeText == null ||
+                _settlementView == null || _phaseManager == null)
             {
-                Debug.LogError("[ShoppingManager] 请配置 2D 房间、FadeOverlayCanvas、FadeImage 和 Text。", this);
+                Debug.LogError("[ShoppingManager] 请配置房间、转场、每日结算和 GamePhaseManager。", this);
                 return;
             }
             _shopping = true;
@@ -101,6 +104,7 @@ namespace TapTapGameJam.Core
             _nightExitPending = true;
             if (_transition != null) StopCoroutine(_transition);
             _transition = null;
+            if (_settlementView != null) _settlementView.gameObject.SetActive(false);
             if (!_controlsCaptured) CaptureControls();
             if (_shoppingRoom != null) _shoppingRoom.SetInteractionEnabled(false);
             if (_talentTreeUI != null) _talentTreeUI.enabled = false;
@@ -118,14 +122,18 @@ namespace TapTapGameJam.Core
         {
             _shoppingRoom.SetInteractionEnabled(false);
             SetFadeAlpha(0f);
-            _fadeText.text = "下班！";
-            _fadeText.gameObject.SetActive(true);
+            _fadeText.gameObject.SetActive(false);
+            _settlementView.Show(_phaseManager.DailyCoinsEarned, _phaseManager.DailyTalentEarned);
+            if (_playerInput != null && _inputWasActive) _playerInput.ActivateInput();
+            // 等待确认期间不启用上层淡黑遮罩，让结算按钮接收点击。
+            yield return new WaitUntil(() => _settlementView.Confirmed);
+            if (_playerInput != null) _playerInput.DeactivateInput();
             _fadeOverlayCanvas.SetActive(true);
-            yield return new WaitForSecondsRealtime(_textDisplayDuration);
             yield return Fade(0f, 1f);
 
             // Fade 最后一帧已经以 alpha=1 绘制过，在全黑下替换界面。
             _fadeText.gameObject.SetActive(false);
+            _settlementView.gameObject.SetActive(false);
             _shoppingRoom.gameObject.SetActive(true);
             Canvas.ForceUpdateCanvases();
             yield return Fade(1f, 0f);
@@ -188,6 +196,7 @@ namespace TapTapGameJam.Core
             _transition = null;
             _shopping = false;
             _nightExitPending = false;
+            if (_settlementView != null) _settlementView.gameObject.SetActive(false);
             if (_talentTreeUI != null) _talentTreeUI.enabled = false;
             if (_shoppingRoom != null)
             {
