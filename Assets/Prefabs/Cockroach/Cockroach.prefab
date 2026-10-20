@@ -70,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4bb29da098a42404d8776d61039e1644, type: 2}
+  - {fileID: 2100000, guid: 369595834da6abb42b0ceecc5def971a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -131,7 +131,6 @@ MonoBehaviour:
   nestCommand: 0
   currentState: 0
   _carriedFoodVisual: {fileID: 2133951073100604514}
-  _deathSplashPrefab: {fileID: 5000000000000001, guid: a5f2c81d6b3e4a79c0d84e21b7f93c56, type: 3}
 --- !u!114 &2688077060646558858
 MonoBehaviour:
   m_ObjectHideFlags: 0

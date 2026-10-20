@@ -117,15 +117,33 @@ namespace TapTapGameJam.Core
         public IReadOnlyList<FoodItem> GetFoodOnMap()
         {
             List<FoodItem> result = new List<FoodItem>();
-            foreach (PickableItem item in PickableItemList)
+            GetFoodOnMap(result);
+            return result;
+        }
+
+        /// <summary>
+        /// 取地图上所有食物，<b>写进调用方给的 list</b>（会先 Clear），不自己 new。
+        ///
+        /// 给蟑螂用：它每个 FixedUpdate 都要查两次（决策 + 取食），
+        /// 而「群颚破壁」之后场上每面墙 / 每张桌子都是一个 FoodItem，
+        /// 列表会从个位数涨到几百 —— 每帧 new 一个几百长度的 List 纯属浪费。
+        /// </summary>
+        public void GetFoodOnMap(List<FoodItem> results)
+        {
+            if (results == null)
             {
-                if (item != null && item is FoodItem food && item.IsOnMap)
-                {
-                    result.Add(food);
-                }
+                return;
             }
 
-            return result;
+            results.Clear();
+            for (int i = 0; i < PickableItemList.Count; i++)
+            {
+                PickableItem item = PickableItemList[i];
+                if (item != null && item is FoodItem food && item.IsOnMap)
+                {
+                    results.Add(food);
+                }
+            }
         }
 
         #endregion

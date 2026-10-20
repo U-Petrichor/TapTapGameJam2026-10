@@ -18,6 +18,9 @@
 | `Assets/Scripts/Items/DressData.cs` | 装扮的 Buff 配表（ScriptableObject） |
 | `Assets/Scripts/Items/Editor/DressDataEditor.cs` | 装扮配表界面 |
 | `Assets/Scripts/TalentTree/Effects/ITalentLevelSource.cs` | 让 resolver 不再依赖 MonoBehaviour 的接口 |
+| `Assets/Scripts/Core/WallGnawingDirector.cs` | `group_wall_gnawing` 的落地：入夜一次性扫描 + 注入 |
+| `Assets/Scripts/Items/WallFoodItem.cs` | 被注入的墙 / 桌子：大体型取食点 + 裂纹进度 + 吃空清格子 |
+| `Assets/Shader/WallCrack.shader`、`Assets/Material/WallCrack.mat` | 墙面裂纹覆盖层 |
 | `Tools/BuffChecks/` | 公式与聚合规则的回归检查（不需要开 Unity） |
 
 验证（都不需要打开 Unity）：
@@ -139,7 +142,78 @@ DressBonusPercent 放大 BuffSourceKind.Dress 的百分比
 `FlagInstantEggLaying`(`instant_egg_laying`)、`FlagLethalDamageProtection`(`lethal_damage_protection`)、
 `FlagIndividualSprint`(`individual_sprint`)、`FlagIndividualInstantHatching`(`individual_instant_hatching`)
 
+| Tag | 消费点 | 状态 |
+| --- | --- | --- |
+| `cockroach_death_food` | `Cockroach.TryDropDeathFood` → `CockroachManager.SpawnDeathFood` | ✅ |
+| `group_wall_gnawing` | `WallGnawingDirector`（见下） | ✅ |
+| 其余四个 | —— | 玩法未做 |
+
 > Tag 只回答「有没有这个能力」。**是否已经消耗**（例如绝境蜕生用掉了那一次）由玩法自己记录。
+
+### 同类相食（`cockroach_death_food`）
+
+蟑螂死在**巢外**时原地留下一具蟑螂尸体（`Assets/Prefabs/Items/Food_ZhangLang.prefab`，
+就是个普通 `FoodItem`，会被同伴当食物、也会被玩家捡）。
+
+- 预制体引用在 `CockroachManager.deathFoodPrefab` 上，和 `cockroachSetting` 一样是「全场一份」的配置；
+- 掉不掉由 `Cockroach` 查 `CockroachManager.BuffMods.DeathFood` 决定；
+- **两条额外限制**：`Inside`（在巢里待命）不掉；`!GameManager.IsNight` 不掉。
+  后者是为了避开天亮清场 —— 那时 `NightManager` 会一次性击杀所有没归巢的蟑螂，
+  紧接着又清空地上所有食物，不挡一下就会凭空实例化几百个尸体再当场销毁。
+
+### 群颚破壁（`group_wall_gnawing`）
+
+**`WallGnawingDirector`**（挂在 `Assets/Prefabs/Grid.prefab` 的 `visual` 上，和 `GridManager` 同物体）
+只监听 `GamePhaseChangedEvent`：
+
+```
+进入夜晚 → 带 tag 吗？
+    否 → 什么也不做，下一夜再看（天赋可能白天购物阶段才点出来）
+    是 → 逐格射线扫描一次 → 给所有 Wall/Desk 层物体注入 WallFoodItem → 本局不再触发
+```
+
+扫描在 `GridManager.CollectLayerObjectsRoutine` 里：采样点和 `TraceMapStateFromWall` **完全一致**
+（同一个格子中心、同样的起止高度），这样「能找到的东西」和「网格认为是墙的东西」口径统一。
+500×300 = 15 万格，按每帧 3000 条射线摊到约 50 帧（≈0.8 秒），发生在入夜黑屏过渡期间。
+
+**`WallFoodItem : FoodItem`** —— 墙 / 桌子变成的食物，和普通食物**一视同仁**（不设优先级），
+只有三处不同：
+
+| 覆写 | 为什么 |
+| --- | --- |
+| `EatPosition` → 包围盒 XZ 上离蟑螂最近的点 | 墙的 pivot 在包围盒中心，而够食距离只有 `0.34 + 0.5 = 0.84m`，面板长 1.76m —— 不覆写它永远啃不到墙中间以外的地方 |
+| `CanInteract` → `false` | 夜间玩家不该能按 E 把墙搬进背包 |
+| `IsClearedAtDay` → `false` | 天亮清场会把地上所有 `FoodItem` 清掉，而墙是场景本体 |
+
+营养量按包围盒体积估（`_nutritionPerCubicMeter`，默认 25/m³，夹在 8~120）。
+被啃时 `OnConsumed` 推进裂纹；吃空时 `OnDepleted` 做两件事，然后 `Destroy` 整个物体：
+
+1. `GridManager.ClearWallsInBounds` 把自己包围盒覆盖的格子清成可通行；
+2. `DestroyOverlays` 拆掉裂纹覆盖层 —— 它本来就是墙的子物体，会跟着一起没，
+   这里显式再拆一遍，保证「墙没了、裂纹还浮着」不会出现。
+
+**销毁是强保证的**，三条保险：
+
+- 顺序上「注销 → `OnDepleted` → `Destroy`」排在视觉回调 `OnConsumed` 之前，
+  视觉代码抛异常也不会把销毁跳过去；
+- `Destroy` 放在 `try/finally` 的 finally 里，子类收尾抛异常也照删；
+- `Consume` 进门前如果发现营养已经是 0 却还活着（僵尸），会补一次销毁并自愈。
+
+`FoodItem` 里这段逻辑收敛在 `HandleDepleted()`（幂等），所以任何路径都只会销毁一次。
+**墙体不跨天恢复。**
+
+`ClearWallsInBounds` 刻意**不重跑射线**：全量 `TraceMapStateFromWall` 是 15 万条射线，
+每吃空一面墙跑一次等于把游戏卡死。墙没了就是没了，直接清空数组是准确的。
+代价是包围盒范围内如果还压着别的墙（墙角、交叠摆放）会一起变空 —— 刻意接受的近似。
+小地图按 `WallVersion` 重烘，会晚一帧。
+
+**裂纹覆盖层**：`WallFoodItem` 第一次被啃时给墙体建一个同 mesh 的子物体
+（`WallCrackOverlay`），材质是 `Assets/Material/WallCrack.mat`（shader `Jam/WallCrack`）。
+不碰墙体自己的材质（墙有几十种不同材质，改材质是破坏性的、不可回滚）。
+进度用 `MaterialPropertyBlock` 逐 Renderer 推 `_EatProgress`，不用 per-object 材质实例。
+裂缝是程序化的 3D fbm 等值线，不依赖 mesh 的 uv，所以墙角、不同朝向的面都不会被拉伸；
+进度只控制阈值：0 时一条都没有，1 时布满整面墙。
+
 
 ## 接入路线
 

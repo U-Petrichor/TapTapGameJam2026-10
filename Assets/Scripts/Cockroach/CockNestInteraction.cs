@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TapTapGameJam.Core;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TapTapGameJam.Cockroach
@@ -49,7 +50,14 @@ namespace TapTapGameJam.Cockroach
             // 还没标记的巢穴：只有白天能交互（点一次就认领），而且不能搬
             if (nestLockState == NestLockState.UnFounded)
             {
-                return GameManager.IsDay && !IsCarried && !player.IsCarry;
+                if (GameManager.IsDay) return !IsCarried && !player.IsCarry;
+                else
+                {
+                    // Hard code: 夜间未标记的巢穴，只有离得很近才能交互（显示气泡）
+                    // TODO: 该逻辑应该优化到气泡bubble里面
+                    float disToPlayer = (new Vector2(player.transform.position.x, player.transform.position.z) - WorldPosition).magnitude;
+                    return disToPlayer < 3;
+                }
             }
 
             if (GameManager.IsDay)

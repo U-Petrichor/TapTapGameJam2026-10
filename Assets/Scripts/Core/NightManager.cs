@@ -247,6 +247,10 @@ namespace TapTapGameJam.Core
         ///
         /// 只清 <see cref="PickableItem.ItemLocation.OnMap"/> 的那批：
         /// 玩家背包里的、装备槽里的、商店仓库里的都不是"场上的食物"。
+        ///
+        /// 还要看 <see cref="FoodItem.IsClearedAtDay"/>：被「群颚破壁」注入过的墙 / 桌子
+        /// 同样是 <see cref="FoodItem"/>，也在地图上，但它们是**场景本体**——
+        /// 顺手清掉就等于天亮把地图拆了一半。
         /// </summary>
         private static int ClearFoodOnMap()
         {
@@ -267,7 +271,7 @@ namespace TapTapGameJam.Core
             for (int i = 0; i < foods.Count; i++)
             {
                 FoodItem food = foods[i];
-                if (food == null)
+                if (food == null || !food.IsClearedAtDay)
                 {
                     continue;
                 }

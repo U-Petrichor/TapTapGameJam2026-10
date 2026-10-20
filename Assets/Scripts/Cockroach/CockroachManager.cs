@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
+using TapTapGameJam.Items;
 using UnityEngine;
 
 namespace TapTapGameJam.Cockroach
@@ -43,6 +44,10 @@ namespace TapTapGameJam.Cockroach
         [Min(1), SerializeField] private int victoryPopulation = 2000;
         public int VictoryPopulation => Mathf.Max(1, victoryPopulation);
         public bool HasWon { get; private set; }
+
+        [Header("死亡产物")]
+        [Tooltip("「同类相食」tag 生效时，蟑螂死在巢外留下的食物（Assets/Prefabs/Items/Food_ZhangLang.prefab）。留空则不掉东西")]
+        public FoodItem deathFoodPrefab;
 
         public List<CockNest> CockNestList { get; private set; } = new List<CockNest>();
 
@@ -168,6 +173,26 @@ namespace TapTapGameJam.Cockroach
             sharedNutrition -= amount;
             EventPipeline.Publish(new EventNutritionChange(sharedNutrition, -amount));
             return true;
+        }
+
+        /// <summary>
+        /// 在 <paramref name="worldPosition"/> 留下一具蟑螂尸体（普通 <see cref="FoodItem"/>，
+        /// 会被蟑螂当食物、也会被玩家捡）。
+        ///
+        /// 预制体引用放在这里而不是每只蟑螂上：和 <see cref="cockroachSetting"/> 一样是"全场一份"的配置，
+        /// 换尸体外观只改一处，不用去动蟑螂预制体。
+        /// 要不要掉由 <see cref="Cockroach"/> 按 tag 决定，这里只管生成。
+        /// </summary>
+        public FoodItem SpawnDeathFood(Vector3 worldPosition)
+        {
+            if (deathFoodPrefab == null)
+            {
+                return null;
+            }
+
+            FoodItem corpse = Instantiate(deathFoodPrefab, worldPosition, Quaternion.identity);
+            corpse.name = deathFoodPrefab.name;
+            return corpse;
         }
     }
 }

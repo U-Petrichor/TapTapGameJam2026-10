@@ -128,6 +128,7 @@ GameObject:
   - component: {fileID: 7613264222370183893}
   - component: {fileID: 6453481612528573143}
   - component: {fileID: 8345140636466265999}
+  - component: {fileID: 7712045118062084391}
   m_Layer: 0
   m_Name: visual
   m_TagString: Untagged
@@ -261,3 +262,27 @@ MonoBehaviour:
   grid: {fileID: 0}
   showPheromones: 0
   showGridLines: 0
+--- !u!114 &7712045118062084391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4590867699702122782}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0767140bdcae410aaae3d1a14bcc0430, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.WallGnawingDirector
+  _grid: {fileID: 6453481612528573143}
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 1088
+  _crackMaterial: {fileID: 2100000, guid: 89710c3f89d1455cbea65d5e580fd9be, type: 2}
+  _nutritionPerCubicMeter: 25
+  _minNutrition: 8
+  _maxNutrition: 120
+  _raysPerFrame: 3000
+  _logSummary: 1
+  _watchDepleted: 1
+

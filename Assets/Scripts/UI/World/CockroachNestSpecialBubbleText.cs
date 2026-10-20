@@ -31,20 +31,20 @@ namespace TapTapGameJam.UI
 
             bool isDay = GameManager.IsDay;
 
-            if (_nest.nestLockState == CockNest.NestLockState.UnFounded)
-            {
-                // 未标记只有在白天能点，夜里没有任何操作，别留着上个阶段的字
-                _textMeshProUGUI.text = isDay ? "标记" : string.Empty;
-                return;
-            }
 
             if (isDay)
             {
+                if (_nest.nestLockState == CockNest.NestLockState.UnFounded)
+                {
+                    _textMeshProUGUI.text = "标记";
+                    return;
+                }
                 _textMeshProUGUI.text = "搬运";
                 return;
             }
 
-            if (_nest.nestLockState == CockNest.NestLockState.Locked) _textMeshProUGUI.text = "产卵";
+            if (_nest.nestLockState == CockNest.NestLockState.UnFounded) _textMeshProUGUI.text = "标记";
+            else if (_nest.nestLockState == CockNest.NestLockState.Locked) _textMeshProUGUI.text = "产卵";
             else if (_nest.nestLockState == CockNest.NestLockState.FirstHatching) _textMeshProUGUI.text = "孵化";
             else _textMeshProUGUI.text = string.Empty;
         }

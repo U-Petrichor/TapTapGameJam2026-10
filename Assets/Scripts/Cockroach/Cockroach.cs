@@ -80,6 +80,9 @@ namespace TapTapGameJam.Cockroach
         /// <summary>是否已经被击杀。Destroy 是延迟到帧末执行的，这面旗子让同一帧里的后续逻辑不要再去碰它</summary>
         private bool _dead;
 
+        /// <summary>GetFoodSources 的复用缓冲，见那个方法的注释</summary>
+        private readonly List<FoodItem> _foodBuffer = new List<FoodItem>();
+
 
         /// <summary>
         /// 当前所在世界坐标（XZ 平面）。
@@ -256,11 +259,34 @@ namespace TapTapGameJam.Cockroach
             {
                 grid.BurstDanger(Position, _settings.MarkerMax * _settings.DangerBurstMul, _settings.DangerBurstRadius);
             }
+
+            TryDropDeathFood();
+
             // TODO: 击杀特效
             // 死了嘴里就不该还叼着东西（物体本身帧末就销毁了，这里只是别让它多显示一帧）
             RefreshCarriedVisual();
 
             Destroy(gameObject);
+        }
+
+        /// <summary>
+        /// 「同类相食」tag：死在巢外留下一具蟑螂尸体（<see cref="CockroachManager.deathFoodPrefab"/>）。
+        ///
+        /// 两条额外限制，都是有原因的：
+        /// <list type="bullet">
+        /// <item><b>巢内不留</b>：巢里本来就有几十只待命的蟑螂，尸体堆在巢口既难看又白送营养；</item>
+        /// <item><b>白天不留</b>：天亮时 <see cref="NightManager"/> 会把没归巢的蟑螂一次性全部击杀，
+        /// 紧接着又把地上所有食物清空。不挡一下的话，那一下会凭空 Instantiate 几百个尸体再当场销毁。</item>
+        /// </list>
+        /// </summary>
+        private void TryDropDeathFood()
+        {
+            if (IsInside || !GameManager.IsNight) return;
+
+            CockroachManager manager = Manager;
+            if (manager == null || !BuffMods.DeathFood) return;
+
+            manager.SpawnDeathFood(transform.position);
         }
 
         private void FixedUpdate()
@@ -273,11 +299,26 @@ namespace TapTapGameJam.Cockroach
         #region 食物信息
 
         /// <summary>
-        /// 地图上所有还有营养的食物
+        /// 地图上所有还有营养的食物。
+        ///
+        /// 返回的是<b>本蟑螂内部复用的缓冲</b>：只在当前调用栈里有效，不要存下来，
+        /// 也别在遍历它的过程中再调一次 GetFoodSources()。
+        ///
+        /// 为什么要复用：破壁之后场上的"食物"会从个位数涨到几百（每面墙、每张桌子都是一个），
+        /// 而 Decide 和 TryEat 每个 FixedUpdate 各拿一次。原来的实现每次都 new List，
+        /// 几十只蟑螂加起来就是每帧几千次不应该有的分配。
         /// </summary>
         public IReadOnlyList<FoodItem> GetFoodSources()
         {
-            return Items.GetFoodOnMap();
+            _foodBuffer.Clear();
+
+            ItemManager items = Items;
+            if (items != null)
+            {
+                items.GetFoodOnMap(_foodBuffer);
+            }
+
+            return _foodBuffer;
         }
 
 
@@ -353,10 +394,22 @@ namespace TapTapGameJam.Cockroach
             {
                 IReadOnlyList<FoodItem> foods = GetFoodSources();
 
-                foreach (FoodItem food in foods)
+                for (int i = 0; i < foods.Count; i++)
                 {
-                    Vector2 foodPos = FlatOf(food.transform.position);
-                    if ((foodPos - pos).magnitude < food.interactRaius + permanentRange)
+                    FoodItem food = foods[i];
+                    if (food == null) continue;
+
+                    // 用"够得着的那个点"而不是 pivot：墙体 / 桌子体积大，pivot 可能离蟑螂很远
+                    Vector2 foodPos = food.EatPosition(pos);
+                    Vector2 toFood = foodPos - pos;
+                    float sqr = toFood.sqrMagnitude;
+
+                    // 已经站在它身上了（桌子不进 MapState，蟑螂能直接站上去）：
+                    // 这时候方向是零向量，在这里定朝向只会让它盯着一个固定角度。交给 TryEat 处理。
+                    if (sqr < 1e-6f) continue;
+
+                    float lookRange = food.EatRadius + permanentRange;
+                    if (sqr < lookRange * lookRange)
                     {
 
                         _targetAngle = _forwardAngle = NormAng(AngleTo(pos, foodPos));
@@ -662,9 +715,12 @@ namespace TapTapGameJam.Cockroach
             for (int i = 0; i < foods.Count; i++)
             {
                 FoodItem food = foods[i];
-                Vector2 foodPos = FlatOf(food.transform.position);
+                if (food == null) continue;
 
-                float reachDistance = _settings.InteractRadius + food.interactRaius;
+                // 同理：判定用"最近的可啃点"，否则一面墙上只有靠近 pivot 的那一小段是够得着的
+                Vector2 foodPos = food.EatPosition(pos);
+
+                float reachDistance = _settings.InteractRadius + food.EatRadius;
                 float distance2 = (foodPos - pos).sqrMagnitude;
                 
                 if (distance2 < reachDistance * reachDistance)

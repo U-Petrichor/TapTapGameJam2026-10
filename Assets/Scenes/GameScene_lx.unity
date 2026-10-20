@@ -6118,6 +6118,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: 0.02
       objectReference: {fileID: 0}
+    - target: {fileID: 7712045118062084391, guid: 7a4bd83a99b5b5141b1743a66b1c8557, type: 3}
+      propertyPath: _maxNutrition
+      value: 800
+      objectReference: {fileID: 0}
+    - target: {fileID: 7712045118062084391, guid: 7a4bd83a99b5b5141b1743a66b1c8557, type: 3}
+      propertyPath: _nutritionPerCubicMeter
+      value: 100
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6771,6 +6779,7 @@ MonoBehaviour:
     PlayerPheromoneDecay: 15
   sharedNutrition: 0
   victoryPopulation: 2000
+  deathFoodPrefab: {fileID: 0}
 --- !u!114 &147810222
 MonoBehaviour:
   m_ObjectHideFlags: 0
