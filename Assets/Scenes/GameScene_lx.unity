@@ -42873,6 +42873,67 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 993270594}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &994379685
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 216f63282dcf4b8fb13f724ed57a7949
+      objectReference: {fileID: 0}
+    - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_Name
+      value: CockroachSpawnPoint
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 30.45778
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.020001788
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.6137733
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8059285376656588736, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
 --- !u!1001 &996727428
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -65719,10 +65780,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
-    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
-      propertyPath: _saveId
-      value: 127aa7c68b77cb74e8eb4c5fd01122e3:1497099553
-      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_6
@@ -65767,10 +65824,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8257120473404147721, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: -8980730848904985725, guid: 7b70c27ccf284544cb6e753fbcaf39ee, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -797954,3 +798007,4 @@ SceneRoots:
   - {fileID: 2026101601002}
   - {fileID: 1671315397}
   - {fileID: 1865779683}
+  - {fileID: 994379685}

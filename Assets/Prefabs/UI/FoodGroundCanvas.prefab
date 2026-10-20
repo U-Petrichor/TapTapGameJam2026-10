@@ -100,16 +100,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6157777955524169701}
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -0.05}
   m_LocalScale: {x: 0.02, y: 0.02, z: 0.02}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 8449451254856665499}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.667, y: -0.014}
+  m_AnchoredPosition: {x: 0, y: -0.613}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9202636705114652071
@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 6816518880462509398}
   - component: {fileID: 4323870951089682823}
   - component: {fileID: 703826874987632155}
+  - component: {fileID: 622059129518620246}
   m_Layer: 9
   m_Name: FoodGroundCanvas
   m_TagString: Untagged
@@ -408,6 +409,23 @@ MonoBehaviour:
   _highColor: '#8CE05A'
   _lowColor: '#E05A5A'
   _lowThreshold: 0.3
+--- !u!114 &622059129518620246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6629221835275210134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2117dcaf16e5ab346890abfb4d561595, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.WorldBillboardUI
+  _camera: {fileID: 0}
+  _yawOnly: 1
+  _autoScale: 0
+  _referenceDistance: 10
+  _baseScale: 1
 --- !u!1 &7240004221181537523
 GameObject:
   m_ObjectHideFlags: 0

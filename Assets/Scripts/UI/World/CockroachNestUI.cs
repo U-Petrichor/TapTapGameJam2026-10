@@ -22,6 +22,9 @@ namespace TapTapGameJam.UI
     {
         [Tooltip("文本")]
         [SerializeField] private TMP_Text _text;
+        
+        [Tooltip("虫子UI")]
+        [SerializeField] private Image _cockImage;
 
         [Tooltip("孵化进度环。留空则不显示进度")]
         [SerializeField] private Image _hatchProgressRing;
@@ -49,6 +52,8 @@ namespace TapTapGameJam.UI
         [Tooltip("小蟑螂孵化颜色")]
         [SerializeField] private Color _hatchColor = new Color(0.75f, 0.48f, 0.35f);
 
+        [Tooltip("虫子图标颜色")]
+        [SerializeField] private Color _cockImageColor = new Color(1.0f, 0.2f, 0.2f);
         
         private void Awake()
         {
@@ -87,11 +92,13 @@ namespace TapTapGameJam.UI
             else if (_nest.nestLockState == CockNest.NestLockState.Locked)
             {
                 _text.text = "";
+                _cockImage.color = Color.clear;
                 _hatchProgressRing.color = _unlockColor;
                 _hatchProgressRing.fillAmount = _nest.UnlockProgress;
             } else if (_nest.nestLockState == CockNest.NestLockState.FirstHatching)
             {
                 _text.text = "";
+                _cockImage.color = Color.clear;
                 _hatchProgressRing.color = _firstHatchColor;
                 _hatchProgressRing.fillAmount = _nest.FirstHatchProgress;
             }
@@ -103,10 +110,11 @@ namespace TapTapGameJam.UI
             int count = _nest.CockroachList.Count;
             string countColor = ToRichTextColor(count > 0 ? _countColor : _emptyColor);
 
-            _text.text =
-                $"<color={countColor}>{count}</color> cockroaches\n" +
-                $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
+            _text.text = $"{count}";
+                // $"<color={countColor}>{count}</color> cockroaches\n" +
+                // $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
             
+            _cockImage.color = _cockImageColor;
             _hatchProgressRing.color = _hatchColor;
             _hatchProgressRing.fillAmount = _nest.HatchProgress;
         }

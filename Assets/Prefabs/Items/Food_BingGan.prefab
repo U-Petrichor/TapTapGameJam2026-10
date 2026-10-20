@@ -177,6 +177,26 @@ PrefabInstance:
       propertyPath: _food
       value: 
       objectReference: {fileID: 3643562604380551905}
+    - target: {fileID: 3542910785298764057, guid: a7e214be58668644fada2deecd54fb93, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542910785298764057, guid: a7e214be58668644fada2deecd54fb93, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542910785298764057, guid: a7e214be58668644fada2deecd54fb93, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542910785298764057, guid: a7e214be58668644fada2deecd54fb93, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.613
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542910785298764057, guid: a7e214be58668644fada2deecd54fb93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4012206748980764413, guid: a7e214be58668644fada2deecd54fb93, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
