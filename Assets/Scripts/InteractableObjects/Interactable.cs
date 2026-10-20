@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TapTapGameJam.Tutorial;
 using UnityEngine;
 
 
@@ -76,6 +78,9 @@ namespace TapTapGameJam.Interactables
                     colliders = new HashSet<Collider>();
                     _registered.Add(interactionManager, colliders);
                     interactionManager.Register(this);
+
+                    if (this is BlackBox)
+                        TutorialSignal.Send(TutorialSignals.BlackBoxTouched);
                 }
                 colliders.Add(other);
             }

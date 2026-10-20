@@ -2,7 +2,7 @@
 
 MainMenu 场景中的五个按钮依次为：开始游戏、继续游戏、设置、图鉴、退出游戏。
 
-- 继续游戏根据 SaveManager 的存档读取结果启用；无可用存档时变淡并显示“暂无存档”，键盘上下导航会跳过它。
+- 继续游戏根据 SaveManager 的存档读取结果启用；无可用存档时按钮和文字显示灰色、“暂无存档”提示出现，键盘上下导航会跳过它。
 - Settings Canvas：左侧切换快捷键说明与声音设置；音效、音乐接入 SoundManager，使用 PlayerPrefs 保存设置。
 - 动画 ON/OFF 先保存偏好，后续动画代码可读取 SettingsMenu.AnimationsEnabled；目前不控制角色或过场动画。
 - GalleryCanvas：空白图鉴页面，带标题和返回按钮。

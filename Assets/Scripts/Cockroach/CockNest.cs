@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
+using TapTapGameJam.Tutorial;
 using UnityEngine;
 using TapTapGameJam.Core;
 using TapTapGameJam.Player;
@@ -146,6 +147,7 @@ namespace TapTapGameJam.Cockroach
                     // 孵化第一批
                     for(int i = 0; i < _firstHatchCount; i++) SpawnCockroach();
                     SetLockState(NestLockState.Unlocked);
+                    TutorialSignal.Send(TutorialSignals.NestFirstHatch);
                 }
             }
             else if (nestLockState == NestLockState.Locked)
@@ -157,6 +159,7 @@ namespace TapTapGameJam.Cockroach
                     {
                         // 成功产卵
                         SetLockState(NestLockState.FirstHatching);
+                        TutorialSignal.Send(TutorialSignals.NestFirstEgg);
                         // 打断一下，要重新点才能继续孵化
                         InteractState = InteractState.InteractPending;
                     }
@@ -256,6 +259,7 @@ namespace TapTapGameJam.Cockroach
             if (!GameManager.IsDay && !GameManager.IsNight) return false;
 
             SetLockState(NestLockState.Locked);
+            TutorialSignal.Send(TutorialSignals.NestFirstMarked);
 
             // 这是一次性交互，做完要把状态打回 Pending：
             // 否则 Interacting 会一直留到夜里，巢穴会以为玩家一直按着 E，不用按就自己攒产卵进度
@@ -418,6 +422,7 @@ namespace TapTapGameJam.Cockroach
             currentCommand = (CockroachCommand)(((int)currentCommand + 1) % count);
 
             DispatchCommand(currentCommand);
+            TutorialSignal.Send(TutorialSignals.NestFirstCommand);
             Debug.Log("Nest command: " + currentCommand);
         }
 

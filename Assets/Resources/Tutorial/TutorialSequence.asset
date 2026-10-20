@@ -1,0 +1,243 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1110e4cd4c629fc4dbf2c0d8a2851647, type: 3}
+  m_Name: TutorialSequence
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Tutorial.TutorialSequence
+  steps:
+  - id: day1.intro
+    trigger: day.start
+    requires: []
+    speaker: 0
+    text: "\u60B2\u4F24\u7684\u4E00\u5929\u4ECE\u4E0A\u73ED\u5F00\u59CB\u2026\u2026\n\u4E0D\u8FC7\u4ECA\u5929\u5F00\u59CB\u4E00\u5207\u90FD\u4F1A\u53D8\u5F97\u4E0D\u4E00\u6837\u3002\n\u884C\u52A8\u8D77\u6765\uFF0C\u4E3A\u6211\u4EEC\u7684\u5927\u4E8B\u4E1A\u505A\u51C6\u5907\u5427\u3002\nWASD
+      \u65B9\u5411\u79FB\u52A8"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.first_move
+    trigger: move.first
+    requires:
+    - day1.intro
+    speaker: 1
+    text: "\u5148\u628A\u90A3\u5F20\u5730\u4E0A\u7684\u6C61\u6E0D\u64E6\u4E86\uFF0C\u522B\u803D\u8BEF\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: tutorial.task.spawn_first
+  - id: day1.task_guide
+    trigger: task.added
+    requires:
+    - day1.first_move
+    speaker: 0
+    text: "\u8fd9\u5de5\u4f5c\u771f\u662f\u6ca1\u5b8c\u6ca1\u4e86\uff0c\u6211\u4eec\u7684\u5927\u4e8b\u4e1a\u5fc5\u987b\u8981\u51c6\u5907\u8d77\u6765\u4e86\u3002\n\u4efb\u52a1\u51fa\u73b0\u63d0\u793a\uff0c\u4ea7\u5375\u70b9\u51fa\u73b0\u63d0\u793a\u3002\n\u9760\u8fd1\u6309 E \u952e\u4ea4\u4e92\uff0cQ \u952e\u5207\u6362\u4efb\u52a1\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: tutorial.task.release
+  - id: day1.first_task_done
+    trigger: task.first_completed
+    requires:
+    - day1.task_guide
+    speaker: 0
+    text: "\u94B1\u5230\u8D26\u5C31\u884C\uFF0C\u81F3\u5C11\u4ECA\u5929\u8FD9\u5355\u6CA1\u767D\u5E72\u3002\n\u5B8C\u6210\u5DE5\u4F5C\u83B7\u5F97\u91D1\u5E01\uFF0C\u53EF\u8D2D\u4E70\u8865\u7ED9\u548C\u88C5\u5907\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.coins_highlight
+    trigger: after:day1.first_task_done
+    requires:
+    - day1.first_task_done
+    speaker: 2
+    text: 
+    presentation: 1
+    highlight: 1
+    pauseGame: 0
+    autoCloseSeconds: 2.5
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.countdown_concept
+    trigger: after:day1.coins_highlight
+    requires:
+    - day1.coins_highlight
+    speaker: 1
+    text: "\u5728\u78E8\u8E6D\u4EC0\u4E48\u5462\uFF0C\u65F6\u95F4\u53EF\u4E0D\u7B49\u4EBA\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.countdown_highlight
+    trigger: after:day1.countdown_concept
+    requires:
+    - day1.countdown_concept
+    speaker: 2
+    text: 
+    presentation: 1
+    highlight: 2
+    pauseGame: 0
+    autoCloseSeconds: 2.5
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.complex_task
+    trigger: task.complex_completed
+    requires:
+    - day1.countdown_highlight
+    speaker: 0
+    text: "\u8FD9\u79CD\u5DE5\u4F5C\u771F\u662F\u94B1\u5C11\u4E8B\u591A\u6709\u6C14\u53D7\u3002\n\u4F46\u662F\u590D\u6742\u4EFB\u52A1\u53EF\u4EE5\u7D2F\u8BA1\u6012\u6C14\u503C\uFF0C\u6012\u6C14\u70B9\u7528\u4E8E\u89E3\u9501\u5929\u8D4B\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.nest_marked
+    trigger: nest.first_marked
+    requires:
+    - day1.first_task_done
+    speaker: 0
+    text: "\u8FD9\u7BB1\u5B50\u5012\u597D\uFF0C\u5F80\u684C\u5E95\u4E0B\u4E00\u8EB2\uFF0C\u8C01\u4E5F\u4E0D\u7BA1\u3002\n\u767D\u5929\u767B\u8BB0\u8FC7\u7684\u7EB8\u7BB1\u5B50\uFF0C\u591C\u665A\u53EF\u4EE5\u524D\u6765\u4EA7\u5375\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: day1.settlement
+    trigger: day.settled
+    requires:
+    - day1.intro
+    speaker: 0
+    text: "\u6BCF\u65E5\u5DE5\u4F5C\u7ED3\u7B97\u56FA\u5B9A\u83B7\u5F97\u6012\u6C14\u70B9\u3002\n\u5FEB\u56DE\u5BB6\u51C6\u5907\u4E00\u4E0B\u6211\u4EEC\u7684\u5927\u4E8B\u4E1A\u5427\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: shopping.home
+    trigger: home.entered
+    requires:
+    - day1.settlement
+    speaker: 0
+    text: "\u6BCF\u4E00\u4E2A\u4F1F\u5927\u4E8B\u4E1A\u80CC\u540E\u90FD\u7F3A\u5C11\u4E0D\u4E86\u4E00\u4E2A\u51C6\u5907\u5145\u5206\u7684\u5821\u5792\u57FA\u5730\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: shopping.talent
+    trigger: after:shopping.home
+    requires:
+    - shopping.home
+    speaker: 0
+    text: "\u81ea\u4ece\u89c9\u9192\u7684\u90a3\u4e00\u5929\u5f00\u59cb\uff0c\u6211\u7684\u6124\u6012\u5c31\u662f\u6211\u80fd\u91cf\u7684\u6765\u6e90\uff0c\u8fd9\u4efd\u80fd\u91cf\u6b63\u662f\u6211\u4f1f\u5927\u4e8b\u4e1a\u7684\u57fa\u77f3\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: shopping.talent_guide
+    trigger: after:shopping.talent
+    requires:
+    - shopping.talent
+    speaker: 0
+    text: "\u6253\u5F00\u5929\u8D4B\u6811\uFF0C\u53EF\u4EE5\u8FDB\u884C\u6012\u6C14\u503C\u7684\u5206\u914D\u89C4\u5212\uFF0C\u83B7\u5F97\u76F8\u5E94\u7684\u80FD\u529B\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: shopping.warehouse
+    trigger: warehouse.opened
+    requires:
+    - shopping.home
+    speaker: 0
+    text: "\u591C\u665A\u7684\u6536\u83B7\u90FD\u5C06\u5728\u8FD9\u91CC\u5B58\u50A8\uFF0C\u6BCF\u65E5\u51FA\u884C\u9700\u8981\u5408\u7406\u5206\u914D\u5305\u88F9\u5B58\u50A8\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: night.first
+    trigger: night.started
+    requires:
+    - shopping.home
+    speaker: 0
+    text: "\u771f\u6210\u87d1\u8782\u4e86\u3002\u5148\u627e\u4e2a\u80fd\u8eb2\u7684\u5730\u65b9\u3002\u767d\u5929\u90a3\u4e2a\u7bb1\u5b50\uff0c\u5e94\u8be5\u8fd8\u5728\u3002\n\u4ea7\u5375\u70b9\u51fa\u73b0\uff0c\u9760\u8fd1\u6309 E \u952e\u4ea7\u5375\uff0cQ \u952e\u5207\u6362\u4efb\u52a1\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: night.first_egg
+    trigger: nest.first_egg
+    requires:
+    - night.first
+    speaker: 0
+    text: "\u6709\u4e86\u5375\uff0c\u5b75\u5316\u53ef\u9700\u8981\u5927\u91cf\u7684\u8425\u517b\uff0c\u5728\u9644\u8fd1\u627e\u627e\u98df\u7269\u5427\u3002\n\u98df\u7269\u51fa\u73b0\uff0c\u642c\u8fd0\u98df\u7269\u5230\u4ea7\u5375\u70b9\u653e\u7f6e\u83b7\u5f97\u4ea7\u5375\u503c\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: night.first_hatch
+    trigger: nest.first_hatch
+    requires:
+    - night.first_egg
+    speaker: 0
+    text: "\u5C0F\u87D1\u8782\u5B75\u5316\u597D\u4E86\uFF0C\u53EF\u4EE5\u901A\u8FC7\u70B9\u51FB\u4EA7\u5375\u70B9\u6D3E\u9063\u5C0F\u87D1\u8782\u81EA\u52A8\u89C5\u98DF\u6216\u8005\u8EB2\u907F\u5B88\u536B\u3002\n\u70B9\u51FB\u4EA7\u5375\u70B9\u5207\u6362\u72B6\u6001\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: night.workflow
+    trigger: nest.first_command
+    requires:
+    - night.first_hatch
+    speaker: 0
+    text: "\u6839\u636e\u573a\u5730\u7684\u98df\u7269\u548c\u5b88\u536b\u5206\u5e03\u5206\u914d\u87d1\u8782\u7684\u72b6\u6001\uff0c\u901a\u8fc7\u642c\u8fd0\u8c03\u6574\u4f4d\u7f6e\uff0c\u642d\u5efa\u6211\u4eec\u7684\u5de5\u4f5c\u6d41\u3002\n\u9f20\u6807\u6eda\u8f6e\u7f29\u653e\u67e5\u770b\u516c\u53f8\u4fef\u89c6\u56fe\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 
+  - id: night.search
+    trigger: blackbox.first_touched
+    requires:
+    - night.first
+    speaker: 0
+    text: "\u591c\u665a\u516c\u53f8\u603b\u6709\u4e00\u4e9b\u9057\u7559\u7269\u54c1\uff0c\u6216\u8bb8\u5927\u5bb6\u83ab\u540d\u4e0d\u89c1\u7684\u4e1c\u897f\u5c31\u662f\u88ab\u87d1\u8782\u6361\u8d70\u4e86\u5462\u3002\n\u672a\u77e5\u7269\u54c1\u51fa\u73b0\uff0c\u9760\u8fd1\u6309 E \u952e\u4ea4\u4e92\uff0cQ \u952e\u5207\u6362\u4efb\u52a1\u3002"
+    presentation: 0
+    highlight: 0
+    pauseGame: 1
+    autoCloseSeconds: 0
+    markOnShow: 0
+    emitOnClose: 

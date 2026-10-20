@@ -45,8 +45,17 @@ namespace TapTapGameJam.MiniGame
             if (!isActiveAndEnabled || _activeTasks.Count >= MaxActiveTasks)
                 return null;
 
-            PanelTaskPoint point = FindAvailablePoint();
-            if (point == null)
+            return CreateTaskAt(FindAvailablePoint());
+        }
+
+        /// <summary>
+        /// 教程用：在指定点位创建任务。点位不可用、或该类任务已达上限时返回 null。
+        /// </summary>
+        public PanelMiniGameInstance CreateTaskAt(PanelTaskPoint point)
+        {
+            if (!isActiveAndEnabled || _activeTasks.Count >= MaxActiveTasks)
+                return null;
+            if (point == null || !point.CanStartTask)
                 return null;
 
             PanelMiniGameInstance instance = CreateInstance(point);

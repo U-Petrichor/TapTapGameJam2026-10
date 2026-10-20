@@ -15,16 +15,24 @@ namespace TapTapGameJam.Core
 
         private bool _escOpen;
         private bool _doorRevealPlaying;
+        private bool _tutorialOpen;
 
         // 任意一个暂停原因存在，游戏就保持暂停。
         // "有没有 UI 面板开着"不再自己记一份：去问 UIManager —— 它才知道受监控容器的开/关，
         // 这样仓库、以后的商店也一起算数，不用在暂停这边一个个订阅。
         public bool IsPaused =>
-            IntroVideoTransition.IsTransitioning || _escOpen || UIManager.Instance.AnyContainerOpen || _doorRevealPlaying;
+            IntroVideoTransition.IsTransitioning || _escOpen || UIManager.Instance.AnyContainerOpen ||
+            _doorRevealPlaying || _tutorialOpen;
 
         public void SetDoorRevealPlaying(bool playing)
         {
             _doorRevealPlaying = playing;
+            RefreshPause();
+        }
+
+        public void SetTutorialOpen(bool open)
+        {
+            _tutorialOpen = open;
             RefreshPause();
         }
 

@@ -80942,6 +80942,9 @@ RectTransform:
   - {fileID: 1528531035}
   - {fileID: 1150224583}
   - {fileID: 630274610}
+  - {fileID: 8800000000000001000}
+  - {fileID: 8800000000000001002}
+  - {fileID: 8800000000000001004}
   m_Father: {fileID: 344154149}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -797611,3 +797614,226 @@ SceneRoots:
   - {fileID: 2026101601002}
   - {fileID: 1671315397}
   - {fileID: 1865779683}
+  - {fileID: 1152365728}
+--- !u!1001 &8800000000000000999
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1852428210}
+    m_Modifications:
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 62
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 52
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "Q"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "重置天赋"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030811203483251525, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7903258773551710780, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_Name
+      value: "TalentResetKeyHint"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+--- !u!224 &8800000000000001000 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+  m_PrefabInstance: {fileID: 8800000000000000999}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8800000000000001001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1852428210}
+    m_Modifications:
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -360
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 52
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "E"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "点击"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030811203483251525, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7903258773551710780, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_Name
+      value: "TalentUnlockKeyHint"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+--- !u!224 &8800000000000001002 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+  m_PrefabInstance: {fileID: 8800000000000001001}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8800000000000001003
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1852428210}
+    m_Modifications:
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -172
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 52
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "F"
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_text
+      value: "解除"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1854858728331115315, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4586197675691393104, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030811203483251525, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7903258773551710780, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+      propertyPath: m_Name
+      value: "TalentRemoveKeyHint"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+--- !u!224 &8800000000000001004 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4662659297319151709, guid: ab5a3dcf9b0ebd442b4c6b244d6183c6, type: 3}
+  m_PrefabInstance: {fileID: 8800000000000001003}
+  m_PrefabAsset: {fileID: 0}

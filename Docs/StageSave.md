@@ -38,8 +38,10 @@ Application.persistentDataPath/save.json。临时文件为 save.json.tmp，备�
 
 ## 玩家全局存档
 
-PlayerProfile 将 version 和 hasWatchedIntro 独立保存在 persistentDataPath/profile.json。
+PlayerProfile 将 version、hasWatchedIntro 和 seenTutorialSteps 独立保存在 persistentDataPath/profile.json。
 与 save.json 分开，新游戏不清除此记录，也不依赖关卡存档是否存在。
+hasWatchedIntro 只是兼容旧字段；实际判断统一走 seenTutorialSteps 里的 `intro.video`。
+所有“首次出现”的教程步骤也记录在 seenTutorialSteps，整个安装只出现一次。
 首次点击开始游戏会播放视频；正常播完并成功载入游戏后才写入已观看标记。
 此后点击开始游戏直接加载，继续游戏始终直接加载。仍保留原来的加载遮罩及输入、暂停恢复流程。
 播放失败、超时、未播完退出不会写入标记，下次开始游戏仍会尝试播放。
@@ -47,3 +49,5 @@ PlayerProfile 将 version 和 hasWatchedIntro 独立保存在 persistentDataPath
 验证：无 profile 时开始游戏应播放；播完后返回菜单再次开始应跳过；重启应用后也应跳过；
 删除关卡存档再开始仍应跳过；视频异常时不应生成已观看标记；继续游戏应恢复阶段且不播放视频。
 开发时想重新测试首次体验，退出运行后删除 profile.json 及 profile.json.bak，保留 save.json 即可。
+也可以用编辑器菜单 `Tools/Tutorial/Reset Tutorial Progress` 清空全部“第一次”记录。
+

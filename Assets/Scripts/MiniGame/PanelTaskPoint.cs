@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
 using TapTapGameJam.Player;
+using TapTapGameJam.Tutorial;
 using TapTapGameJam.Types;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -104,6 +105,7 @@ namespace TapTapGameJam.MiniGame
                 if (KeepAvailableAfterAttempt) _version++;
                 else ClosePoint();
                 EventCompleted?.Invoke(player);
+                TutorialSignal.Send(TutorialSignals.TaskFirstCompleted);
             }
             else if (KeepAvailableAfterAttempt) _version++;
             else if (FinishOnClose) CancelTask();

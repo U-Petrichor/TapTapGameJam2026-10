@@ -9,6 +9,7 @@ namespace TapTapGameJam.Core
 {
     public class GamePhaseManager : MonoBehaviour
     {
+        public const int DailyTalentGift = 5;
 
         [SerializeField] private const float DAY_DURATION = 90f; // 白天持续时间，单位秒
         [SerializeField] private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
@@ -128,6 +129,7 @@ namespace TapTapGameJam.Core
             {
                 DailyCoinsEarned = _saveResources.Coins - _dayStartCoins;
                 DailyTalentEarned = _saveResources.TalentPoint - _dayStartTalent;
+                _saveResources.AddTalentPoint(DailyTalentGift);
             }
             if (phase == GamePhase.Day) RecordDayStart();
             Debug.Log($"<color=#00ff00>进入了新的阶段{phase}”</color>");

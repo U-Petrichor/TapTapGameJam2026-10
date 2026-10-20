@@ -2,6 +2,7 @@ using TapTapGameJam.Audio;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
 using TapTapGameJam.Player;
+using TapTapGameJam.Tutorial;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -347,7 +348,12 @@ namespace TalentTree
         private void OnTalentChanged(TalentLevelChangedEvent _) => Refresh();
 
         public bool IsOpen => _panel != null && _panel.activeInHierarchy;
-        public void Open() => SetVisible(true);
+        public void Open()
+        {
+            if (!isActiveAndEnabled || _panel == null) return;
+            SetVisible(true);
+            TutorialSignal.Send(TutorialSignals.TalentOpened);
+        }
         public void Close() => SetVisible(false);
 
         private void SetVisible(bool visible)

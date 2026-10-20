@@ -1,6 +1,7 @@
 using TapTapGameJam.Audio;
 using System.Collections;
 using TapTapGameJam.Events;
+using TapTapGameJam.Tutorial;
 using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -129,6 +130,7 @@ namespace TapTapGameJam.UI
         private void OnCurrentMiniGameFinish() => FinishCurrent(true);
         public void OnEscKeyPressed()
         {
+            if (TutorialDirector.IsConsumingDismissInput()) return;
             FinishCurrent(false);
         }
         private void FinishCurrent(bool success)
@@ -137,6 +139,10 @@ namespace TapTapGameJam.UI
 
             MiniGameContent content = _currentContent;
             var callback = _actionOnFinished;
+
+            if (success && (content is CoffeeGame || content is StockPointGame))
+                TutorialSignal.Send(TutorialSignals.TaskComplexCompleted);
+
             _currentContent = null;
             _currentOwner = null;
             _actionOnFinished = null;

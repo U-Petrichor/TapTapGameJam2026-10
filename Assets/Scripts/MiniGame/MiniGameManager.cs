@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TapTapGameJam.Events;
+using TapTapGameJam.Tutorial;
 using TapTapGameJam.Types;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -32,6 +33,16 @@ namespace TapTapGameJam.MiniGame
 
         // 小游戏目前只在白天刷新，所以需要_isDayTime去控制，游戏阶段为其他时间段时停止
         private bool _isDayTime=false;
+        private bool _tutorialSpawningPaused;
+
+        /// <summary>
+        /// 教程需要先保证第一个任务是指定的清洁任务；暂停期间不随机刷新，也不补每日固定任务。
+        /// </summary>
+        public void SetTutorialSpawningPaused(bool paused)
+        {
+            _tutorialSpawningPaused = paused;
+            if (!paused) _spawnTime = 0f;
+        }
 
         [Header("刷新时间配置")]
         [Tooltip("当本次刷新成功刷新时，距离下次刷新的基准值")]
@@ -48,6 +59,7 @@ namespace TapTapGameJam.MiniGame
             {
                 return;
             }
+            if (_tutorialSpawningPaused) return;
             EnsureDailyActivities();
             _spawnTime -= Time.deltaTime;
             if (_spawnTime < 0f)
@@ -107,6 +119,7 @@ namespace TapTapGameJam.MiniGame
                 // 以防万一，如果不是白天就拒绝生成任务
                 return false;
             }
+            if (_tutorialSpawningPaused) return false;
 
             var available = new List<MiniGameCandidate>();
 
@@ -139,9 +152,21 @@ namespace TapTapGameJam.MiniGame
 
             _tasks.Add(task);
             EventTaskAdded?.Invoke(task);
+            TutorialSignal.Send(TutorialSignals.TaskAdded);
+        }
+
+        /// <summary>
+        /// 教程强制生成的任务已经由 Quest 创建，这里把它纳入统一管理并广播 EventTaskAdded。
+        /// </summary>
+        public MiniGameInstanceBasic AddExternalTask(MiniGameInstanceBasic task)
+        {
+            if (task == null || task.IsFinished || _tasks.Contains(task)) return null;
+            AddTask(task);
+            return task;
         }
         private void EnsureDailyActivities()
         {
+            if (_tutorialSpawningPaused) return;
             foreach (var candidate in _candidatePool)
                 if (candidate != null && candidate.IsDailyActivity && candidate.isActiveAndEnabled && candidate.CanSpawn)
                     AddTask(candidate.CreateTask());

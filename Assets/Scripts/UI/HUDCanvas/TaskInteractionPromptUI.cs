@@ -1,6 +1,8 @@
 using TapTapGameJam.Core;
+using TapTapGameJam.Cockroach;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
+using TapTapGameJam.Items;
 using TapTapGameJam.Player;
 using TapTapGameJam.Types;
 using UnityEngine;
@@ -16,6 +18,7 @@ namespace TapTapGameJam.UI
         [SerializeField] private GameObject interactionKeyHint;
         private CanvasGroup _canvasGroup;
         private bool _notInDayTime;
+        private Interactable _currentTarget;
 
         private void Awake() => _canvasGroup = GetComponent<CanvasGroup>();
 
@@ -39,6 +42,7 @@ namespace TapTapGameJam.UI
 
         private void OnTargetChanged(Interactable target)
         {
+            _currentTarget = target;
             if (taskPromptImage != null)
             {
                 taskPromptImage.sprite = target != null ? target.InteractionPromptSprite : null;
@@ -56,7 +60,10 @@ namespace TapTapGameJam.UI
 
         private void RefreshVisibility()
         {
-            bool visible = !_notInDayTime && taskPromptImage != null && taskPromptImage.sprite != null;
+            // 夜间也要给产卵点/搜索箱/食物显示 E 提示，否则教程里的“靠近按 E”没有视觉反馈。
+            bool nightPrompt = _currentTarget is CockNest || _currentTarget is BlackBox || _currentTarget is PickableItem;
+            bool visible = taskPromptImage != null && taskPromptImage.sprite != null &&
+                (!_notInDayTime || nightPrompt);
             if (taskPromptImage != null) taskPromptImage.gameObject.SetActive(visible);
             if (interactionKeyHint != null) interactionKeyHint.SetActive(visible);
             if (_canvasGroup == null) _canvasGroup = GetComponent<CanvasGroup>();

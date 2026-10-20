@@ -31,6 +31,8 @@ namespace TapTapGameJam.UI
         private GameObject currentPanel;
         private Button returnButton;
 
+        public bool IsOpen => menuRoot != null && menuRoot.activeSelf;
+
         private void Awake()
         {
             Instance = this;

@@ -64,7 +64,12 @@ namespace TapTapGameJam.UI
         private void SetContinueAvailable(bool available)
         {
             continueGameBtn.interactable = available;
-            if (continueAvailabilityVisual != null) continueAvailabilityVisual.alpha = available ? 1f : .45f;
+            if (continueAvailabilityVisual != null) continueAvailabilityVisual.alpha = 1f;
+            if (continueGameBtn.targetGraphic != null)
+                continueGameBtn.targetGraphic.color = available ? Color.white : new Color(.48f, .48f, .48f, 1f);
+            var continueLabel = continueGameBtn.GetComponentInChildren<TMPro.TMP_Text>(true);
+            if (continueLabel != null)
+                continueLabel.color = available ? Color.black : new Color(.3f, .3f, .3f, 1f);
             if (continueUnavailableHint != null) continueUnavailableHint.SetActive(!available);
             var startNavigation = startGameBtn.navigation;
             if (startNavigation.mode == Navigation.Mode.Explicit)

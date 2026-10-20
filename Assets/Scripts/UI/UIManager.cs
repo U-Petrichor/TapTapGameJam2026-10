@@ -6,6 +6,7 @@ using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.Player;
+using TapTapGameJam.Tutorial;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -109,6 +110,7 @@ namespace TapTapGameJam.UI
         {
             _repoContainer.OpenContainer();
             _bagContainer.OpenContainer();
+            TutorialSignal.Send(TutorialSignals.WarehouseOpened);
         }
                 
         /// <summary>打开商店和背包和背包</summary>

@@ -1,6 +1,7 @@
 using System.Collections;
 using TapTapGameJam.Events;
 using TapTapGameJam.Player;
+using TapTapGameJam.Tutorial;
 using TapTapGameJam.Types;
 using TapTapGameJam.UI;
 using TalentTree;
@@ -123,10 +124,20 @@ namespace TapTapGameJam.Core
             _shoppingRoom.SetInteractionEnabled(false);
             SetFadeAlpha(0f);
             _fadeText.gameObject.SetActive(false);
-            _settlementView.Show(_phaseManager.DailyCoinsEarned, _phaseManager.DailyTalentEarned);
+            _settlementView.Show(_phaseManager.DailyCoinsEarned, _phaseManager.DailyTalentEarned,
+                GamePhaseManager.DailyTalentGift);
             if (_playerInput != null && _inputWasActive) _playerInput.ActivateInput();
             // 等待确认期间不启用上层淡黑遮罩，让结算按钮接收点击。
             yield return new WaitUntil(() => _settlementView.Confirmed);
+
+            // 结算先，教程后：等玩家关闭结算说明再继续切到家园。
+            bool tutorialDone = TutorialDirector.Instance == null;
+            if (TutorialDirector.Instance != null)
+                TutorialDirector.Instance.RequestBlocking(TutorialSignals.DaySettled, () => tutorialDone = true);
+            else
+                tutorialDone = true;
+            yield return new WaitUntil(() => tutorialDone);
+
             if (_playerInput != null) _playerInput.DeactivateInput();
             _fadeOverlayCanvas.SetActive(true);
             yield return Fade(0f, 1f);
@@ -143,6 +154,7 @@ namespace TapTapGameJam.Core
             if (_talentTreeUI != null) _talentTreeUI.enabled = true;
             // UI 接收鼠标，世界操作保持锁定，直到离开 Shopping。
             if (_playerInput != null && _inputWasActive) _playerInput.ActivateInput();
+            TutorialSignal.Send(TutorialSignals.HomeEntered);
             _transition = null;
         }
 

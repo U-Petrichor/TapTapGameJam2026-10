@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
+using TapTapGameJam.Tutorial;
 using TapTapGameJam.UI;
 using System;
 
@@ -19,12 +20,21 @@ namespace TapTapGameJam.Player
         private Rigidbody rb;
         public Vector2 MoveInput; // 玩家输入的移动方向,相较于屏幕上下左右的方向
         private bool worldInputBlocked;
+        private bool tutorialBlocked;
         public bool WorldInputBlocked
         {
-            get => worldInputBlocked || IntroVideoTransition.IsTransitioning;
+            get => worldInputBlocked || tutorialBlocked || IntroVideoTransition.IsTransitioning;
             set => worldInputBlocked = value;
         }
         public bool HasMoveInput => !WorldInputBlocked && MoveInput.sqrMagnitude > 0.0001f;
+
+        /// <summary>教程弹窗期间单独占一份阻断，避免覆盖 ShoppingManager 等系统的 worldInputBlocked。</summary>
+        public void SetTutorialBlocked(bool blocked) => tutorialBlocked = blocked;
+
+        public string CurrentActionMapName =>
+            _playerInput != null && _playerInput.currentActionMap != null
+                ? _playerInput.currentActionMap.name
+                : DefaultActionMapName;
 
         /// <summary>交互键按下，参数是这一次按的是哪个键（E / F）</summary>
         public event Action<InteractKey> EventOnInteractPress;
@@ -259,6 +269,7 @@ namespace TapTapGameJam.Player
         /// </summary>
         public void OnCloseBackpack(InputAction.CallbackContext context)
         {
+            if (context.performed && TutorialDirector.IsConsumingDismissInput()) return;
             if (WorldInputBlocked) return;
             if (!context.performed)
             {
@@ -271,6 +282,8 @@ namespace TapTapGameJam.Player
         #region 打开ESC菜单
         public void SwitchESCMenu(InputAction.CallbackContext context)
         {
+            // 教程弹窗优先吃掉 ESC，避免顺带打开暂停菜单或关闭底层面板。
+            if (context.performed && TutorialDirector.IsConsumingDismissInput()) return;
             // Close the topmost pause subpage before resuming gameplay.
             if (context.performed && ESCMenu.Instance != null && ESCMenu.Instance.TryCloseSubPanel()) return;
             if (context.performed && SettingsMenu.CloseGameSettings()) return;
@@ -319,6 +332,12 @@ namespace TapTapGameJam.Player
         #region 切换ActionMap
         public void SwitchActionMap(string actionMapName)
         {
+            if (_playerInput == null)
+            {
+                Debug.LogWarning($"切换ActionMap失败：PlayerInput 未绑定（{actionMapName}）。", this);
+                return;
+            }
+
             Debug.Log($"切换为ActionMap：{actionMapName}");
             switch (actionMapName)
             {

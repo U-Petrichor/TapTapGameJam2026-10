@@ -233,4 +233,17 @@ namespace TapTapGameJam.Events
             Revision = revision;
         }
     }
+
+    /// <summary>
+    /// 教程系统的统一信号。业务代码只发“发生了什么”，是否弹窗由 TutorialDirector 判断。
+    /// </summary>
+    public readonly struct EventTutorialSignal : IEvent
+    {
+        public string Key { get; }
+
+        public EventTutorialSignal(string key)
+        {
+            Key = key;
+        }
+    }
 }

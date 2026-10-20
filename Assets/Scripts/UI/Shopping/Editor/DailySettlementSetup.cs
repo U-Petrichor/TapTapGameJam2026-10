@@ -42,7 +42,7 @@ public static class DailySettlementSetup
         illustration.sizeDelta = new Vector2(420, 310);
         var placeholder = illustration.gameObject.AddComponent<Image>();
         placeholder.color = new Color(.85f, .85f, .85f); placeholder.raycastTarget = false;
-        var talent = Label("TalentEarned", paper, font, new Vector2(-15, -145), "获得天赋点：0");
+        var talent = Label("TalentEarned", paper, font, new Vector2(-15, -145), "获得天赋点：0+5（赠送）");
         var coins = Label("CoinsEarned", paper, font, new Vector2(-15, -205), "赚取金币：0");
         var back = Rect("ContinueButton", paper);
         back.anchoredPosition = new Vector2(240, 290); back.sizeDelta = new Vector2(140, 140);
