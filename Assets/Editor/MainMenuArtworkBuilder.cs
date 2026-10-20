@@ -32,7 +32,7 @@ public static class MainMenuArtworkBuilder
         EditorSceneManager.SaveScene(scene, "RecoverySnapshots/MainMenuArtwork/MainMenu_before_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".unity", true);
         try
         {
-            foreach (string name in new[] { "背景", "标题", "气泡一", "气泡二", "气泡三", "气泡四", "退出游戏" })
+            foreach (string name in new[] { "背景", "标题", "气泡一", "气泡二", "气泡三", "退出游戏" })
             {
                 Import(name);
                 if (name != "背景" && name != "标题") Import(name + "-未点击");
@@ -63,18 +63,17 @@ public static class MainMenuArtworkBuilder
             Pic("Background", design, "背景", 960, 540);
             Pic("Title", design, "标题", 936, 510);
 
-            var start = ArtButton("StartGame", design, "气泡一", "开始游戏", 274, 247, 320, 100, 62);
-            var resume = ArtButton("ContinueGame", design, "气泡二", "继续游戏", 263, 444, 320, 100, 62);
-            var settings = ArtButton("Settings", design, "气泡三", "系统设置", 245, 662, 320, 100, 62);
-            var gallery = ArtButton("Gallery", design, "气泡四", "图鉴", 215, 853, 315, 100, 68);
+            var start = ArtButton("StartGame", design, "气泡一", "开始游戏", 274, 300, 320, 100, 62);
+            var resume = ArtButton("ContinueGame", design, "气泡二", "继续游戏", 263, 520, 320, 100, 62);
+            var settings = ArtButton("Settings", design, "气泡三", "系统设置", 245, 740, 320, 100, 62);
             var exit = ArtButton("Exit", design, "退出游戏", "原地下班", 1664, 978, 280, 92, 58);
-            var buttons = new[] { start, resume, settings, gallery, exit };
+            var buttons = new[] { start, resume, settings, exit };
             for (int i = 0; i < buttons.Length; i++)
             {
                 var nav = new Navigation { mode = Navigation.Mode.Explicit,
                     selectOnUp = buttons[(i + buttons.Length - 1) % buttons.Length],
                     selectOnDown = buttons[(i + 1) % buttons.Length],
-                    selectOnLeft = i == 4 ? gallery : null, selectOnRight = i != 4 ? exit : null };
+                    selectOnLeft = i == 3 ? settings : null, selectOnRight = i != 3 ? exit : null };
                 buttons[i].navigation = nav;
             }
             var availability = resume.gameObject.AddComponent<CanvasGroup>();
@@ -82,7 +81,7 @@ public static class MainMenuArtworkBuilder
             hint.color = new Color(1f, .94f, .65f); hint.gameObject.SetActive(false);
             var data = new SerializedObject(menu);
             Set(data, "startGameBtn", start); Set(data, "continueGameBtn", resume);
-            Set(data, "settingsBtn", settings); Set(data, "galleryBtn", gallery); Set(data, "exitBtn", exit);
+            Set(data, "settingsBtn", settings); Set(data, "exitBtn", exit);
             Set(data, "continueAvailabilityVisual", availability); Set(data, "continueUnavailableHint", hint.gameObject);
             data.ApplyModifiedPropertiesWithoutUndo();
             Validate(menu);
@@ -177,7 +176,7 @@ public static class MainMenuArtworkBuilder
     public static void Validate(MainMenuUIInteract menu)
     {
         var data = new SerializedObject(menu);
-        foreach (string field in new[] { "startGameBtn", "continueGameBtn", "settingsBtn", "galleryBtn", "exitBtn", "settingsCanvas", "galleryCanvas", "exitConfirmation", "settingsBackBtn", "galleryBackBtn", "cancelExitBtn", "confirmExitBtn", "introTransition", "continueAvailabilityVisual", "continueUnavailableHint" })
+        foreach (string field in new[] { "startGameBtn", "continueGameBtn", "settingsBtn", "exitBtn", "settingsCanvas", "exitConfirmation", "settingsBackBtn", "cancelExitBtn", "confirmExitBtn", "introTransition", "continueAvailabilityVisual", "continueUnavailableHint" })
             if (data.FindProperty(field).objectReferenceValue == null) throw new InvalidOperationException("Missing main menu reference: " + field);
         foreach (var button in menu.GetComponentsInChildren<Button>(true))
         {

@@ -14,11 +14,11 @@ namespace TapTapGameJam.UI
         private void OnEnable() => _continueButton.onClick.AddListener(Confirm);
         private void OnDisable() => _continueButton.onClick.RemoveListener(Confirm);
 
-        public void Show(int coins, int talent, int giftedTalent)
+        public void Show(int coinsEarned, int talentEarned, int giftedCoins, int giftedTalent)
         {
             Confirmed = false;
-            _coinsText.text = $"赚取金币：{coins}";
-            _talentText.text = $"获得天赋点：{talent}+{giftedTalent}（赠送）";
+            _coinsText.text = $"赚取金币：{coinsEarned}+{giftedCoins}（赠送）";
+            _talentText.text = $"获得天赋点：{talentEarned}+{giftedTalent}（赠送）";
             _continueButton.interactable = true;
             gameObject.SetActive(true);
         }

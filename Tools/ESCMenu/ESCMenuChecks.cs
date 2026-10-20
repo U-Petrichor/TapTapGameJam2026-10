@@ -38,8 +38,8 @@ public static class ESCMenuChecks
   EventPipeline.Publish(new ESCMenuEvent(true));
   Require(Time.timeScale==0,"Game did not pause.");
   Require(!Field<GameObject>("exitConfirmation").activeSelf,"Exit popup opened with menu.");
-  string[] fields={"SettingsBtn","GalleryBtn","SaveAndExitBtn","ExitGameBtn"};
-  string[] labels={"系统设置","游戏图鉴","保存并退出","退出至桌面"};
+  string[] fields={"SettingsBtn","SaveAndExitBtn","ExitGameBtn"};
+  string[] labels={"系统设置","保存并退出","退出至桌面"};
   for(int i=0;i<fields.Length;i++) {
    Require(Btn(fields[i]).GetComponentInChildren<TMP_Text>().text==labels[i],"Wrong label");
    Require(AssetDatabase.GetAssetPath(Btn(fields[i]).image.sprite)=="Assets/Model/UI/菜单组件/系统设置/信息栏.png","Wrong button sprite");
@@ -88,10 +88,6 @@ public static class ESCMenuChecks
   Btn("cancelExitBtn").onClick.Invoke();
   Require(!Field<GameObject>("exitConfirmation").activeSelf&&Field<CanvasGroup>("menuGroup").interactable,"Cancel failed");
   Require(EventSystem.current.currentSelectedGameObject==Btn("ExitGameBtn").gameObject,"Cancel focus failed");
-  Btn("GalleryBtn").onClick.Invoke();
-  Require(Field<GameObject>("galleryPanel").activeSelf,"Gallery missing");
-  Btn("galleryBackBtn").onClick.Invoke();
-  Require(!Field<GameObject>("galleryPanel").activeSelf&&Time.timeScale==0,"Gallery return failed");
   Btn("SettingsBtn").onClick.Invoke();
   Require(SettingsMenu.IsGameSettingsOpen&&!Field<CanvasGroup>("menuGroup").interactable,"Settings missing");
   Require(Menu.TryCloseSubPanel()&&!SettingsMenu.IsGameSettingsOpen&&Time.timeScale==0,"Settings back failed");
@@ -100,7 +96,7 @@ public static class ESCMenuChecks
   Require(!Field<GameObject>("menuRoot").activeSelf&&Time.timeScale==1,"Arrow did not resume");
   Require(!FieldInputOpen(input),"Input pause state out of sync");
   input.SwitchActionMap("ESCMenu"); typeof(PlayerInputManager).GetField("_isESCMenuOpen",Flags).SetValue(input,true); EventPipeline.Publish(new ESCMenuEvent(true));
-  File.WriteAllText("Temp/ESCMenuQA/verification.txt","PASS: exact sprites and labels; 4 resolutions and button raycasts; exit confirmation/cancel/default focus; gallery/back; settings/back; arrow resumes and restores input state.\n");
+  File.WriteAllText("Temp/ESCMenuQA/verification.txt","PASS: exact sprites and labels; 4 resolutions and button raycasts; exit confirmation/cancel/default focus; settings/back; arrow resumes and restores input state.\n");
   return File.ReadAllText("Temp/ESCMenuQA/verification.txt");
  }
  static bool FieldInputOpen(PlayerInputManager input)=>(bool)typeof(PlayerInputManager).GetField("_isESCMenuOpen",Flags).GetValue(input);
@@ -115,12 +111,12 @@ public static class ESCMenuChecks
    InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
    InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
    InputSystem.EnableDevice(keyboard); keyboard.MakeCurrent();
-   foreach(string name in new[]{"SettingsBtn","GalleryBtn","ExitGameBtn"}) {
+   foreach(string name in new[]{"SettingsBtn","ExitGameBtn"}) {
     Btn(name).onClick.Invoke();
     InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.Escape)); await Task.Delay(250);
     InputSystem.QueueStateEvent(keyboard,new KeyboardState()); await Task.Delay(100);
     Require(FieldInputOpen(input)&&Time.timeScale==0,"ESC resumed instead of closing "+name);
-    Require(!SettingsMenu.IsGameSettingsOpen&&!Field<GameObject>("galleryPanel").activeSelf&&!Field<GameObject>("exitConfirmation").activeSelf,"ESC did not close "+name);
+    Require(!SettingsMenu.IsGameSettingsOpen&&!Field<GameObject>("exitConfirmation").activeSelf,"ESC did not close "+name);
    }
    InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.Escape)); await Task.Delay(250);
    InputSystem.QueueStateEvent(keyboard,new KeyboardState()); await Task.Delay(100);

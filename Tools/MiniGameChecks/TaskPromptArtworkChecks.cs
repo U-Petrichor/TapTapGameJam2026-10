@@ -11,7 +11,7 @@ internal class CommandScript : IRunCommand
 {
     public void Execute(ExecutionResult result)
     {
-        string[] names = { "制作咖啡", "喂狗粮", "打印文件", "打扫", "拆快递", "炒股", "送快递" };
+        string[] names = { "制作咖啡", "喂狗粮", "打印文件", "打扫", "拆快递", "炒股", "分拣文件", "送快递" };
         foreach (string name in names)
         {
             string path = "Assets/Model/UI/UI/所有任务提示/" + name + ".png";

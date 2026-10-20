@@ -81,7 +81,9 @@ namespace TapTapGameJam.Core.Disinfection
             return false;
         }
 
-        public int CountOccupiedNests(IReadOnlyList<CockNest> nests)
+        // Group rooms by nest presence regardless of current population.
+        // Population is checked separately at execution time.
+        public int CountNests(IReadOnlyList<CockNest> nests)
         {
             int count = 0;
             if (nests == null)
@@ -92,8 +94,7 @@ namespace TapTapGameJam.Core.Disinfection
             for (int i = 0; i < nests.Count; i++)
             {
                 CockNest nest = nests[i];
-                if (nest != null && nest.CockroachList != null &&
-                    nest.CockroachList.Count > 0 && ContainsNest(nest))
+                if (ContainsNest(nest))
                 {
                     count++;
                 }

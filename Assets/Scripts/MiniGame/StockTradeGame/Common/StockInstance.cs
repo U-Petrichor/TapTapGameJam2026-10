@@ -11,7 +11,8 @@ namespace TapTapGameJam.MiniGame
         public override bool IsDailyActivity => true;
         public override string AvailabilityText => $"白天开放 · 今日剩余 {_remainingPlays?.Invoke() ?? StockQuest.DailyPlayLimit} 次";
         public StockPoint Point => _point;
-        public StockInstance(StockPoint point, System.Func<int> remainingPlays = null) : base(point.transform)
+        public StockInstance(StockPoint point, System.Func<int> remainingPlays = null, int rewardCoins = 0,
+            int rewardTalentPoints = 0) : base(point.transform, rewardCoins, rewardTalentPoints)
         {
             _point = point;
             _remainingPlays = remainingPlays;
@@ -28,7 +29,7 @@ namespace TapTapGameJam.MiniGame
             Cancel();
             return false;
         }
-        private void HandleRoundCompleted(PlayerBasic player) => NotifyStageChanged();
+        private void HandleRoundCompleted(PlayerBasic player) => Complete(player != null ? player.PlayerResources : null);
         public void RefreshAvailability() => NotifyStageChanged();
         protected override void Release()
         {

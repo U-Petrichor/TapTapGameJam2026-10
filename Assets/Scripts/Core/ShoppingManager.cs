@@ -125,7 +125,7 @@ namespace TapTapGameJam.Core
             SetFadeAlpha(0f);
             _fadeText.gameObject.SetActive(false);
             _settlementView.Show(_phaseManager.DailyCoinsEarned, _phaseManager.DailyTalentEarned,
-                GamePhaseManager.DailyTalentGift);
+                _phaseManager.DailyCoinsGiftAmount, _phaseManager.DailyTalentGiftAmount);
             if (_playerInput != null && _inputWasActive) _playerInput.ActivateInput();
             // 等待确认期间不启用上层淡黑遮罩，让结算按钮接收点击。
             yield return new WaitUntil(() => _settlementView.Confirmed);

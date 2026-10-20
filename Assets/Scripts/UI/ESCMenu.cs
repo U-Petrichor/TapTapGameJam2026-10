@@ -16,14 +16,11 @@ namespace TapTapGameJam.UI
         public static ESCMenu Instance { get; private set; }
         [SerializeField] private Button ContinueGameBtn;
         [SerializeField] private Button SettingsBtn;
-        [SerializeField] private Button GalleryBtn;
         [FormerlySerializedAs("ReturnToMainMenuBtn")]
         [SerializeField] private Button SaveAndExitBtn;
         [SerializeField] private Button ExitGameBtn;
         [SerializeField] private GameObject menuRoot;
         [SerializeField] private CanvasGroup menuGroup;
-        [SerializeField] private GameObject galleryPanel;
-        [SerializeField] private Button galleryBackBtn;
         [SerializeField] private GameObject exitConfirmation;
         [SerializeField] private Button cancelExitBtn;
         [SerializeField] private Button confirmExitBtn;
@@ -38,10 +35,8 @@ namespace TapTapGameJam.UI
             Instance = this;
             if (ContinueGameBtn != null) ContinueGameBtn.onClick.AddListener(ResumeGame);
             if (SettingsBtn != null) SettingsBtn.onClick.AddListener(OpenSettings);
-            if (GalleryBtn != null) GalleryBtn.onClick.AddListener(OpenGallery);
             if (SaveAndExitBtn != null) SaveAndExitBtn.onClick.AddListener(SaveAndExit);
             if (ExitGameBtn != null) ExitGameBtn.onClick.AddListener(OpenExit);
-            if (galleryBackBtn != null) galleryBackBtn.onClick.AddListener(CloseSubPanel);
             if (cancelExitBtn != null) cancelExitBtn.onClick.AddListener(CloseSubPanel);
             if (confirmExitBtn != null) confirmExitBtn.onClick.AddListener(ConfirmExit);
             CloseESCMenu();
@@ -55,10 +50,8 @@ namespace TapTapGameJam.UI
             if (Instance == this) Instance = null;
             if (ContinueGameBtn != null) ContinueGameBtn.onClick.RemoveListener(ResumeGame);
             if (SettingsBtn != null) SettingsBtn.onClick.RemoveListener(OpenSettings);
-            if (GalleryBtn != null) GalleryBtn.onClick.RemoveListener(OpenGallery);
             if (SaveAndExitBtn != null) SaveAndExitBtn.onClick.RemoveListener(SaveAndExit);
             if (ExitGameBtn != null) ExitGameBtn.onClick.RemoveListener(OpenExit);
-            if (galleryBackBtn != null) galleryBackBtn.onClick.RemoveListener(CloseSubPanel);
             if (cancelExitBtn != null) cancelExitBtn.onClick.RemoveListener(CloseSubPanel);
             if (confirmExitBtn != null) confirmExitBtn.onClick.RemoveListener(ConfirmExit);
         }
@@ -78,7 +71,6 @@ namespace TapTapGameJam.UI
                 return;
             }
             menuRoot.SetActive(true);
-            if (galleryPanel != null) galleryPanel.SetActive(false);
             if (exitConfirmation != null) exitConfirmation.SetActive(false);
             currentPanel = null;
             SetMenuInteractable(true);
@@ -108,7 +100,6 @@ namespace TapTapGameJam.UI
             if (!SettingsMenu.IsGameSettingsOpen) SetMenuInteractable(true);
         }
 
-        private void OpenGallery() => OpenPanel(galleryPanel, GalleryBtn, galleryBackBtn);
         private void OpenExit() => OpenPanel(exitConfirmation, ExitGameBtn, cancelExitBtn);
 
         private void OpenPanel(GameObject panel, Button source, Button first)

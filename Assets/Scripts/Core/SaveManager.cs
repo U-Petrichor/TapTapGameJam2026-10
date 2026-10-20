@@ -25,12 +25,14 @@ namespace TapTapGameJam.Core
         public bool hasDailySettlement;
         public int dailyCoinsEarned;
         public int dailyTalentEarned;
+        public int dailyCoinsGift;
+        public int dailyTalentGift;
     }
 
     /// <summary>单槽阶段检查点。阶段开始时捕获，保存退出时重试写盘，不保存中途资源。</summary>
     public static class SaveManager
     {
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 #if UNITY_EDITOR
         // Integration checks use a separate directory and never touch the player's save.
         public static string TestSaveDirectory;
@@ -114,7 +116,8 @@ namespace TapTapGameJam.Core
                 var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
                 if (candidate == null || (candidate.version < 1 || candidate.version > CurrentVersion) || candidate.dayIndex < 1 ||
                     !Enum.IsDefined(typeof(GamePhase), candidate.phase) || candidate.coins < 0 ||
-                    candidate.nutrition < 0 || candidate.talentPoint < 0 || !CheckpointState.Validate(candidate))
+                    candidate.nutrition < 0 || candidate.talentPoint < 0 || candidate.dailyCoinsGift < 0 ||
+                    candidate.dailyTalentGift < 0 || !CheckpointState.Validate(candidate))
                     return false;
                 data = candidate;
                 return true;
@@ -136,7 +139,9 @@ namespace TapTapGameJam.Core
                 talentPoint = resources.TalentPoint,
                 hasDailySettlement = true,
                 dailyCoinsEarned = phases.DailyCoinsEarned,
-                dailyTalentEarned = phases.DailyTalentEarned
+                dailyTalentEarned = phases.DailyTalentEarned,
+                dailyCoinsGift = phases.DailyCoinsGiftAmount,
+                dailyTalentGift = phases.DailyTalentGiftAmount
             };
             try { CheckpointState.Capture(data, resources); }
             catch (Exception exception)

@@ -25,21 +25,9 @@ namespace TapTapGameJam.Core.Disinfection
             Finished
         }
 
-        private struct RoomCandidate
-        {
-            public DisinfectionRoom Room;
-            public int Weight;
-
-            public RoomCandidate(DisinfectionRoom room, int weight)
-            {
-                Room = room;
-                Weight = weight;
-            }
-        }
-
         [Header("解锁与时间")]
-        [Tooltip("EventNewDay.DayCount 的解锁阈值。当前项目第一天是 0，第二天是 1。")]
-        [SerializeField] private int _unlockDayCount = 1;
+        [Tooltip("EventNewDay.DayCount 的解锁阈值。第一天是 1，第二天是 2。")]
+        [SerializeField] private int _unlockDayCount = 2;
         [SerializeField, Min(0f)] private float _warningDuration = 40f;
         [SerializeField] private Vector2 _randomDelayRange = new Vector2(30f, 45f);
 
@@ -54,7 +42,7 @@ namespace TapTapGameJam.Core.Disinfection
         [SerializeField, Min(0f)] private float _edgePadding = 20f;
 
         [Header("调试")]
-        [Tooltip("忽略第二天解锁限制，并跳过随机等待。仍需在白天且房间内有蟑螂。")]
+        [Tooltip("忽略第二天解锁限制，并跳过随机等待。无需房间内存在巢穴。")]
         [SerializeField] private bool _startImmediatelyForDebug;
 
         private readonly List<DisinfectionRoom> _rooms = new List<DisinfectionRoom>();
@@ -211,37 +199,27 @@ namespace TapTapGameJam.Core.Disinfection
 
             DiscoverRooms();
             List<CockNest> nests = FindNests();
-            var candidates = new List<RoomCandidate>();
-
+            var roomsWithNests = new List<DisinfectionRoom>();
+            var roomsWithoutNests = new List<DisinfectionRoom>();
             for (int i = 0; i < _rooms.Count; i++)
             {
-                int weight = _rooms[i].CountOccupiedNests(nests);
-                if (weight > 0)
-                {
-                    candidates.Add(new RoomCandidate(_rooms[i], weight));
-                }
+                var group = _rooms[i].CountNests(nests) > 0 ? roomsWithNests : roomsWithoutNests;
+                group.Add(_rooms[i]);
             }
 
             _hasRunToday = true;
-            if (candidates.Count == 0)
+            if (_rooms.Count == 0)
             {
-                Debug.Log("[DisinfectionManager] 没有包含蟑螂巢穴的可用房间，今天跳过消杀。", this);
+                Debug.LogWarning("[DisinfectionManager] 没有可用的消杀房间，请检查场景配置。", this);
                 _state = DisinfectionState.Finished;
                 return;
             }
 
-            int minRooms = Mathf.Clamp(_minimumRooms, 1, candidates.Count);
-            int maxRooms = Mathf.Clamp(_maximumRooms, minRooms, candidates.Count);
+            int minRooms = Mathf.Clamp(_minimumRooms, 1, _rooms.Count);
+            int maxRooms = Mathf.Clamp(_maximumRooms, minRooms, _rooms.Count);
             int roomCount = Random.Range(minRooms, maxRooms + 1);
-
             _selectedRooms.Clear();
-            for (int i = 0; i < roomCount && candidates.Count > 0; i++)
-            {
-                int selectedIndex = WeightedIndex(candidates);
-                DisinfectionRoom selected = candidates[selectedIndex].Room;
-                _selectedRooms.Add(selected);
-                candidates.RemoveAt(selectedIndex);
-            }
+            SelectRooms(roomsWithNests, roomsWithoutNests, roomCount, _selectedRooms);
 
             _warningRemaining = Mathf.Max(0f, _warningDuration);
             _state = DisinfectionState.Warning;
@@ -258,31 +236,29 @@ namespace TapTapGameJam.Core.Disinfection
             UpdateWarningViews();
         }
 
-        private int WeightedIndex(List<RoomCandidate> candidates)
+        private static void SelectRooms(List<DisinfectionRoom> roomsWithNests,
+            List<DisinfectionRoom> roomsWithoutNests, int roomCount, List<DisinfectionRoom> selected)
         {
-            int totalWeight = 0;
-            for (int i = 0; i < candidates.Count; i++)
+            for (int i = 0; i < roomCount; i++)
             {
-                totalWeight += Mathf.Max(0, candidates[i].Weight);
-            }
-
-            if (totalWeight <= 0)
-            {
-                return Random.Range(0, candidates.Count);
-            }
-
-            int roll = Random.Range(0, totalWeight);
-            int accumulated = 0;
-            for (int i = 0; i < candidates.Count; i++)
-            {
-                accumulated += Mathf.Max(0, candidates[i].Weight);
-                if (roll < accumulated)
+                // First slot is guaranteed; later slots use group probabilities, not nest counts.
+                float nestChance = i == 0 ? 1f : i == 1 ? 0.5f : 0.25f;
+                bool preferNests = i == 0 || Random.value < nestChance;
+                var group = preferNests ? roomsWithNests : roomsWithoutNests;
+                if (group.Count == 0)
                 {
-                    return i;
+                    group = preferNests ? roomsWithoutNests : roomsWithNests;
                 }
-            }
 
-            return candidates.Count - 1;
+                if (group.Count == 0)
+                {
+                    break;
+                }
+
+                int index = Random.Range(0, group.Count);
+                selected.Add(group[index]);
+                group.RemoveAt(index);
+            }
         }
 
         private void ExecuteDisinfection()

@@ -16,7 +16,7 @@ internal class CommandScript : IRunCommand
   var mapping=new Dictionary<string,string> {
    {"MakeCoffeePoint","制作咖啡"},{"PourDogFoodPoint","喂狗粮"},
    {"PrinterRepairPoint","打印文件"},{"CleanPoint","打扫"},
-   {"ParcelCutPoint","拆快递"},{"StockPoint","炒股"},
+   {"ParcelCutPoint","拆快递"},{"StockPoint","炒股"},{"SortFilePoint","分拣文件"},
    {"FileSourcePoint","送快递"},{"FileDestinationPoint","送快递"}
   };
   foreach(var ui in Object.FindObjectsByType<TaskInteractionPromptUI>(FindObjectsInactive.Include,FindObjectsSortMode.None))

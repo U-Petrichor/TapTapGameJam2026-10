@@ -13,13 +13,10 @@ namespace TapTapGameJam.UI
         [SerializeField] private Button startGameBtn;
         [SerializeField] private Button continueGameBtn;
         [SerializeField] private Button settingsBtn;
-        [SerializeField] private Button galleryBtn;
         [SerializeField] private Button exitBtn;
         [SerializeField] private GameObject settingsCanvas;
-        [SerializeField] private GameObject galleryCanvas;
         [SerializeField] private GameObject exitConfirmation;
         [SerializeField] private Button settingsBackBtn;
-        [SerializeField] private Button galleryBackBtn;
         [SerializeField] private Button cancelExitBtn;
         [SerializeField] private Button confirmExitBtn;
         [SerializeField] private IntroVideoTransition introTransition;
@@ -38,14 +35,11 @@ namespace TapTapGameJam.UI
             SetContinueAvailable(SaveManager.TryRead(out _));
             continueGameBtn.onClick.AddListener(ContinueGame);
             settingsBtn.onClick.AddListener(OpenSettings);
-            galleryBtn.onClick.AddListener(OpenGallery);
             exitBtn.onClick.AddListener(OpenExit);
             settingsBackBtn.onClick.AddListener(ClosePanel);
-            galleryBackBtn.onClick.AddListener(ClosePanel);
             cancelExitBtn.onClick.AddListener(ClosePanel);
             confirmExitBtn.onClick.AddListener(ConfirmExit);
             settingsCanvas.SetActive(false);
-            galleryCanvas.SetActive(false);
             exitConfirmation.SetActive(false);
         }
 
@@ -117,7 +111,6 @@ namespace TapTapGameJam.UI
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         }
         public void OpenSettings() => OpenPanel(settingsCanvas, settingsBtn, settingsBackBtn);
-        public void OpenGallery() => OpenPanel(galleryCanvas, galleryBtn, galleryBackBtn);
         public void OpenExit() => OpenPanel(exitConfirmation, exitBtn, cancelExitBtn);
 
         private void OpenPanel(GameObject panel, Button source, Button first)

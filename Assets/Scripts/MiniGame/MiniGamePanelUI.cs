@@ -140,8 +140,11 @@ namespace TapTapGameJam.UI
             MiniGameContent content = _currentContent;
             var callback = _actionOnFinished;
 
-            if (success && (content is CoffeeGame || content is StockPointGame))
+            if (success && (content is SortFileGame || content is CoffeeGame || content is StockPointGame))
+            {
                 TutorialSignal.Send(TutorialSignals.TaskComplexCompleted);
+                EventPipeline.Publish(new EventComplexTaskCompleted());
+            }
 
             _currentContent = null;
             _currentOwner = null;

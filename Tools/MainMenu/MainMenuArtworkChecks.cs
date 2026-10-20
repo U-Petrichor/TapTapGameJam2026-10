@@ -87,13 +87,13 @@ public static class MainMenuArtworkChecks
                 EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = RectTransformUtility.WorldToScreenPoint(null, blank) }, blankHits);
                 Require(blankHits.Count == 0, "Decorative artwork intercepts background clicks.");
                 Capture("main-" + w + "x" + h + ".png", w, h);
-                results.Add(w + "x" + h + ": design fits, five local hit areas, decorative artwork ignores raycasts.");
+                results.Add(w + "x" + h + ": design fits, four local hit areas, decorative artwork ignores raycasts.");
             }
 
-            foreach (string field in new[] { "settingsBtn", "galleryBtn", "exitBtn" })
+            foreach (string field in new[] { "settingsBtn", "exitBtn" })
             {
-                string panelField = field == "settingsBtn" ? "settingsCanvas" : field == "galleryBtn" ? "galleryCanvas" : "exitConfirmation";
-                string backField = field == "settingsBtn" ? "settingsBackBtn" : field == "galleryBtn" ? "galleryBackBtn" : "cancelExitBtn";
+                string panelField = field == "settingsBtn" ? "settingsCanvas" : "exitConfirmation";
+                string backField = field == "settingsBtn" ? "settingsBackBtn" : "cancelExitBtn";
                 Button(field).onClick.Invoke();
                 Require(Field<GameObject>(menu, panelField).activeInHierarchy, "Panel did not open: " + panelField);
                 Require(!menu.GetComponent<CanvasGroup>().interactable, "Menu remained interactive behind modal.");

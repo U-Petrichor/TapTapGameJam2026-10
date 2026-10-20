@@ -83,6 +83,8 @@ namespace TapTapGameJam.Events
             DayCount = dayCount;
         }
     }
+    /// <summary>成功完成一项复杂工作任务。</summary>
+    public readonly struct EventComplexTaskCompleted : IEvent { }
     /// <summary>门首次达到开放日期；玩家靠近后自动开门。</summary>
     public readonly struct EventSecurityDoorAvailable : IEvent
     {

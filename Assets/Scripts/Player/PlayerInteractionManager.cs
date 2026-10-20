@@ -152,7 +152,7 @@ namespace TapTapGameJam.Player
             if (!_currentTarget.CanInteract(_player))
             {
                 Sfx.Play(SoundId.Error, this);
-                Debug.LogError($"当前目标{_currentTarget.InteractionPrompt}无法交互");
+                Debug.LogWarning($"当前目标{_currentTarget.InteractionPrompt}无法交互");
                 return;
             }
 

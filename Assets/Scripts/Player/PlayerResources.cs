@@ -43,8 +43,19 @@ namespace TapTapGameJam.Player
         public void AddCoins(int amount)
         {
             int adjustedAmount = ApplyGainPercent(BuffKey.CoinGainPercent, amount);
-            Coins += adjustedAmount;
-            EventPipeline.Publish<EventCoinsChange>(new EventCoinsChange(Coins, adjustedAmount));
+            ApplyCoins(adjustedAmount);
+        }
+
+        /// <summary>发放固定金币奖励，不应用金币获取加成。</summary>
+        public void AddCoinsWithoutBuff(int amount)
+        {
+            ApplyCoins(amount);
+        }
+
+        private void ApplyCoins(int amount)
+        {
+            Coins += amount;
+            EventPipeline.Publish<EventCoinsChange>(new EventCoinsChange(Coins, amount));
         }
 
         /// <summary>

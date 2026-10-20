@@ -53,33 +53,27 @@ public static class ESCMenuArtworkBuilder
             var group = design.gameObject.AddComponent<CanvasGroup>();
             var resume = Button("ContinueGame", design, Sprite(Art + "每日结算/IMG_5042 3.png"), "", 310, 365, 160, 155);
             var strip = Sprite(Art + "系统设置/信息栏.png");
-            var settings = Button("Settings", design, strip, "系统设置", -20, 170, 420, 94);
-            var gallery = Button("Gallery", design, strip, "游戏图鉴", -20, 35, 420, 94);
-            var save = Button("SaveAndExit", design, strip, "保存并退出", -20, -100, 420, 94);
-            var exit = Button("ExitToDesktop", design, strip, "退出至桌面", -20, -235, 420, 94);
-            var hint = Label("SaveStatus", design, "进度按阶段检查点保存，继续游戏将从本阶段开始。", -20, -327, 490, 64, 21);
+            var settings = Button("Settings", design, strip, "系统设置", -20, 135, 420, 94);
+            var save = Button("SaveAndExit", design, strip, "保存并退出", -20, -25, 420, 94);
+            var exit = Button("ExitToDesktop", design, strip, "退出至桌面", -20, -185, 420, 94);
+            var hint = Label("SaveStatus", design, "进度按阶段检查点保存，继续游戏将从本阶段开始。", -20, -285, 490, 64, 21);
             hint.color = new Color(.25f, .22f, .16f);
-            var buttons = new[] {settings, gallery, save, exit, resume};
+            var buttons = new[] {settings, save, exit, resume};
             for (int i = 0; i < buttons.Length; i++)
                 buttons[i].navigation = new Navigation {mode=Navigation.Mode.Explicit,
                     selectOnUp=buttons[(i+buttons.Length-1)%buttons.Length], selectOnDown=buttons[(i+1)%buttons.Length],
                     selectOnRight=resume, selectOnLeft=settings};
 
-            var gallerySource = (GameObject)source.FindProperty("galleryCanvas").objectReferenceValue;
             var exitSource = (GameObject)source.FindProperty("exitConfirmation").objectReferenceValue;
-            var galleryPanel = ClonePanel(gallerySource, root.transform, 160);
             var exitPanel = ClonePanel(exitSource, root.transform, 170);
-            var galleryBack = FindCloneButton(source, "galleryBackBtn", gallerySource, galleryPanel);
             var cancel = FindCloneButton(source, "cancelExitBtn", exitSource, exitPanel);
             var confirm = FindCloneButton(source, "confirmExitBtn", exitSource, exitPanel);
             cancel.navigation = new Navigation {mode=Navigation.Mode.Explicit, selectOnRight=confirm, selectOnDown=confirm};
             confirm.navigation = new Navigation {mode=Navigation.Mode.Explicit, selectOnLeft=cancel, selectOnUp=cancel};
-            galleryBack.navigation = new Navigation {mode=Navigation.Mode.None};
             var data = new SerializedObject(controller);
-            Set(data,"ContinueGameBtn",resume); Set(data,"SettingsBtn",settings); Set(data,"GalleryBtn",gallery);
+            Set(data,"ContinueGameBtn",resume); Set(data,"SettingsBtn",settings);
             Set(data,"SaveAndExitBtn",save); Set(data,"ExitGameBtn",exit); Set(data,"menuRoot",menu.gameObject);
-            Set(data,"menuGroup",group); Set(data,"saveStatus",hint); Set(data,"galleryPanel",galleryPanel);
-            Set(data,"galleryBackBtn",galleryBack); Set(data,"exitConfirmation",exitPanel);
+            Set(data,"menuGroup",group); Set(data,"saveStatus",hint); Set(data,"exitConfirmation",exitPanel);
             Set(data,"cancelExitBtn",cancel); Set(data,"confirmExitBtn",confirm);
             data.ApplyModifiedPropertiesWithoutUndo();
             menu.gameObject.SetActive(false); root.SetActive(true);

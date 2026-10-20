@@ -6,15 +6,20 @@ namespace TapTapGameJam.MiniGame
     // 固定白天入口。管理器在白天创建一次活动实例，用于保持交互和位置指引。
     public class StockQuest : MiniGameCandidate
     {
+        [SerializeField, Min(0)] private int _rewardCoins = 0;
+        [SerializeField, Min(0)] private int _rewardTalentPoints = 18;
         [SerializeField] private List<StockPoint> _stockPoints = new();
         private StockInstance _activity;
-        public const int DailyPlayLimit = 999;
+        public const int DailyPlayLimit = 1;
         private int _playsUsed;
         public int RemainingPlays => Mathf.Max(0, DailyPlayLimit - _playsUsed);
         public StockInstance Activity => _activity;
         public override bool IsDailyActivity => true;
-        public override bool CanSpawn => isActiveAndEnabled && RemainingPlays > 0 && _activity == null && FindAvailablePoint() != null;
+        public override bool CanSpawn => isActiveAndEnabled && RemainingPlays > 0 &&
+            _activity == null && FindAvailablePoint() != null;
         public override void BeginNewDay() => _playsUsed = 0;
+
+        private void OnDisable() => _activity?.Cancel();
 
         public void ConfigurePoints(IEnumerable<StockPoint> points)
         {
@@ -29,7 +34,7 @@ namespace TapTapGameJam.MiniGame
             if (!isActiveAndEnabled || RemainingPlays <= 0 || _activity != null || point == null)
                 return null;
 
-            var activity = new StockInstance(point, () => RemainingPlays);
+            var activity = new StockInstance(point, () => RemainingPlays, _rewardCoins, _rewardTalentPoints);
             _activity = activity;
             point.EventAttemptStarted += HandleAttemptStarted;
             point.EventAttemptFinished += HandleAttemptFinished;
@@ -56,8 +61,6 @@ namespace TapTapGameJam.MiniGame
         {
             if (RemainingPlays == 0) _activity?.Cancel();
         }
-        private void OnDisable() => _activity?.Cancel();
-
         private StockPoint FindAvailablePoint()
         {
             var seen = new HashSet<StockPoint>();

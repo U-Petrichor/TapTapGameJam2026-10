@@ -6404,8 +6404,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b83478ac50eacf7449089f796e09e5d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.ParcelCutQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 12
+  _rewardTalentPoints: 6
   _maxActiveTasks: 1
   _parcelCutPoints:
   - {fileID: 640600423}
@@ -15779,6 +15779,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00ff36cdd853aef4b975d50c7b1c2381, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.StockQuest
+  _rewardCoins: 0
+  _rewardTalentPoints: 18
   _stockPoints:
   - {fileID: 2028943207}
 --- !u!1001 &360083280
@@ -30821,7 +30823,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u83B7\u5F97\u5929\u8D4B\u70B9\uFF1A0"
+  m_text: "\u83B7\u5F97\u5929\u8D4B\u70B9\uFF1A0+20\uFF08\u8D60\u9001\uFF09"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 05a9c3881b91bfc40b0da8d34ff25a30, type: 2}
   m_sharedMaterial: {fileID: 4768425454860006323, guid: 05a9c3881b91bfc40b0da8d34ff25a30, type: 2}
@@ -30958,7 +30960,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u8D5A\u53D6\u91D1\u5E01\uFF1A0"
+  m_text: "\u8D5A\u53D6\u91D1\u5E01\uFF1A0+10\uFF08\u8D60\u9001\uFF09"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 05a9c3881b91bfc40b0da8d34ff25a30, type: 2}
   m_sharedMaterial: {fileID: 4768425454860006323, guid: 05a9c3881b91bfc40b0da8d34ff25a30, type: 2}
@@ -45044,8 +45046,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 429dff751d248b4408061b37ab828326, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.SortFileQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 16
+  _rewardTalentPoints: 16
   _maxActiveTasks: 1
   _sortFilePoints:
   - {fileID: 1264859252}
@@ -53654,7 +53656,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bb55e5530eadd44eab9d5b3f9964c6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.SortFilePoint
-  _interactionPromptSprite: {fileID: 0}
+  _interactionPromptSprite: {fileID: 21300000, guid: 1fdb374ebe2295344bc8c62464aa9a6f, type: 3}
   _detectCollider: {fileID: 1264859253}
   _miniGameKind: 2
   _spawnConditionObjects: []
@@ -69750,8 +69752,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f41d801bc88abfb489120599e3f326de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.MakeCoffeeQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 18
+  _rewardTalentPoints: 18
   _maxActiveTasks: 1
   _coffeePoints:
   - {fileID: 1905788132}
@@ -70805,8 +70807,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc607ffa79ef427aa64a7fc4e88940fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.PourDogFoodQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 10
+  _rewardTalentPoints: 6
   _maxActiveTasks: 1
   _pourDogFoodPoints:
   - {fileID: 6964958152297947565}
@@ -74619,8 +74621,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb1ed03f7efe56e429fb2fb7ee9e77fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.CleanQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 8
+  _rewardTalentPoints: 6
   _maxActiveTasks: 1
   _cleanPoints:
   - {fileID: 7918404930178078772}
@@ -78441,8 +78443,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7871bafe7cb49a8900ad938c1aa8acf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.PrinterRepairQuest
-  _rewardCoins: 30
-  _rewardTalentPoints: 1
+  _rewardCoins: 13
+  _rewardTalentPoints: 6
   _maxActiveTasks: 1
   _printerPoints:
   - {fileID: 5022592097262621138}
@@ -81949,8 +81951,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16631520ad1a4ae4caa0fbaf8c2b00b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.MiniGame.DeliverFileQuest
-  _rewardCoins: 1
-  _rewardTalentPoints: 5
+  _rewardCoins: 10
+  _rewardTalentPoints: 6
   _maxActiveTasks: 1
   _sourcePool:
   - {fileID: 1007312363}

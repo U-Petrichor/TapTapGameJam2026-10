@@ -9,7 +9,8 @@ namespace TapTapGameJam.Core
 {
     public class GamePhaseManager : MonoBehaviour
     {
-        public const int DailyTalentGift = 5;
+        public const int DailyBaseCoinsGift = 10;
+        public const int DailyBaseTalentGift = 20;
 
         [SerializeField] private const float DAY_DURATION = 90f; // 白天持续时间，单位秒
         [SerializeField] private const float NIGHT_DURATION = 330f; // 夜晚持续时间，单位秒
@@ -25,8 +26,11 @@ namespace TapTapGameJam.Core
         public bool IsInitialized => _initialized;
         private int _dayStartCoins;
         private int _dayStartTalent;
+        private int _dailyComplexTaskBonus;
         public int DailyCoinsEarned { get; private set; }
         public int DailyTalentEarned { get; private set; }
+        public int DailyCoinsGiftAmount { get; private set; }
+        public int DailyTalentGiftAmount { get; private set; }
         
         public float DayProcess => CurrentPhase == GamePhase.Day ? RemainingTime / DAY_DURATION : -1.0f;
         public float NightProcess => CurrentPhase == GamePhase.Night ? RemainingTime / NIGHT_DURATION : -1.0f;
@@ -35,12 +39,20 @@ namespace TapTapGameJam.Core
         {
             EventPipeline.Subscribe<ShoppingFinishedEvent>(HandleShoppingFinished);
             EventPipeline.Subscribe<NightTransitionCompletedEvent>(HandleNightReady);
+            EventPipeline.Subscribe<EventComplexTaskCompleted>(HandleComplexTaskCompleted);
         }
 
         private void OnDisable()
         {
             EventPipeline.UnSubscribe<ShoppingFinishedEvent>(HandleShoppingFinished);
             EventPipeline.UnSubscribe<NightTransitionCompletedEvent>(HandleNightReady);
+            EventPipeline.UnSubscribe<EventComplexTaskCompleted>(HandleComplexTaskCompleted);
+        }
+
+        private void HandleComplexTaskCompleted(EventComplexTaskCompleted evt)
+        {
+            if (CurrentPhase == GamePhase.Day)
+                _dailyComplexTaskBonus += UnityEngine.Random.Range(8, 16);
         }
 
         private void HandleShoppingFinished(ShoppingFinishedEvent evt)
@@ -72,6 +84,10 @@ namespace TapTapGameJam.Core
                 RecordDayStart();
                 DailyCoinsEarned = data.hasDailySettlement ? data.dailyCoinsEarned : 0;
                 DailyTalentEarned = data.hasDailySettlement ? data.dailyTalentEarned : 0;
+                DailyCoinsGiftAmount = data.phase == GamePhase.Shopping ? data.dailyCoinsGift : 0;
+                DailyTalentGiftAmount = data.phase == GamePhase.Shopping
+                    ? data.version < 3 ? 5 : data.dailyTalentGift
+                    : 0;
                 ResetPlayerPosition(CurrentPhase);
                 // 重建当天的场景条件，不调用 EnterPhase，因此不会增加天数。
                 EventPipeline.Publish(new EventNewDay(DayIndex));
@@ -131,7 +147,14 @@ namespace TapTapGameJam.Core
             {
                 DailyCoinsEarned = _saveResources.Coins - _dayStartCoins;
                 DailyTalentEarned = _saveResources.TalentPoint - _dayStartTalent;
-                _saveResources.AddTalentPoint(DailyTalentGift);
+                DailyCoinsGiftAmount = DailyBaseCoinsGift;
+                DailyTalentGiftAmount = 0;
+                _saveResources.AddCoinsWithoutBuff(DailyCoinsGiftAmount);
+                int talentBeforeGift = _saveResources.TalentPoint;
+                _saveResources.AddTalentPointGain(DailyBaseTalentGift);
+                DailyTalentGiftAmount = _saveResources.TalentPoint - talentBeforeGift;
+                if (_dailyComplexTaskBonus > 0)
+                    _saveResources.AddTalentPoint(_dailyComplexTaskBonus);
             }
             if (phase == GamePhase.Day) RecordDayStart();
             Debug.Log($"<color=#00ff00>进入了新的阶段{phase}”</color>");
@@ -175,6 +198,9 @@ namespace TapTapGameJam.Core
             _dayStartTalent = _saveResources != null ? _saveResources.TalentPoint : 0;
             DailyCoinsEarned = 0;
             DailyTalentEarned = 0;
+            DailyCoinsGiftAmount = 0;
+            DailyTalentGiftAmount = 0;
+            _dailyComplexTaskBonus = 0;
         }
 
         private void ResetPlayerPosition(GamePhase phase)

@@ -56,9 +56,8 @@ public static class MainMenuSetup
         layout.spacing = 16; layout.childControlHeight = true; layout.childControlWidth = true;
         layout.childForceExpandHeight = false;
         var cont = UnityEngine.Object.Instantiate(start, container); cont.name = "ContinueGame";
-        var gallery = UnityEngine.Object.Instantiate(start, container); gallery.name = "Gallery";
-        var buttons = new[] { start, cont, settings, gallery, exit };
-        var labels = new[] { "开始游戏", "继续游戏", "设置", "图鉴", "退出游戏" };
+        var buttons = new[] { start, cont, settings, exit };
+        var labels = new[] { "开始游戏", "继续游戏", "设置", "退出游戏" };
         for (int i = 0; i < buttons.Length; i++)
         {
             buttons[i].transform.SetSiblingIndex(i);
@@ -76,21 +75,17 @@ public static class MainMenuSetup
         var settingsRoot = (GameObject)PrefabUtility.InstantiatePrefab(settingsAsset, scene);
         settingsRoot.SetActive(false);
         var back = settingsRoot.GetComponent<SettingsMenu>().BackButton;
-        var galleryRoot = CanvasRoot("GalleryCanvas", 21);
-        var galleryBg = Image("Background",galleryRoot.transform,Vector2.zero,new Vector2(1920,1080),Paper); Stretch(galleryBg.rectTransform);
-        Label("Title",galleryBg.transform,"图鉴",new Vector2(0,420),new Vector2(600,90),48);
-        var galleryBack = Button("Back",galleryBg.transform,"返回",new Vector2(-820,445),new Vector2(160,70));
         var exitRoot = CanvasRoot("ExitConfirmationCanvas",30);
         var dimmer = Image("InputBlocker",exitRoot.transform,Vector2.zero,new Vector2(1920,1080),new Color(0,0,0,.3f)); Stretch(dimmer.rectTransform);
         var note = Image("NotePlaceholder",dimmer.transform,Vector2.zero,new Vector2(570,430),new Color(.98f,.93f,.48f));
         Label("Question",note.transform,"是否确认退出游戏？",new Vector2(0,60),new Vector2(500,100),34);
         var cancel = Button("Cancel",note.transform,"取消",new Vector2(-140,-125),new Vector2(180,70));
         var confirm = Button("Confirm",note.transform,"确定",new Vector2(140,-125),new Vector2(180,70));
-        Set(so,"continueGameBtn",cont); Set(so,"galleryBtn",gallery);
-        Set(so,"settingsCanvas",settingsRoot); Set(so,"galleryCanvas",galleryRoot); Set(so,"exitConfirmation",exitRoot);
-        Set(so,"settingsBackBtn",back); Set(so,"galleryBackBtn",galleryBack); Set(so,"cancelExitBtn",cancel); Set(so,"confirmExitBtn",confirm);
+        Set(so,"continueGameBtn",cont);
+        Set(so,"settingsCanvas",settingsRoot); Set(so,"exitConfirmation",exitRoot);
+        Set(so,"settingsBackBtn",back); Set(so,"cancelExitBtn",cancel); Set(so,"confirmExitBtn",confirm);
         so.ApplyModifiedPropertiesWithoutUndo();
-        galleryRoot.SetActive(false); exitRoot.SetActive(false);
+        exitRoot.SetActive(false);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         SceneManager.SetActiveScene(oldActive);
