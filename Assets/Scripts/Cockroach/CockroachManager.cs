@@ -37,7 +37,7 @@ namespace TapTapGameJam.Cockroach
         [Header("蟑螂寻路设置")]
         public CockroachSettings cockroachSetting = new CockroachSettings();
 
-        // TODO： 和PlayerResources合并取其一
+        // 玩家与虫群共用的唯一营养池；初始值在场景 Inspector 中配置。
         [Header("共享总营养")] public float sharedNutrition = 100;
 
         [Header("胜利目标")]
@@ -157,6 +157,19 @@ namespace TapTapGameJam.Cockroach
             }
 
             return total;
+        }
+
+        public void RestoreSharedNutrition(float amount)
+        {
+            sharedNutrition = Mathf.Max(0f, amount);
+            EventPipeline.Publish(new EventNutritionChange(sharedNutrition, 0f));
+        }
+
+        public void AddSharedNutrition(float amount)
+        {
+            float previous = sharedNutrition;
+            sharedNutrition = Mathf.Max(0f, sharedNutrition + amount);
+            EventPipeline.Publish(new EventNutritionChange(sharedNutrition, sharedNutrition - previous));
         }
 
         /// <summary>

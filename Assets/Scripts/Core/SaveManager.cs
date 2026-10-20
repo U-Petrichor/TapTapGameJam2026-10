@@ -135,7 +135,7 @@ namespace TapTapGameJam.Core
             var data = new SaveData
             {
                 version = CurrentVersion, dayIndex = phases.DayIndex, phase = phases.CurrentPhase,
-                coins = resources.Coins, nutrition = resources.Nutrition,
+                coins = resources.Coins, nutrition = Mathf.FloorToInt(resources.Nutrition),
                 talentPoint = resources.TalentPoint,
                 hasDailySettlement = true,
                 dailyCoinsEarned = phases.DailyCoinsEarned,

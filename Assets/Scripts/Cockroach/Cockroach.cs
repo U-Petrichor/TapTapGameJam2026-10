@@ -739,8 +739,7 @@ namespace TapTapGameJam.Cockroach
             if (distance2 < reachDistance * reachDistance)
             {
                 // 进入巢穴
-                EventPipeline.Publish(new EventNutritionChange(Manager.sharedNutrition, _carrying));
-                Manager.sharedNutrition += _carrying;
+                Manager.AddSharedNutrition(_carrying);
                 _lastLoad = false;
                 SetCarrying(0f);
             

@@ -1,5 +1,6 @@
 using System;
 using TapTapGameJam.Buffs;
+using TapTapGameJam.Cockroach;
 using TapTapGameJam.Events;
 using UnityEngine;
 
@@ -9,8 +10,8 @@ namespace TapTapGameJam.Player
     {
         [Tooltip("金币数")]
         [field: SerializeField] public int Coins { get; private set; } = 0;
-        [Tooltip("营养值")]
-        [field: SerializeField] public int Nutrition { get; private set; } = 0;
+        // 白天和夜晚读取同一个营养池，不再保存玩家独立副本。
+        public float Nutrition => CockroachManager.Instance != null ? CockroachManager.Instance.sharedNutrition : 0f;
         [Tooltip("天赋点/天赋点")]
         [field: SerializeField] public int TalentPoint { get; private set; } = 0;
         
@@ -24,10 +25,10 @@ namespace TapTapGameJam.Player
         }
 
         // 直接恢复快照，不走获得资源的 Buff 倍率，也不产生奖励增量。
-        public void RestoreResources(int coins, int nutrition, int talentPoint)
+        public void RestoreResources(int coins, float nutrition, int talentPoint)
         {
             Coins = Mathf.Max(0, coins);
-            Nutrition = Mathf.Max(0, nutrition);
+            CockroachManager.Instance?.RestoreSharedNutrition(nutrition);
             TalentPoint = Mathf.Max(0, talentPoint);
             PublishCurrentResources();
         }
@@ -86,18 +87,12 @@ namespace TapTapGameJam.Player
         public void AddNutrition(int amount)
         {
             int adjustedAmount = ApplyGainPercent(BuffKey.NutritionGainPercent, amount);
-            Nutrition += adjustedAmount;
-            EventPipeline.Publish<EventNutritionChange>(new EventNutritionChange(Nutrition, adjustedAmount));
+            CockroachManager.Instance?.AddSharedNutrition(adjustedAmount);
         }
         public bool TrySpendNutrition(int amount)
         {
-            if (Nutrition >= amount)
-            {
-                Nutrition -= amount;
-                EventPipeline.Publish<EventNutritionChange>(new EventNutritionChange(Nutrition,amount));
-                return true;
-            }
-            return false;
+            var manager = CockroachManager.Instance;
+            return manager != null && manager.TrySpendSharedNutrition(amount);
         }
         /// <summary>
         /// 天赋点原额增减。<b>撤销天赋的退款走这里，不吃「怒气获取」加成</b>——

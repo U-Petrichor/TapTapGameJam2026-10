@@ -132,8 +132,7 @@ namespace TapTapGameJam.Core
             }
             if (CockroachManager.Instance != null)
             {
-                CockroachManager.Instance.sharedNutrition = data.sharedNutrition;
-                Events.EventPipeline.Publish(new Events.EventNutritionChange(data.sharedNutrition, 0));
+                CockroachManager.Instance.RestoreSharedNutrition(data.sharedNutrition);
             }
         }
 

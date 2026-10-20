@@ -80,7 +80,7 @@ namespace TapTapGameJam.Core
                 RemainingTime = data.phase == GamePhase.Day ? DAY_DURATION :
                     data.phase == GamePhase.Night ? NIGHT_DURATION : 0f;
                 TimeCouldWork = data.phase != GamePhase.Shopping;
-                _saveResources.RestoreResources(data.coins, data.nutrition, data.talentPoint);
+                _saveResources.RestoreResources(data.coins, data.hasFullCheckpoint ? data.sharedNutrition : data.nutrition, data.talentPoint);
                 RecordDayStart();
                 DailyCoinsEarned = data.hasDailySettlement ? data.dailyCoinsEarned : 0;
                 DailyTalentEarned = data.hasDailySettlement ? data.dailyTalentEarned : 0;
