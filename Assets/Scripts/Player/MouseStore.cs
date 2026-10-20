@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using TapTapGameJam.Core;
 using TapTapGameJam.Items;
 using UnityEngine;
 
@@ -188,6 +189,14 @@ namespace TapTapGameJam.Player
 
                     // 每次都 Instantiate：这样"不去重"也不会让同一件被摆两次（一件物品只能有一个块）
                     PickableItem clone = Instantiate(entry.item);
+
+                    // 食物的营养随天数变肥（1.2^Day）。必须在 MoveToStoreStorage 之前设：
+                    // 那个方法会把克隆体 SetActive(false)，食物要等被买走/启用时才会跑 Start
+                    if (clone is FoodItem food)
+                    {
+                        food.SetSpawnNutritionMultiplier(DayScaling.NutritionWeight);
+                    }
+
                     MoveToStoreStorage(clone);
 
                     Vector2Int range = entry.priceRange;

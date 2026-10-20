@@ -614,10 +614,9 @@ namespace TapTapGameJam.Core
         }
 
         /// <summary>
-        /// 食物生成后随机扣掉 <see cref="_foodNutritionDeductMin"/>~<see cref="_foodNutritionDeductMax"/> 比例的营养。
-        ///
-        /// 必须走 <see cref="FoodItem.SetSpawnNutritionFraction"/>：食物的 Start 里会用
-        /// totalNutrition 重新初始化 remainingNutrition，直接改字段会在那一帧被覆盖。
+        /// 刷出来的食物要走两步才定营养（都必须在 Start 之前设，Start 会用它俩算 remainingNutrition）：
+        /// 1. <b>日期权重</b>：乘 1.2^天数（<see cref="DayScaling.NutritionWeight"/>），越往后食物越肥；
+        /// 2. <b>被啃过</b>：随机扣掉 <see cref="_foodNutritionDeductMin"/>~<see cref="_foodNutritionDeductMax"/> 比例。
         /// </summary>
         private void ApplyFoodNutritionDeduction(GameObject instance)
         {
@@ -626,6 +625,8 @@ namespace TapTapGameJam.Core
             {
                 return;
             }
+
+            food.SetSpawnNutritionMultiplier(DayScaling.NutritionWeight);
 
             float min = Mathf.Min(_foodNutritionDeductMin, _foodNutritionDeductMax);
             float max = Mathf.Max(_foodNutritionDeductMin, _foodNutritionDeductMax);

@@ -747322,6 +747322,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FoodArea
       objectReference: {fileID: 0}
+    - target: {fileID: 8421248435343927615, guid: ed755a52a5f4b794e930c5b1820f4c98, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

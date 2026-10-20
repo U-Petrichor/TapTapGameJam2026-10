@@ -121,7 +121,16 @@ namespace TapTapGameJam.Items
 
         public void RestoreNutrition(float value)
         {
-            remainingNutrition = Mathf.Clamp(value, 0f, totalNutrition);
+            // 存档里只存了剩余营养，没存总营养。而被日期权重刷肥过的食物（1.2^天数）
+            // 剩余量可能超过模板的基础 totalNutrition —— 直接 Clamp 会把那部分白白砍掉。
+            // 所以先用存档值把总营养顶上去，保证读档后蟑螂能吃到的量和存档时一致。
+            float restored = Mathf.Max(0f, value);
+            if (restored > totalNutrition)
+            {
+                totalNutrition = restored;
+            }
+
+            remainingNutrition = restored;
             NutritionInitialized = true;
         }
 
@@ -141,9 +150,42 @@ namespace TapTapGameJam.Items
             _spawnNutritionFraction = Mathf.Clamp01(fraction);
         }
 
+        /// <summary>
+        /// 出生时营养整体乘的倍率（日期权重，见 <c>DayScaling.NutritionWeight</c>）。1 = 不变。
+        /// 运行期状态，不序列化。
+        /// </summary>
+        private float _spawnNutritionMultiplier = 1f;
+
+        /// <summary>
+        /// 让这块食物出生时的营养整体乘 <paramref name="multiplier"/>（越往后天数食物越肥）。
+        /// <b>必须在 Instantiate 之后、本帧 Start 之前调用</b> —— Start 才会把它算进 totalNutrition。
+        /// 可以和 <see cref="SetSpawnNutritionFraction"/> 叠加：先乘倍率，再乘剩余比例。
+        /// </summary>
+        public void SetSpawnNutritionMultiplier(float multiplier)
+        {
+            _spawnNutritionMultiplier = Mathf.Max(0f, multiplier);
+        }
+
         protected virtual void Start()
         {
-            if (!NutritionInitialized) remainingNutrition = totalNutrition * _spawnNutritionFraction;
+            if (!NutritionInitialized)
+            {
+                bool scaled = !Mathf.Approximately(_spawnNutritionMultiplier, 1f) || _spawnNutritionFraction < 1f;
+
+                // 日期权重乘在 totalNutrition 上：这块食物本身就是"更大的一块"，
+                // 而不是"满值但只剩一点"。和下面"被啃过"的剩余比例是两件事。
+                totalNutrition *= _spawnNutritionMultiplier;
+                remainingNutrition = totalNutrition * _spawnNutritionFraction;
+
+                // 乘完倍率 / 比例一定是小数（250 × 1.2 × 0.65 = 195），界面会显示成 195.36。
+                // 统一向下取整，营养值一律是整数；没缩放的（场景手摆的）保持原值不动。
+                if (scaled)
+                {
+                    totalNutrition = Mathf.Floor(totalNutrition);
+                    remainingNutrition = Mathf.Floor(remainingNutrition);
+                }
+            }
+
             NutritionInitialized = true;
             RegisterToFoodManager();
         }

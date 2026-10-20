@@ -19,6 +19,9 @@ namespace TapTapGameJam.Core
         public static PlayerBasic Player => _instance != null ? _instance._player : null;
         public static PlayerInputManager PlayerInputManager => _instance != null ? _instance._playerInputManager : null;
 
+        /// <summary>场景里的阶段管理器（读天数、阶段进度用）。没有 GameManager 的场景返回 null</summary>
+        public static GamePhaseManager PhaseManager => _instance != null ? _instance._gamePhaseManager : null;
+
         /// <summary>场景里是否有 GameManager。守卫这类"只在夜晚工作"的组件靠它判断能不能开工</summary>
         public static bool HasInstance => _instance != null;
 
