@@ -15,10 +15,29 @@ namespace TapTapGameJam.Core
         public List<string> seenTutorialSteps;
     }
 
-    /// <summary>跨周目保留的玩家记录，不随新游戏清除。</summary>
+    /// <summary>教程与开场视频的独立进度文件，不随新游戏清除。</summary>
     public static class PlayerProfile
     {
-        public static string ProfilePath => Path.Combine(
+        public static string TutorialProgressPath =>
+            Path.Combine(SaveManager.SaveDirectory, "tutorial-progress.json");
+
+        private static string PreviousTutorialProgressPath
+        {
+            get
+            {
+#if UNITY_EDITOR
+                string directory = SaveManager.TestSaveDirectory ?? Application.persistentDataPath;
+#elif UNITY_STANDALONE_WIN
+                // Older Windows builds stored this file beside the game's _Data directory.
+                string directory = Path.GetDirectoryName(Application.dataPath) ?? Application.persistentDataPath;
+#else
+                string directory = Application.persistentDataPath;
+#endif
+                return Path.Combine(directory, "tutorial-progress.json");
+            }
+        }
+
+        private static string LegacyProfilePath => Path.Combine(
 #if UNITY_EDITOR
             SaveManager.TestSaveDirectory ??
 #endif
@@ -32,9 +51,21 @@ namespace TapTapGameJam.Core
             {
                 if (_data == null)
                 {
-                    _data = Read(ProfilePath) ?? Read(ProfilePath + ".bak") ??
-                        new PlayerProfileData { version = 1 };
-                    Normalize(_data);
+                    _data = Read(TutorialProgressPath) ?? Read(TutorialProgressPath + ".bak");
+                    if (_data == null)
+                    {
+                        // Migrate prior locations so already-seen tutorials do not replay.
+                        PlayerProfileData legacy = null;
+                        if (!string.Equals(PreviousTutorialProgressPath, TutorialProgressPath, StringComparison.OrdinalIgnoreCase))
+                            legacy = Read(PreviousTutorialProgressPath) ??
+                                Read(PreviousTutorialProgressPath + ".bak");
+                        if (legacy == null)
+                            legacy = Read(LegacyProfilePath) ?? Read(LegacyProfilePath + ".bak");
+                        _data = legacy ?? new PlayerProfileData { version = 1 };
+                        Normalize(_data);
+                        if (legacy != null) Write(_data);
+                    }
+                    else Normalize(_data);
                 }
 
                 return _data;
@@ -106,7 +137,7 @@ namespace TapTapGameJam.Core
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException)
             {
-                Debug.LogWarning($"读取玩家全局存档失败：{exception.Message}");
+                Debug.LogWarning($"读取教程进度失败：{exception.Message}");
                 return null;
             }
         }
@@ -115,18 +146,18 @@ namespace TapTapGameJam.Core
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(ProfilePath));
-                File.WriteAllText(ProfilePath + ".tmp", JsonUtility.ToJson(data, true));
-                if (File.Exists(ProfilePath))
-                    File.Replace(ProfilePath + ".tmp", ProfilePath,
-                        Read(ProfilePath) != null ? ProfilePath + ".bak" : null);
-                else File.Move(ProfilePath + ".tmp", ProfilePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(TutorialProgressPath));
+                File.WriteAllText(TutorialProgressPath + ".tmp", JsonUtility.ToJson(data, true));
+                if (File.Exists(TutorialProgressPath))
+                    File.Replace(TutorialProgressPath + ".tmp", TutorialProgressPath,
+                        Read(TutorialProgressPath) != null ? TutorialProgressPath + ".bak" : null);
+                else File.Move(TutorialProgressPath + ".tmp", TutorialProgressPath);
                 _data = data;
                 return true;
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
-                Debug.LogError($"保存玩家全局存档失败：{exception.Message}");
+                Debug.LogError($"保存教程进度失败：{exception.Message}");
                 return false;
             }
         }

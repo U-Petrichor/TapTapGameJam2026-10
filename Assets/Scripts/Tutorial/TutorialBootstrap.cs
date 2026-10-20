@@ -8,10 +8,18 @@ namespace TapTapGameJam.Tutorial
     /// </summary>
     internal static class TutorialBootstrap
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void EnsureTutorialScene()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void RegisterSceneLoadedCallback()
         {
-            if (SceneManager.GetActiveScene().name != "GameScene") return;
+            // Build 通常先加载 MainMenu，再由开场过渡加载 GameScene。
+            // AfterSceneLoad 只覆盖启动时的第一张场景，因此这里提前订阅所有场景加载。
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (scene.name != "GameScene") return;
 
             // 每次进入 GameScene 重新允许“首次移动”信号；是否已看过由 PlayerProfile 判断。
             TapTapGameJam.Player.MoveState.ResetFirstMoveTracking();

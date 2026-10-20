@@ -35,11 +35,33 @@ namespace TapTapGameJam.Core
         // Integration checks use a separate directory and never touch the player's save.
         public static string TestSaveDirectory;
 #endif
-        public static string SavePath => Path.Combine(
+        public static string SaveDirectory
+        {
+            get
+            {
 #if UNITY_EDITOR
-            TestSaveDirectory ??
+                return TestSaveDirectory ??
+                    Path.Combine(Application.persistentDataPath, "Save");
+#elif UNITY_STANDALONE_WIN
+                string gameDirectory = Path.GetDirectoryName(Application.dataPath) ??
+                    Application.persistentDataPath;
+                return Path.Combine(gameDirectory, "Save");
+#else
+                return Path.Combine(Application.persistentDataPath, "Save");
 #endif
-            Application.persistentDataPath, "save.json");
+            }
+        }
+        public static string SavePath => Path.Combine(SaveDirectory, "save.json");
+        private static string LegacySavePath
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (TestSaveDirectory != null) return SavePath;
+#endif
+                return Path.Combine(Application.persistentDataPath, "save.json");
+            }
+        }
         private static SaveData _pendingLoad;
         private static SaveData _latestCheckpoint;
 
@@ -67,7 +89,20 @@ namespace TapTapGameJam.Core
         public static bool TryRead(out SaveData data)
         {
             if (TryReadFile(SavePath, out data)) return true;
-            return TryReadFile(SavePath + ".bak", out data);
+            if (TryReadFile(SavePath + ".bak", out data)) return true;
+
+            // Migrate existing installs from persistentDataPath into the exported game's Save folder.
+            if (!string.Equals(LegacySavePath, SavePath, StringComparison.OrdinalIgnoreCase))
+            {
+                if (TryReadFile(LegacySavePath, out data) ||
+                    TryReadFile(LegacySavePath + ".bak", out data))
+                {
+                    WriteCheckpoint(data);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool TryReadFile(string path, out SaveData data)

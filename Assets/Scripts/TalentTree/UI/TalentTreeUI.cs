@@ -168,7 +168,7 @@ namespace TalentTree
 
             TMP_Text header = CreateText(_panel.transform, "天赋树", 30, TextAnchor.MiddleLeft);
             if (header != null) SetAnchor(header.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(28f, -72f), new Vector2(-56f, 52f));
-            _pointsText = CreateText(_panel.transform, "天赋点 0", 22, TextAnchor.MiddleRight);
+            _pointsText = CreateText(_panel.transform, "0", 22, TextAnchor.MiddleRight);
             if (_pointsText != null) SetAnchor(_pointsText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(28f, -72f), new Vector2(-56f, 52f));
             Button close = CreateButton(_panel.transform, "关闭", new Vector2(80f, 38f));
             SetAnchor(close.transform as RectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-24f, -24f), new Vector2(80f, 38f));
@@ -216,7 +216,7 @@ namespace TalentTree
         {
             if (_playerTalentTree == null) _playerTalentTree = FindFirstObjectByType<PlayerTalentTree>();
             if (_playerTalentTree == null || _talentTreeAsset == null) return;
-            if (_pointsText != null) _pointsText.text = $"天赋点 {_playerTalentTree.PlayerResources?.TalentPoint ?? 0}";
+            if (_pointsText != null) _pointsText.text = $"{_playerTalentTree.PlayerResources?.TalentPoint ?? 0}";
 
             foreach (TalentNodeData node in _talentTreeAsset.Nodes)
             {

@@ -25,7 +25,7 @@
 
 ## 文件
 
-Application.persistentDataPath/save.json。临时文件为 save.json.tmp，备份为 save.json.bak。
+Windows 导出版本保存在游戏根目录的 `Save/save.json`；编辑器和其他平台保存在 `persistentDataPath/Save/save.json`。临时文件与备份同目录，分别为 `save.json.tmp` 和 `save.json.bak`。
 写入临时文件后替换主文件，读取时验证版本、日期、阶段、资源范围及新增列表/枚举/数值合法性；主文件不可用时尝试备份。
 不会读取 tmp 文件。保存失败会输出错误；不会因此中断阶段切换。
 
@@ -54,18 +54,18 @@ v1 存档继续可读；其未保存的天赋、物品和巢穴状态采用场�
 
 Unity 菜单 `Tools/Save/Run Full Save Checks` 会启动 GameScene，构造天赋、三类背包/仓库物品、装备、剩余食物和巢穴状态，对白天、购物、夜晚各重复读档两次，再验证主文件损坏回退、双文件损坏拒绝和 v1 兼容。运行前退出 Play Mode；检查使用 `Temp/FullSaveTestData` 独立目录，不会改写玩家真实 save.json，结束自动退出运行模式。报告位于 `Temp/FullSaveChecks.txt`。
 
-## 玩家全局存档
+## 教程与开场进度
 
-PlayerProfile 将 version、hasWatchedIntro 和 seenTutorialSteps 独立保存在 persistentDataPath/profile.json。
-与 save.json 分开，新游戏不清除此记录，也不依赖关卡存档是否存在。
-hasWatchedIntro 只是兼容旧字段；实际判断统一走 seenTutorialSteps 里的 `intro.video`。
-所有“首次出现”的教程步骤也记录在 seenTutorialSteps，整个安装只出现一次。
+Windows 导出版本的开场视频和教程步骤进度保存在游戏根目录的 `Save/tutorial-progress.json`；编辑器和其他平台保存在 `persistentDataPath/Save/tutorial-progress.json`。
+它与关卡存档放在同一目录，但使用独立 JSON；新游戏不清除此记录，也不依赖关卡存档是否存在，且不使用 PlayerPrefs。
+旧版 `persistentDataPath/save.json`、`profile.json` 和之前版本的教程记录会在首次读取时迁移到新目录，避免丢失存档或重复播放教程。
+开场视频和所有“首次出现”的教程步骤都记录在 seenTutorialSteps，整个安装只出现一次。
 首次点击开始游戏会播放视频；正常播完并成功载入游戏后才写入已观看标记。
 此后点击开始游戏直接加载，继续游戏始终直接加载。仍保留原来的加载遮罩及输入、暂停恢复流程。
 播放失败、超时、未播完退出不会写入标记，下次开始游戏仍会尝试播放。
 
-验证：无 profile 时开始游戏应播放；播完后返回菜单再次开始应跳过；重启应用后也应跳过；
+验证：无 `Save/tutorial-progress.json` 时开始游戏应播放；播完后返回菜单再次开始应跳过；重启应用后也应跳过；
 删除关卡存档再开始仍应跳过；视频异常时不应生成已观看标记；继续游戏应恢复阶段且不播放视频。
-开发时想重新测试首次体验，退出运行后删除 profile.json 及 profile.json.bak，保留 save.json 即可。
+开发时想重新测试首次体验，退出运行后删除 `Save/tutorial-progress.json` 及其 .bak，保留 `Save/save.json` 即可。
 也可以用编辑器菜单 `Tools/Tutorial/Reset Tutorial Progress` 清空全部“第一次”记录。
 

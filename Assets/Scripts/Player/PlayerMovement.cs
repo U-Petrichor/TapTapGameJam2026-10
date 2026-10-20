@@ -126,7 +126,22 @@ namespace TapTapGameJam.Player
                 _rigidbody.linearVelocity.y,
                 MoveDirection.y * speed
             );
+            UpdateMoveAnimationSpeed();
             UpdateMoveAnimation();
+        }
+
+        private void UpdateMoveAnimationSpeed()
+        {
+            if (_player == null) _player = GetComponent<PlayerBasic>();
+            if (_player == null || _player.AnimationManager == null) return;
+
+            float animationSpeed = 1f;
+            if (MoveDirection.sqrMagnitude > 0.0001f && _moveSpeed > 0f)
+            {
+                animationSpeed = Mathf.Clamp(CurrentMoveSpeed / _moveSpeed, 1f, 2.5f);
+            }
+
+            _player.AnimationManager.SetMoveAnimationSpeed(animationSpeed);
         }
 
         public void TryDepositAtNight()

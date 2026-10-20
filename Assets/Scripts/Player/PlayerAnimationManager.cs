@@ -47,6 +47,9 @@ namespace TapTapGameJam.Player
         /// <summary>最后一次请求的状态。换 Animator 之后要拿它在新的 Animator 上补播</summary>
         private int _lastStateHash = -1;
 
+        /// <summary>当前移动动画倍率；切换昼夜模型时同步到新 Animator</summary>
+        private float _moveAnimationSpeed = 1f;
+
         #region 生命周期
 
         private void OnEnable()
@@ -102,6 +105,7 @@ namespace TapTapGameJam.Player
             Animator animator = on.GetComponentInChildren<Animator>(true);
             Assert.IsTrue(animator != null, $"{name}：{on.name} 身上找不到 Animator");
             Animator = animator;
+            ApplyMoveAnimationSpeed();
 
             // 补播上一次请求的状态：状态机只在 Enter 里调一次 PlayXxx，
             // 不补的话新模型会停在默认姿势，直到下一次状态切换
@@ -114,6 +118,20 @@ namespace TapTapGameJam.Player
         #endregion
 
         #region 播放
+
+        public void SetMoveAnimationSpeed(float multiplier)
+        {
+            _moveAnimationSpeed = Mathf.Max(0f, multiplier);
+            ApplyMoveAnimationSpeed();
+        }
+
+        private void ApplyMoveAnimationSpeed()
+        {
+            if (Animator != null && !Mathf.Approximately(Animator.speed, _moveAnimationSpeed))
+            {
+                Animator.speed = _moveAnimationSpeed;
+            }
+        }
 
         public void PlayIdle()
         {

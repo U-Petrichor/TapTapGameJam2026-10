@@ -2,7 +2,7 @@
 
 ## 1. 结构
 
-- 持久化：`PlayerProfileData.seenTutorialSteps`（`profile.json`，整个安装一次）。
+- 持久化：独立的 `Save/tutorial-progress.json`，整个安装一次；和关卡存档同目录但使用单独 JSON，不使用 PlayerPrefs。
 - 步骤表：`Assets/Resources/Tutorial/TutorialSequence.asset`（ScriptableObject）。
   首次在 Editor 打开项目时由 `Assets/Editor/TutorialSequenceAssetCreator.cs` 生成；
   资产缺失时运行时会使用 `TutorialDefaultContent` 的内存副本兜底。
@@ -23,7 +23,7 @@
     -> 满足 trigger + requires 的步骤入队
     -> 暂停/切 ActionMap/阻断输入，TutorialDialogueView.Show
     -> 玩家点击/E/Space/Enter/Esc
-    -> PlayerProfile.MarkSeen(step.id) 立即写 profile.json
+    -> PlayerProfile.MarkSeen(step.id) 立即写 tutorial-progress.json
     -> 执行 emitOnClose，处理 after: 链和阻塞回调
 ```
 
@@ -83,7 +83,7 @@
 
 ## 7. 测试
 
-1. 删除 `profile.json` / `.bak`（或 `Tools/Tutorial/Reset Tutorial Progress`）后开新游戏。
+1. 删除 `tutorial-progress.json` / `.bak`（或 `Tools/Tutorial/Reset Tutorial Progress`）后开新游戏。
 2. 检查完整首日顺序、商店/夜晚步骤、每个步骤只出现一次。
 3. 弹窗期间按 Esc 只关弹窗，不打开暂停菜单。
 4. 在天赋树/仓库/小游戏上触发教程，关闭后 ActionMap 恢复。
