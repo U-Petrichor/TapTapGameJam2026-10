@@ -92,7 +92,8 @@ namespace TapTapGameJam.UI
         }
         private void OnNutritionChange(EventNutritionChange evt)
         {
-            nutritionNumText.text = evt.RemainingNutrition.ToString();
+            // 营养是 float，默认 ToString 会带一串小数（123.456787），这里固定显示一位
+            nutritionNumText.text = evt.RemainingNutrition.ToString("0.0");
         }
 
         private void OnTalentPointChange(EventTalentPointChange evt)

@@ -1,5 +1,6 @@
 using TapTapGameJam.Audio;
 using TapTapGameJam.Buffs;
+using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
 using TapTapGameJam.UI;
@@ -473,15 +474,17 @@ namespace TapTapGameJam.Player
             // 订阅方接 EventPlayerDied 即可，这边不写任何后续逻辑。
             EventPipeline.Publish(new EventPlayerDied());
 
-            // 播报：按"最后把上限压空的那一类减益"选哪条。
-            // 只有受伤（保安）和中毒（保洁的喷雾）有对应视频，负重压死就不播。
+            // 播报 + 结局：按"最后把上限压空的那一类减益"选哪一条。
+            // 只有受伤（保安）和中毒（保洁的喷雾）有对应视频和结局，负重压死就都不触发。
             switch (_lastCeilingCause)
             {
                 case CeilingCause.GuardAttack:
                     BroadcastUI.Broadcast(BroadcastKind.GuardKill);
+                    GameEndingDirector.Trigger(GameEnding.Crushed);
                     break;
                 case CeilingCause.Poison:
                     BroadcastUI.Broadcast(BroadcastKind.CleanerPoison);
+                    GameEndingDirector.Trigger(GameEnding.Sprayed);
                     break;
             }
 

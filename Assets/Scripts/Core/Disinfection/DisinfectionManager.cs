@@ -1,5 +1,6 @@
 using TapTapGameJam.Audio;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TapTapGameJam.Cockroach;
 using TapTapGameJam.Events;
@@ -289,6 +290,10 @@ namespace TapTapGameJam.Core.Disinfection
             // 播报：消杀时刻。放在开头，玩家先看到"消杀开始"，再看到蟑螂成片死掉
             BroadcastUI.Broadcast(BroadcastKind.Disinfection);
 
+            // 结局判定要"消杀前 > 0 且消杀后 == 0"，所以先把消杀前的数量记下来
+            CockroachManager cockroachManager = CockroachManager.Instance;
+            int cockroachesBefore = cockroachManager != null ? cockroachManager.CockroachTotalCount() : 0;
+
             List<CockNest> nests = FindNests();
             for (int i = 0; i < _selectedRooms.Count; i++)
             {
@@ -303,6 +308,34 @@ namespace TapTapGameJam.Core.Disinfection
             CancelVisuals();
             _selectedRooms.Clear();
             _state = DisinfectionState.Finished;
+
+            StartCoroutine(CheckDisinfectionEnding(cockroachesBefore));
+        }
+
+        /// <summary>
+        /// 区域消杀结局：消杀把场上蟑螂清成 0。
+        ///
+        /// 必须等一帧再判：蟑螂的 <c>Die()</c> 走的是 <c>Destroy</c>（帧末才真正销毁），
+        /// 巢穴名单要到蟑螂的 <c>OnDisable</c> 才摘除，所以这一帧查 <c>CockroachTotalCount()</c>
+        /// 拿到的还是消杀前的数字。
+        /// </summary>
+        private IEnumerator CheckDisinfectionEnding(int cockroachesBefore)
+        {
+            yield return null;
+
+            if (cockroachesBefore <= 0)
+            {
+                // 消杀前就没有蟑螂：这不是"消杀导致的清零"，不结算
+                yield break;
+            }
+
+            CockroachManager manager = CockroachManager.Instance;
+            if (manager == null || manager.CockroachTotalCount() > 0)
+            {
+                yield break;
+            }
+
+            GameEndingDirector.Trigger(GameEnding.Disinfection);
         }
 
         private static void DestroyNestCockroaches(CockNest nest)
