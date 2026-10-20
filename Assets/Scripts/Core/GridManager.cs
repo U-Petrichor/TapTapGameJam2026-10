@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TapTapGameJam.Cockroach;
 using UnityEngine;
 
@@ -356,74 +354,6 @@ namespace TapTapGameJam.Core
             // 墙体变了，离墙距离场必须重算；WallVersion 顺带通知小地图等缓存消费者
             RefreshWallDistance();
             WallVersion++;
-        }
-
-        /// <summary>
-        /// 沿网格逐格向下打射线，把落在 <paramref name="mask"/> 上的物体收集到 <paramref name="results"/>
-        /// （按 GameObject 去重，已排好序 = 首次命中的顺序）。
-        ///
-        /// 采样点刻意和 <see cref="TraceMapStateFromWall"/> 完全一致（同一个格子中心、同样的起止高度）：
-        /// 「能被扫描到的东西」和「网格认为是墙的东西」口径统一。某个墙体如果薄到格心射线打不中，
-        /// 它本来就不在 <see cref="MapState"/> 里（网格不认为它是墙），
-        /// 此时"能不能吃"跟着网格走才是自洽的。
-        ///
-        /// 用 RaycastNonAlloc 而不是 Raycast：同一格可能叠着墙和桌子，一个物体也可能由多个子碰撞体组成，
-        /// 单 hit 会漏掉其中一个。「群颚破壁」要的正是"所有碰撞到的物体"。
-        ///
-        /// <paramref name="raysPerFrame"/> 是每帧的射线预算：本网格是 width×height = 15 万格，
-        /// 一口气跑完会卡住画面，所以摊到多帧（3000/帧 ≈ 50 帧 ≈ 0.8 秒）。
-        /// 协程本身不依赖运行者，<c>StartCoroutine(grid.CollectLayerObjectsRoutine(...))</c> 也能跑。
-        /// </summary>
-        public IEnumerator CollectLayerObjectsRoutine(LayerMask mask, List<GameObject> results, int raysPerFrame = 3000)
-        {
-            if (results == null)
-            {
-                yield break;
-            }
-
-            results.Clear();
-            EnsureFootprint();
-
-            var seen = new HashSet<int>();
-            var buffer = new RaycastHit[16];
-            int budget = Mathf.Max(1, raysPerFrame);
-            int usedThisFrame = 0;
-            float startHeight = transform.position.y + 100.0f;
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    Vector2 center = GridToWorld(new Vector2Int(x, y));
-                    Vector3 start = new Vector3(center.x, startHeight, center.y);
-
-                    int hitCount = Physics.RaycastNonAlloc(
-                        start, Vector3.down, buffer, 200.0f, mask, QueryTriggerInteraction.Collide);
-
-                    for (int i = 0; i < hitCount; i++)
-                    {
-                        Collider hit = buffer[i].collider;
-                        if (hit == null)
-                        {
-                            continue;
-                        }
-
-                        GameObject go = hit.gameObject;
-                        if (seen.Add(go.GetInstanceID()))
-                        {
-                            results.Add(go);
-                        }
-                    }
-
-                    if (++usedThisFrame < budget)
-                    {
-                        continue;
-                    }
-
-                    usedThisFrame = 0;
-                    yield return null;
-                }
-            }
         }
 
         /// <summary>

@@ -42,10 +42,14 @@ namespace TapTapGameJam.Items
         /// <summary>注入时缓存下来的世界包围盒。销毁之后就取不到了，所以必须在 OnDepleted 用它</summary>
         private Bounds _worldBounds;
 
-        /// <summary>裂纹覆盖层（每找到一个 MeshRenderer 就建一层，通常只有一层）</summary>
+        /// <summary>
+        /// 裂纹覆盖层（每找到一个 MeshRenderer 就建一层，通常只有一层）。
+        /// <see cref="_propertyBlock"/> 惰性创建：场景里会有几千个这个组件，
+        /// 没必要给每个都先 new 一块 MPB。
+        /// </summary>
         private readonly List<Renderer> _overlays = new List<Renderer>();
 
-        private readonly MaterialPropertyBlock _propertyBlock = new MaterialPropertyBlock();
+        private MaterialPropertyBlock _propertyBlock;
 
         private bool _overlayBuilt;
 
@@ -175,12 +179,19 @@ namespace TapTapGameJam.Items
 
         #region 裂纹覆盖层
 
+        /// <summary>
+        /// 取世界包围盒，用来算"占哪几格"和"营养多少"。
+        ///
+        /// 顺序是 **自己的 MeshRenderer → 子物体的 Renderer → Collider**：
+        /// 「群颚破壁」现在按层级注入，场景里大量杂物没有 Collider，只有网格；
+        /// 反过来先取 Collider 的话，父物体上那种整块触发区会把包围盒撑得离谱。
+        /// </summary>
         private Bounds ResolveWorldBounds()
         {
-            Collider collider = GetComponentInChildren<Collider>();
-            if (collider != null)
+            MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
             {
-                return collider.bounds;
+                return meshRenderer.bounds;
             }
 
             Renderer renderer = GetComponentInChildren<Renderer>();
@@ -189,7 +200,13 @@ namespace TapTapGameJam.Items
                 return renderer.bounds;
             }
 
-            return new Bounds(transform.position, new Vector3(0.2f, 1f, 0.2f));
+            Collider collider = GetComponentInChildren<Collider>();
+            if (collider != null)
+            {
+                return collider.bounds;
+            }
+
+            return new Bounds(transform.position, new Vector3(0.2f, 0.2f, 0.2f));
         }
 
         /// <summary>
@@ -283,8 +300,14 @@ namespace TapTapGameJam.Items
                     continue;
                 }
 
-                // MaterialPropertyBlock 而不是 per-object 材质：几百面墙各 new 一份材质
-                // 会把 URP 的批处理彻底打散，MPB 只贵一点点
+                // MaterialPropertyBlock 而不是 per-object 材质：几千个物体各 new 一份材质
+                // 会把 URP 的批处理彻底打散，MPB 只贵一点点。
+                // MPB 惰性创建：没建覆盖层的物体（没被啃过的）不需要它。
+                if (_propertyBlock == null)
+                {
+                    _propertyBlock = new MaterialPropertyBlock();
+                }
+
                 overlay.GetPropertyBlock(_propertyBlock);
                 _propertyBlock.SetFloat(EatProgressId, progress);
                 overlay.SetPropertyBlock(_propertyBlock);

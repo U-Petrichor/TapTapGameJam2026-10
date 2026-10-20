@@ -50,6 +50,13 @@ namespace TapTapGameJam.Core
         /// <summary>查询半径换算成格子数时的上限。防止有人把取食距离配大了把整张图扫一遍</summary>
         private const int MaxQueryCells = 48;
 
+        /// <summary>
+        /// 单件食物最多占多少格。**这是一道硬保险**：场景里有整块的背景大模型，
+        /// 一旦它被当成食物注册进来，一次就是十几万个格子（1MB+ 的 List + 十几万次入桶），当场卡死。
+        /// 正常情况下墙也就十几格、桌子几十格，4096 格（≈ 12.8m × 12.8m）足够宽松了。
+        /// </summary>
+        private const int MaxCellsPerFood = 4096;
+
         [Tooltip("网格。留空则先从自己 / 父物体上找，再退到 GridManager.Instance")]
         [SerializeField] private GridManager _grid;
 
@@ -113,7 +120,18 @@ namespace TapTapGameJam.Core
                 return false;
             }
 
-            var cells = new List<Vector2Int>((max.x - min.x + 1) * (max.y - min.y + 1));
+            long cellCount = (long)(max.x - min.x + 1) * (max.y - min.y + 1);
+            if (cellCount > MaxCellsPerFood)
+            {
+                // 背景大模型之类：直接拒收。放进来会分配一个十几万长度的 List 并刷进十几万个桶，
+                // 一次就能把这一帧拖到几秒
+                Debug.LogWarning(
+                    $"[FoodManager]：「{food.name}」占 {cellCount} 格，超过上限 {MaxCellsPerFood}，" +
+                    "已跳过登记（多半是背景大网格）。如果这是有意的，调大 FoodManager.MaxCellsPerFood。", food);
+                return false;
+            }
+
+            var cells = new List<Vector2Int>((int)cellCount);
 
             for (int y = min.y; y <= max.y; y++)
             {

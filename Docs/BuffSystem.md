@@ -169,14 +169,34 @@ DressBonusPercent 放大 BuffSourceKind.Dress 的百分比
 ```
 进入夜晚 → 带 tag 吗？
     否 → 什么也不做，下一夜再看（天赋可能白天购物阶段才点出来）
-    是 → 逐格射线扫描一次 → 给所有 Wall/Desk 层物体注入 WallFoodItem → 本局不再触发
+    是 → 遍历 Scene/Environment 一次 → 给带 MeshRenderer 的物体注入 WallFoodItem → 本局不再触发
 ```
 
-扫描在 `GridManager.CollectLayerObjectsRoutine` 里：采样点和 `TraceMapStateFromWall` **完全一致**
-（同一个格子中心、同样的起止高度），这样「能找到的东西」和「网格认为是墙的东西」口径统一。
-500×300 = 15 万格，按每帧 3000 条射线摊到约 50 帧（≈0.8 秒），发生在入夜黑屏过渡期间。
+**按层级枚举，不是打射线。** 射线只能打到有 Collider 的东西，
+而场景里大量杂物（花盆、摆件、墙面装饰）根本没有 Collider，按层扫描会漏掉一大半。
+`WallFoodItem` 本来就不需要 Collider —— 占哪些格子取自 `Renderer.bounds`。
 
-**`WallFoodItem : FoodItem`** —— 墙 / 桌子变成的食物，和普通食物**一视同仁**（不设优先级），
+遍历的根节点是 **`_rootPaths` 列表**（默认 `[Scene/Environment]`），可以填多条，
+方便把别的地方的物体也纳进来。两条约定：
+
+- 路径按 `GameObject.Find` 的写法（`A/B`）；找不到完整路径时会退回只按最后一段名字找
+  （`TestNight` 里 `Environment` 直接是根物体）；
+- 互相包含的路径会自动去重，只保留最外层，不会把同一棵子树遍历两遍。
+
+注入规则（见 `WallGnawingDirector.InjectRoutine`）：
+
+| 规则 | 原因 |
+| --- | --- |
+| 只有带 `MeshRenderer` 的物体才注入 | 空物体 / 纯碰撞体壳没有可吃的几何 |
+| **命中 MeshRenderer 就不再往下枚举** | 子物体会跟着父物体一起被销毁，单独挂食物没意义 |
+| 带 `Interactable` / `FoodItem` 的物体连同整棵子树跳过 | 门、巢穴、可拾取物不该变成食物；一个物体上也不该挂两个 `FoodItem` |
+| 包围盒超过 `_maxCellsPerObject`（默认 1024 格）跳过 | 场景里有背景大模型，放进来一次注册十几万格会卡死 |
+
+实测（`GameScene`）：`Scene/Environment` 下 7,801 个子物体，**7,701 个带 MeshRenderer，
+按上面的规则会注入约 7,595 个**。所以按每帧 400 个摊到约 19 帧注入。
+注意场景层级很扁（最深 3 层），"命中就不再递归"这条规则实际只剪掉一百来个 —— 别指望它省量。
+
+**`WallFoodItem : FoodItem`** —— 变成食物的场景物体，和普通食物**一视同仁**（不设优先级），
 只有三处不同：
 
 | 覆写 | 为什么 |
@@ -185,7 +205,9 @@ DressBonusPercent 放大 BuffSourceKind.Dress 的百分比
 | `CanInteract` → `false` | 夜间玩家不该能按 E 把墙搬进背包 |
 | `IsClearedAtDay` → `false` | 天亮清场会把地上所有 `FoodItem` 清掉，而墙是场景本体 |
 
-营养量按包围盒体积估（`_nutritionPerCubicMeter`，默认 25/m³，夹在 8~120）。
+营养量按包围盒体积估（`_nutritionPerCubicMeter`，**默认 8/m³，夹在 2~120**）。
+这个值比只算墙的时候低得多 —— 注入的物体从几百个涨到七千多个，
+沿用旧值会让营养彻底白菜价、觅食寻路直接失去意义。
 被啃时 `OnConsumed` 推进裂纹；吃空时 `OnDepleted` 做两件事，然后 `Destroy` 整个物体：
 
 1. `GridManager.ClearWallsInBounds` 把自己包围盒覆盖的格子清成可通行；
