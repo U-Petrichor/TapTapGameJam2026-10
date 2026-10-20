@@ -23939,11 +23939,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 216044187257344250, guid: aeba662f5207caa40bf34b8eca357d57, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 109
+      value: 172.1
       objectReference: {fileID: 0}
     - target: {fileID: 216044187257344250, guid: aeba662f5207caa40bf34b8eca357d57, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 105.3729
+      value: 164.6452
       objectReference: {fileID: 0}
     - target: {fileID: 216044187257344250, guid: aeba662f5207caa40bf34b8eca357d57, type: 3}
       propertyPath: m_LocalScale.x
@@ -87777,6 +87777,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4f39c3012b11d384ebc21833cb5d56b4, type: 3}
+--- !u!1 &1976852945
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1976852946}
+  m_Layer: 0
+  m_Name: YouNeed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1976852946
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1976852945}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2890.594, y: 0.00002, z: -1319.8179}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1978197930
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -470496,6 +470527,10 @@ PrefabInstance:
       propertyPath: _follow
       value: 
       objectReference: {fileID: 1488359890}
+    - target: {fileID: 4380141553457824572, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
+      propertyPath: <TalentPoint>k__BackingField
+      value: 10000
+      objectReference: {fileID: 0}
     - target: {fileID: 4584462922487478431, guid: c816dc6fd0f817d4ea16f4fb85033951, type: 3}
       propertyPath: m_LocalPosition.x
       value: 32.51
@@ -798668,3 +798703,4 @@ SceneRoots:
   - {fileID: 1671315397}
   - {fileID: 1865779683}
   - {fileID: 1712163376}
+  - {fileID: 1976852946}

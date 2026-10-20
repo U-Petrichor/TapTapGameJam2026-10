@@ -20,10 +20,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000004
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000004
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: individual_damage_reduction
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-6944253372851422959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75,10 +82,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 5
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000038
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000038
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: stamina_recovery_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000033000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,10 +113,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 40
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000037
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000037
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: lethal_damage_protection
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000032000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,10 +144,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 20
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000036
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000036
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: stamina_cost_reduction
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000031000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,10 +175,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000035
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000035
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: stamina_cost_reduction
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000030000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,10 +206,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 5
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000034
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000034
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: detox_speed_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000029000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,10 +237,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 5
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000033
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000033
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: poison_impact_reduction
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000028000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,10 +268,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 45
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000008
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000008
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: movement_speed
+        _numericValue: 0.2
+        _payload: 
 --- !u!114 &-900000000000027000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,8 +307,8 @@ MonoBehaviour:
     - rid: 5638094838024896593
       type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
       data:
-        _effectKey: movement_speed
-        _numericValue: 0.61
+        _effectKey: individual_damage_reduction
+        _numericValue: 0.25
         _payload: 
 --- !u!114 &-900000000000026000
 MonoBehaviour:
@@ -274,10 +330,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 40
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000032
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000032
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: talent_point_gain_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000025000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -298,10 +361,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 30
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000005
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000005
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: talent_point_gain_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000024000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -353,10 +423,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 50
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000030
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000030
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nutrition_gain_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000022000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377,10 +454,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 30
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000029
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000029
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nutrition_gain_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000021000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -401,10 +485,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000028
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000028
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: bag_weight_reduction
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000020000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -425,10 +516,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 5
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000006
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000006
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: bag_weight_reduction
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000019000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -449,10 +547,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 25
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000027
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000027
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: bag_capacity_bonus
+        _numericValue: 2
+        _payload: 
 --- !u!114 &-900000000000018000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476,7 +581,8 @@ MonoBehaviour:
     - rid: 7968956153588613298
     - rid: 7968956153588613299
     - rid: 7968956153588613300
-    _effects: []
+    _effects:
+    - rid: 9100000000000000026
   references:
     version: 2
     RefIds:
@@ -495,6 +601,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000017000}
         _requiredLevel: 1
+    - rid: 9100000000000000026
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: bag_capacity_bonus
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000017000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -515,10 +627,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 15
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000025
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000025
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: dress_bonus_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000016000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -534,13 +653,14 @@ MonoBehaviour:
   _id: Talent24
   _displayName: "\u7FA4\u989A\u7834\u58C1"
   _talentType: "\u866B\u7FA4\u8FDB\u5316"
-  _description: "\u7FA4\u4F53\u83B7\u5F97\u5543\u566C\u5899\u4F53"
+  _description: "\u7FA4\u4F53\u83B7\u5F97\u5543\u54AC\u5899\u4F53"
   _icon: {fileID: 434500968270620186, guid: 7eacdb5675e392242bce88803549bfb2, type: 3}
   _levels:
   - _talentPointCost: 80
     _requirements:
     - rid: 7968956153588613295
-    _effects: []
+    _effects:
+    - rid: 9100000000000000024
   references:
     version: 2
     RefIds:
@@ -549,6 +669,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000015000}
         _requiredLevel: 1
+    - rid: 9100000000000000024
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_wall_gnawing
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000015000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -571,7 +697,8 @@ MonoBehaviour:
     _requirements:
     - rid: 7968955992721326654
     - rid: 7968955992721326661
-    _effects: []
+    _effects:
+    - rid: 9100000000000000023
   references:
     version: 2
     RefIds:
@@ -585,6 +712,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000004000}
         _requiredLevel: 1
+    - rid: 9100000000000000023
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: cockroach_death_food
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000014000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -605,10 +738,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 35
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000022
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000022
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_movement_speed_multiplier
+        _numericValue: 0.5
+        _payload: 
 --- !u!114 &-900000000000013000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -629,10 +769,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 25
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000021
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000021
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_movement_speed_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000012000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -653,10 +800,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 20
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000020
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000020
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_movement_speed_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000011000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679,7 +833,8 @@ MonoBehaviour:
     _requirements:
     - rid: 7968956153588613296
     - rid: 7968956153588613297
-    _effects: []
+    _effects:
+    - rid: 9100000000000000019
   references:
     version: 2
     RefIds:
@@ -693,6 +848,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000029000}
         _requiredLevel: 1
+    - rid: 9100000000000000019
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: individual_sprint
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000010000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -714,7 +875,8 @@ MonoBehaviour:
   - _talentPointCost: 35
     _requirements:
     - rid: 7968956153588613305
-    _effects: []
+    _effects:
+    - rid: 9100000000000000018
   references:
     version: 2
     RefIds:
@@ -723,6 +885,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000009000}
         _requiredLevel: 1
+    - rid: 9100000000000000018
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: individual_instant_hatching
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000009000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -743,10 +911,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000017
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000017
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: instant_egg_laying
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000008000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -767,10 +942,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 5
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000016
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000016
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: individual_egg_production_speed_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000007000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -794,7 +976,8 @@ MonoBehaviour:
     - rid: 7968956153588613302
     - rid: 7968956153588613303
     - rid: 7968956153588613304
-    _effects: []
+    _effects:
+    - rid: 9100000000000000015
   references:
     version: 2
     RefIds:
@@ -813,6 +996,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000001000}
         _requiredLevel: 1
+    - rid: 9100000000000000015
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_egg_production_speed_multiplier
+        _numericValue: 0.5
+        _payload: 
 --- !u!114 &-900000000000006000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -833,10 +1022,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 25
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000014
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000014
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_egg_production_speed_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000005000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,10 +1053,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 20
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000013
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000013
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_egg_production_speed_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000004000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -881,10 +1084,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 15
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000012
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000012
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_food_intake_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &-900000000000003000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -905,10 +1115,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000007
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000007
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: group_food_intake_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &-900000000000002000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -930,7 +1147,8 @@ MonoBehaviour:
   - _talentPointCost: 35
     _requirements:
     - rid: 7968956153588613301
-    _effects: []
+    _effects:
+    - rid: 9100000000000000011
   references:
     version: 2
     RefIds:
@@ -939,6 +1157,12 @@ MonoBehaviour:
       data:
         _talent: {fileID: -900000000000004000}
         _requiredLevel: 1
+    - rid: 9100000000000000011
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nest_exploration_range_multiplier
+        _numericValue: 1
+        _payload: 
 --- !u!114 &-900000000000001000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -959,10 +1183,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 20
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000010
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000010
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nest_exploration_range_multiplier
+        _numericValue: 0.5
+        _payload: 
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -977,7 +1208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TalentTree.TalentTreeAsset
   _nodes:
   - _data: {fileID: 8934417477304861204}
-    _position: {x: 998.55615, y: 1187.8824}
+    _position: {x: 998.55615, y: 1190.9594}
     _isRoot: 1
     _unlockRule: 0
   - _data: {fileID: 4510617856486047292}
@@ -985,7 +1216,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -7028276738763079816}
-    _position: {x: 1285.1428, y: 981.1428}
+    _position: {x: 1286.5714, y: 981.1428}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: 3011596460981020844}
@@ -1021,7 +1252,7 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000007000}
-    _position: {x: 1328.2858, y: -222.14285}
+    _position: {x: 1328.2858, y: -220.14285}
     _isRoot: 0
     _unlockRule: 1
   - _data: {fileID: -900000000000008000}
@@ -1029,11 +1260,11 @@ MonoBehaviour:
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000009000}
-    _position: {x: 1678.2858, y: -146.57144}
+    _position: {x: 1664.2858, y: -146.57144}
     _isRoot: 0
     _unlockRule: 0
   - _data: {fileID: -900000000000010000}
-    _position: {x: 1791.2858, y: -579.8571}
+    _position: {x: 1788.2089, y: -573.7033}
     _isRoot: 0
     _unlockRule: 1
   - _data: {fileID: -900000000000011000}
@@ -1183,8 +1414,6 @@ MonoBehaviour:
     _second: {fileID: -900000000000018000}
   - _first: {fileID: -7028276738763079816}
     _second: {fileID: -900000000000028000}
-  - _first: {fileID: -900000000000007000}
-    _second: {fileID: -900000000000009000}
   - _first: {fileID: -900000000000009000}
     _second: {fileID: -900000000000010000}
   - _first: {fileID: -900000000000009000}
@@ -1209,8 +1438,6 @@ MonoBehaviour:
     _second: {fileID: -900000000000018000}
   - _first: {fileID: -900000000000025000}
     _second: {fileID: -900000000000022000}
-  - _first: {fileID: -900000000000007000}
-    _second: {fileID: -900000000000001000}
   - _first: {fileID: -900000000000008000}
     _second: {fileID: -900000000000009000}
   - _first: {fileID: -900000000000028000}
@@ -1221,6 +1448,12 @@ MonoBehaviour:
     _second: {fileID: -900000000000029000}
   - _first: {fileID: -900000000000029000}
     _second: {fileID: -900000000000011000}
+  - _first: {fileID: -900000000000005000}
+    _second: {fileID: -900000000000001000}
+  - _first: {fileID: -900000000000001000}
+    _second: {fileID: -900000000000007000}
+  - _first: {fileID: -900000000000009000}
+    _second: {fileID: -900000000000007000}
 --- !u!114 &3011596460981020844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1241,10 +1474,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 25
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000003
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000003
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: nest_exploration_range_multiplier
+        _numericValue: 0.25
+        _payload: 
 --- !u!114 &4510617856486047292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1265,10 +1505,17 @@ MonoBehaviour:
   _levels:
   - _talentPointCost: 10
     _requirements: []
-    _effects: []
+    _effects:
+    - rid: 9100000000000000002
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 9100000000000000002
+      type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
+      data:
+        _effectKey: dress_bonus_multiplier
+        _numericValue: 0.1
+        _payload: 
 --- !u!114 &8934417477304861204
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1298,5 +1545,5 @@ MonoBehaviour:
       type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
       data:
         _effectKey: nest_exploration_range_multiplier
-        _numericValue: 50
+        _numericValue: 0.5
         _payload: 
