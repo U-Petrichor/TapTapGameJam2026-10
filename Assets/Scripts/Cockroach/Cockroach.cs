@@ -39,7 +39,7 @@ namespace TapTapGameJam.Cockroach
 
     /// <summary>
     /// 蟑螂个体。
-    /// 信息素读写走 GridManager 的四个信息素场，食物信息走 ItemManager。
+    /// 信息素读写走 GridManager 的四个信息素场，食物查询走 FoodManager 的格子索引。
     ///
     /// 坐标系约定：所有逻辑运算都在世界 XZ 平面的 Vector2 上做；
     /// 角度 0 指向世界 +x，π/2 指向世界 +z，即 方向 = (sin(angle), cos(angle))。
@@ -79,9 +79,6 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>是否已经被击杀。Destroy 是延迟到帧末执行的，这面旗子让同一帧里的后续逻辑不要再去碰它</summary>
         private bool _dead;
-
-        /// <summary>GetFoodSources 的复用缓冲，见那个方法的注释</summary>
-        private readonly List<FoodItem> _foodBuffer = new List<FoodItem>();
 
 
         /// <summary>
@@ -141,8 +138,6 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>当前所在格子</summary>
         public Vector2Int CurrentCell => GridManager.Instance.WorldToGrid(Position);
-
-        private ItemManager Items => ItemManager.Instance;
 
         private CockroachManager Manager => CockroachManager.Instance;
 
@@ -299,30 +294,6 @@ namespace TapTapGameJam.Cockroach
         #region 食物信息
 
         /// <summary>
-        /// 地图上所有还有营养的食物。
-        ///
-        /// 返回的是<b>本蟑螂内部复用的缓冲</b>：只在当前调用栈里有效，不要存下来，
-        /// 也别在遍历它的过程中再调一次 GetFoodSources()。
-        ///
-        /// 为什么要复用：破壁之后场上的"食物"会从个位数涨到几百（每面墙、每张桌子都是一个），
-        /// 而 Decide 和 TryEat 每个 FixedUpdate 各拿一次。原来的实现每次都 new List，
-        /// 几十只蟑螂加起来就是每帧几千次不应该有的分配。
-        /// </summary>
-        public IReadOnlyList<FoodItem> GetFoodSources()
-        {
-            _foodBuffer.Clear();
-
-            ItemManager items = Items;
-            if (items != null)
-            {
-                items.GetFoodOnMap(_foodBuffer);
-            }
-
-            return _foodBuffer;
-        }
-
-
-        /// <summary>
         /// 半径内最近的墙体格子中心（对应参考实现的 world.wallNear）
         /// </summary>
         public bool TryGetNearestWall(Vector2 origin, float range, out Vector2 wallPos)
@@ -392,26 +363,18 @@ namespace TapTapGameJam.Cockroach
             }
             else
             {
-                IReadOnlyList<FoodItem> foods = GetFoodSources();
-
-                for (int i = 0; i < foods.Count; i++)
+                // 从内圈往外找"够得着范围内最近的食物"，命中一格就够了。
+                // 破壁之后墙遍地都是，通常内圈一两格就命中 —— 比原来扫全表便宜两个数量级。
+                FoodManager foods = FoodManager.Instance;
+                if (foods != null &&
+                    foods.TryFindNearestFood(pos, permanentRange, out _, out Vector2 foodPos))
                 {
-                    FoodItem food = foods[i];
-                    if (food == null) continue;
-
-                    // 用"够得着的那个点"而不是 pivot：墙体 / 桌子体积大，pivot 可能离蟑螂很远
-                    Vector2 foodPos = food.EatPosition(pos);
                     Vector2 toFood = foodPos - pos;
-                    float sqr = toFood.sqrMagnitude;
 
-                    // 已经站在它身上了（桌子不进 MapState，蟑螂能直接站上去）：
-                    // 这时候方向是零向量，在这里定朝向只会让它盯着一个固定角度。交给 TryEat 处理。
-                    if (sqr < 1e-6f) continue;
-
-                    float lookRange = food.EatRadius + permanentRange;
-                    if (sqr < lookRange * lookRange)
+                    // 已经站在那一格里了：方向是零向量，在这里定朝向只会让它盯着一个固定角度。
+                    // 交给 TryEat 处理。
+                    if (toFood.sqrMagnitude > 1e-4f)
                     {
-
                         _targetAngle = _forwardAngle = NormAng(AngleTo(pos, foodPos));
                         return;
                     }
@@ -704,58 +667,60 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>
         /// 啃一口食物：拿到营养就立刻折返。
+        ///
+        /// 食物不再靠"遍历全场食物列表"找，而是查 <see cref="FoodManager"/> 的格子索引：
+        /// 以自己为中心、取食距离为半径，由内向外找<b>第一件</b>还有营养的食物。
+        /// 命中即返回、零分配 —— 这是 800 只蟑螂同时觅食还能跑得动的关键。
         /// </summary>
         private void TryEat()
         {
             Assert.IsTrue(currentState == CockroachState.Forage);
-            
-            IReadOnlyList<FoodItem> foods = GetFoodSources();
+
+            FoodManager foods = FoodManager.Instance;
+            if (foods == null)
+            {
+                return;
+            }
+
             Vector2 pos = Position;
 
-            for (int i = 0; i < foods.Count; i++)
+            // eatPoint 是命中那一格的中心：多格食物（墙 / 桌子）也只需要"够得着它占的某一格"
+            if (!foods.TryFindNearestFood(pos, _settings.EatReach, out FoodItem food, out Vector2 foodPos))
             {
-                FoodItem food = foods[i];
-                if (food == null) continue;
-
-                // 同理：判定用"最近的可啃点"，否则一面墙上只有靠近 pivot 的那一小段是够得着的
-                Vector2 foodPos = food.EatPosition(pos);
-
-                float reachDistance = _settings.InteractRadius + food.EatRadius;
-                float distance2 = (foodPos - pos).sqrMagnitude;
-                
-                if (distance2 < reachDistance * reachDistance)
-                {
-                    // 先记下这是什么，再 Consume —— 它可能已经把自己 Destroy 了
-                    bool isDrug = food is CleanerDrugFoodItem;
-                    // 单次取食量：同样乘在基准值上，不写回 _settings
-                    float take = food.Consume(_settings.CarryCapacity * BuffMods.CarryFactor);
-
-                    // 吃到了药：立刻暴毙。危险信号由 Die() 释放，不用再谈营养和折返
-                    if (isDrug)
-                    {
-                        Die();
-                        return;
-                    }
-
-                    if (take <= 0f) continue;
-
-                    // 吃空了：把这一带的觅食信息素抹掉，别再把同伴引过来
-                    _lastLoad = !food.HasNutrition;
-                    if (_lastLoad)
-                    {
-                        GridManager.Instance.ClearPheromoneInRadius(PheromoneKind.Food, foodPos, _settings.EmptyClearRadius, 0f);
-                    }
-
-                    Sfx.At(SoundId.Gnaw, transform.position, this);
-                    SetCarrying(take);
-                    SetState(CockroachState.Return);
-                    _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
-
-                    // 吃到食物立即折返（允许瞬间转向）
-                    _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
-                    return;
-                }
+                return;
             }
+
+            // 先记下这是什么，再 Consume —— 它可能已经把自己 Destroy 了
+            bool isDrug = food is CleanerDrugFoodItem;
+            // 单次取食量：同样乘在基准值上，不写回 _settings
+            float take = food.Consume(_settings.CarryCapacity * BuffMods.CarryFactor);
+
+            // 吃到了药：立刻暴毙。危险信号由 Die() 释放，不用再谈营养和折返
+            if (isDrug)
+            {
+                Die();
+                return;
+            }
+
+            if (take <= 0f)
+            {
+                return;
+            }
+
+            // 吃空了：把这一带的觅食信息素抹掉，别再把同伴引过来
+            _lastLoad = !food.HasNutrition;
+            if (_lastLoad)
+            {
+                GridManager.Instance.ClearPheromoneInRadius(PheromoneKind.Food, foodPos, _settings.EmptyClearRadius, 0f);
+            }
+
+            Sfx.At(SoundId.Gnaw, transform.position, this);
+            SetCarrying(take);
+            SetState(CockroachState.Return);
+            _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
+
+            // 吃到食物立即折返（允许瞬间转向）
+            _targetAngle = _forwardAngle = NormAng(_forwardAngle + Mathf.PI + Rand(-0.15f, 0.15f));
         }
 
         /// <summary>

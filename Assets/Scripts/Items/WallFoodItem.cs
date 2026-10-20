@@ -9,20 +9,20 @@ namespace TapTapGameJam.Items
     /// 「群颚破壁」（<c>group_wall_gnawing</c>）注入到墙体 / 桌子上的可食用组件。
     ///
     /// 由 <see cref="WallGnawingDirector"/> 在拿到 tag 的那个夜晚一次性 AddComponent，
-    /// 之后这面墙就<b>和其它食物一样</b>躺在 ItemManager 的名单里：蟑螂能找到它、能啃它，
-    /// 啃出来的营养直接进共享池。
+    /// 之后这面墙就<b>和其它食物一样</b>登记进 <see cref="FoodManager"/> 的格子索引：
+    /// 蟑螂能找到它、能啃它，啃出来的营养直接进共享池。
     ///
     /// 和普通食物的三点不同，都是为了"它其实是一面墙"：
     /// <list type="number">
-    /// <item><b>够得着的位置不是 pivot</b>：墙的 pivot 在包围盒中心，而蟑螂只有 0.84m 的够食距离，
-    ///       面板长 1.76m —— 不覆写 <see cref="EatPosition"/> 的话它永远只能啃墙中间那一小段。
-    ///       这里返回"包围盒 XZ 上离蟑螂最近的点"，于是整面墙任意位置都能下嘴。</item>
+    /// <item><b>占一整片格子</b>：普通食物只占脚下那一格，墙占它包围盒盖住的所有格子
+    ///       （见 <see cref="GetOccupiedCells"/>）。蟑螂查的是"周围几格有没有食物"，
+    ///       所以沿着墙任意位置都能下嘴，不用再自己算"最近点"。</item>
     /// <item><b>不可拾取</b>：不然夜里玩家能按 E 把墙搬进背包。</item>
     /// <item><b>天亮不清场</b>：<see cref="NightManager"/> 会把地上所有食物清掉，
     ///       而墙是场景本体，清掉就是把地图拆了。</item>
     /// </list>
     ///
-    /// 吃空之后：从 ItemManager 注销、把吃掉那块几何对应的格子标成可通行、连带自己一起销毁。
+    /// 吃空之后：从索引里注销、把吃掉那块几何对应的格子标成可通行、连带自己一起销毁。
     /// 墙体不会跨天恢复 —— 破壁是永久的。
     /// </summary>
     [DisallowMultipleComponent]
@@ -81,12 +81,10 @@ namespace TapTapGameJam.Items
             _worldBounds = ResolveWorldBounds();
             _configured = true;
 
-            // 运行期 AddComponent 的 Start 时机不好把握，注册直接在这里做完。
-            // ItemManager.Register 自带去重，和 PickableItem.Start 里的那次不会重复登记。
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.Register(this);
-            }
+            // 运行期 AddComponent 时 OnEnable 已经先跑过了（那时还拿不到 bounds / 营养），
+            // 所以登记在这里补上。Register 是幂等的。
+            NutritionInitialized = true;
+            RegisterToFoodManager();
         }
 
         protected override void Start()
@@ -104,19 +102,23 @@ namespace TapTapGameJam.Items
         #region 取食
 
         /// <summary>
-        /// 包围盒 XZ 上离蟑螂最近的点。蟑螂站在墙 / 桌子上时（桌子本来就能穿过去）距离为 0。
+        /// 墙 / 桌子占它包围盒覆盖的一整片格子：蟑螂只要查到片里任意一格就能下嘴。
+        /// 普通食物（<see cref="FoodItem.GetOccupiedCells"/>）只占脚下那一格。
         /// </summary>
-        public override Vector2 EatPosition(Vector2 from)
+        public override void GetOccupiedCells(GridManager grid, out Vector2Int min, out Vector2Int max)
         {
             Bounds bounds = _worldBounds;
             if (bounds.size.x <= 0f || bounds.size.z <= 0f)
             {
-                return base.EatPosition(from);
+                base.GetOccupiedCells(grid, out min, out max);
+                return;
             }
 
-            return new Vector2(
-                Mathf.Clamp(from.x, bounds.min.x, bounds.max.x),
-                Mathf.Clamp(from.y, bounds.min.z, bounds.max.z));
+            Vector2Int c0 = grid.WorldToGrid(new Vector2(bounds.min.x, bounds.min.z));
+            Vector2Int c1 = grid.WorldToGrid(new Vector2(bounds.max.x, bounds.max.z));
+
+            min = new Vector2Int(Mathf.Min(c0.x, c1.x), Mathf.Min(c0.y, c1.y));
+            max = new Vector2Int(Mathf.Max(c0.x, c1.x), Mathf.Max(c0.y, c1.y));
         }
 
         /// <summary>每啃一口就推进裂纹。没吃空也要推，裂纹是持续反馈</summary>

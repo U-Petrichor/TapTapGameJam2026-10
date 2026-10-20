@@ -10,7 +10,8 @@ namespace TapTapGameJam.Items
 {
     /// <summary>
     /// 可拾取进入背包的物品，可使用。
-    /// 物品实例自身负责向 ItemManager 注册/注销，ItemManager 只做登记与查询，不主动遍历场景。
+    /// 物品<b>不往任何全局名单里登记</b>；只有食物会往 <see cref="FoodManager"/> 的空间索引里登记自己
+    /// （见 <see cref="FoodItem"/>），因为只有"找食物"需要按位置查。
     ///
     /// 位置状态说明：
     /// - OnMap：躺在地图上，可被拾取 / 被蟑螂吃掉。
@@ -68,25 +69,10 @@ namespace TapTapGameJam.Items
 
         public bool IsOnMap => Location == ItemLocation.OnMap;
 
-        protected virtual void Start()
-        {
-            // 物品出生（或从池里被重新启用）时登记自己
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.Register(this);
-            }
-        }
-
-        protected virtual void OnDestroy()
-        {
-            // 只有真正被销毁时才注销。
-            // 注意：不能放在 OnDisable —— 进背包/装备时本体只是 SetActive(false)，
-            // 如果在那里注销，物品就会从 ItemManager 的名单里消失。
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.Unregister(this);
-            }
-        }
+        // 注意：物品<b>不再往任何全局名单里登记</b>。
+        // 原先 PickableItem 会把自己登记进 ItemManager，但那个名单实际只有"找食物"一个消费方，
+        // 现在食物改用 FoodManager 的空间索引（见 FoodItem / FoodManager），
+        // 工具 / 装扮 / 黑盒没有任何地方需要"全量枚举"，这套登记就整个去掉了。
 
         public void SetLocation(ItemLocation location)
         {

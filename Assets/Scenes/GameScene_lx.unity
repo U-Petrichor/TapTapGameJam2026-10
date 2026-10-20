@@ -6123,8 +6123,12 @@ PrefabInstance:
       value: 800
       objectReference: {fileID: 0}
     - target: {fileID: 7712045118062084391, guid: 7a4bd83a99b5b5141b1743a66b1c8557, type: 3}
+      propertyPath: _targetLayers.m_Bits
+      value: 1088
+      objectReference: {fileID: 0}
+    - target: {fileID: 7712045118062084391, guid: 7a4bd83a99b5b5141b1743a66b1c8557, type: 3}
       propertyPath: _nutritionPerCubicMeter
-      value: 100
+      value: 500
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6759,6 +6763,7 @@ MonoBehaviour:
     SpeedJitterMin: 0.86
     SpeedJitterMax: 1.14
     InteractRadius: 0.34
+    EatReach: 0.8
     RangePushSpeed: 1.6
     MarkerMax: 100
     MarkerCockroachBasis: 80
@@ -6791,7 +6796,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6cd249ec7d240e984d7df02d81e7b07, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.ItemManager
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.FoodManager
+  _grid: {fileID: 0}
 --- !u!1 &149260595
 GameObject:
   m_ObjectHideFlags: 0

@@ -178,9 +178,11 @@ namespace TapTapGameJam.Core
 
             if (_logSummary)
             {
+                int totalFoods = FoodManager.Instance != null ? FoodManager.Instance.Count : 0;
                 Debug.Log(
                     $"[WallGnawingDirector]：扫描命中 {_targets.Count} 个物体，注入 {injected} 个，" +
-                    $"已有组件跳过 {skipped} 个，耗时 {Time.realtimeSinceStartup - startTime:F2}s", this);
+                    $"已有组件跳过 {skipped} 个，场上食物共 {totalFoods} 件，" +
+                    $"耗时 {Time.realtimeSinceStartup - startTime:F2}s", this);
             }
         }
 
@@ -394,7 +396,7 @@ namespace TapTapGameJam.Core
             {
                 Debug.LogError(
                     $"[WallGnawingDirector]：有 {zombie} 个营养为 0 却没被销毁的僵尸物体。" +
-                    "下一次被蟑螂啃到时会自动补销毁；如果一直不消失，说明它们已经不在 ItemManager 的名单里了。", this);
+                    "下一次被蟑螂啃到时会自动补销毁；如果一直不消失，说明它们已经不在 FoodManager 的索引里了。", this);
             }
         }
 

@@ -245,8 +245,8 @@ namespace TapTapGameJam.Core
         /// <summary>
         /// 清空地图上的所有食物。返回清掉的数量。
         ///
-        /// 只清 <see cref="PickableItem.ItemLocation.OnMap"/> 的那批：
-        /// 玩家背包里的、装备槽里的、商店仓库里的都不是"场上的食物"。
+        /// 只清登记在 <see cref="FoodManager"/> 里的那批 —— 也就是"在场上"的那批：
+        /// 玩家背包里的、装备槽里的、商店仓库里的都已经 SetActive(false)、不在索引里。
         ///
         /// 还要看 <see cref="FoodItem.IsClearedAtDay"/>：被「群颚破壁」注入过的墙 / 桌子
         /// 同样是 <see cref="FoodItem"/>，也在地图上，但它们是**场景本体**——
@@ -254,8 +254,8 @@ namespace TapTapGameJam.Core
         /// </summary>
         private static int ClearFoodOnMap()
         {
-            ItemManager items = ItemManager.Instance;
-            if (items == null)
+            FoodManager foodManager = FoodManager.Instance;
+            if (foodManager == null)
             {
                 return 0;
             }
@@ -265,8 +265,8 @@ namespace TapTapGameJam.Core
                 ? CockroachManager.Instance.cockroachSetting.EmptyClearRadius
                 : 0f;
 
-            // GetFoodOnMap 每次都新建一个 List，所以在遍历里 Destroy 是安全的
-            IReadOnlyList<FoodItem> foods = items.GetFoodOnMap();
+            // GetAllFoods 返回的是一份副本，所以在遍历里 Destroy 是安全的
+            List<FoodItem> foods = foodManager.GetAllFoods();
             int cleared = 0;
             for (int i = 0; i < foods.Count; i++)
             {

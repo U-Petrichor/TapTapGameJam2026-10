@@ -58,6 +58,15 @@ namespace TapTapGameJam.Cockroach
         /// <summary>雷达/交互半径（世界单位）</summary>
         [Tooltip("身体半径")] public float InteractRadius = 0.34f;
 
+        /// <summary>
+        /// 够得着食物的距离（世界单位）。
+        ///
+        /// 食物现在按网格索引（见 <see cref="FoodManager"/>），蟑螂查询的是"周围几格有没有食物"，
+        /// 所以这个值会被换算成格子半径：0.8 / 0.2 = 4 格。
+        /// 旧实现是"每件食物自己的交互半径 0.5" + 身体半径 0.34，合成 0.84 —— 这里统一成一个数。
+        /// </summary>
+        [Tooltip("取食距离（世界单位）")] public float EatReach = 0.8f;
+
         /// <summary>超出活动范围时，每秒被拉回巢穴多少距离</summary>
         [Tooltip("超范围回拉速度")] public float RangePushSpeed = 1.6f;
 

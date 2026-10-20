@@ -181,7 +181,7 @@ DressBonusPercent 放大 BuffSourceKind.Dress 的百分比
 
 | 覆写 | 为什么 |
 | --- | --- |
-| `EatPosition` → 包围盒 XZ 上离蟑螂最近的点 | 墙的 pivot 在包围盒中心，而够食距离只有 `0.34 + 0.5 = 0.84m`，面板长 1.76m —— 不覆写它永远啃不到墙中间以外的地方 |
+| `GetOccupiedCells` → 包围盒盖住的一整片格子 | 普通食物只占脚下那一格；墙面板长 1.76m，只占一格的话蟑螂只能贴着 pivot 那一小段下嘴。占整片之后沿墙任意位置都能啃（见 `Docs/FoodManager.md`） |
 | `CanInteract` → `false` | 夜间玩家不该能按 E 把墙搬进背包 |
 | `IsClearedAtDay` → `false` | 天亮清场会把地上所有 `FoodItem` 清掉，而墙是场景本体 |
 
