@@ -341,6 +341,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.UI.Arrow
   _taskIcon: {fileID: 2230063089570399641}
   _deliveryIcon: {fileID: -1253321140344291273, guid: 30627a37cd21d014997a0e721ff4e59c, type: 3}
+  _sortFileIcon: {fileID: 6888246321554620798, guid: 8be5752b590e8f2408262acd7548bc90, type: 3}
   _coffeeIcon: {fileID: 2833233642292592924, guid: 14febb47c6d54484f87cbe5fa99a8af8, type: 3}
   _dogFoodIcon: {fileID: 7074068416230183373, guid: 8be465dc0be9e8e43b26a5732e27bace, type: 3}
   _printerIcon: {fileID: 1051062670901370434, guid: e425c27ca7ac32241bd956eb51f78b10, type: 3}

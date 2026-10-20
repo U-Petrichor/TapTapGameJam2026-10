@@ -11,6 +11,7 @@ namespace TapTapGameJam.UI
     {
         [SerializeField] private Image _taskIcon;
         [SerializeField] private Sprite _deliveryIcon;
+        [SerializeField] private Sprite _sortFileIcon;
         [SerializeField] private Sprite _coffeeIcon;
         [SerializeField] private Sprite _dogFoodIcon;
         [SerializeField] private Sprite _printerIcon;
@@ -83,13 +84,14 @@ namespace TapTapGameJam.UI
             if (_taskIcon != null)
                 _taskIcon.sprite = instance switch
                 {
+                    SortFileInstance _ => _sortFileIcon,
                     MakeCoffeeInstance _ => _coffeeIcon,
                     PourDogFoodInstance _ => _dogFoodIcon,
                     PrinterRepairInstance _ => _printerIcon,
                     CleanInstance _ => _cleanIcon,
                     ParcelCutInstance _ => _parcelIcon,
                     StockInstance _ => _stockIcon,
-                    _ => _deliveryIcon // 送文件、分拣文件共用文件图案。
+                    _ => _deliveryIcon // 送文件。
                 };
             if (_taskReward != null)
                 _taskReward.text = instance.IsDailyActivity ? instance.AvailabilityText.Replace(" · ", "\n") : instance.RewardTalentPoints > 0

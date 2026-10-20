@@ -7148,7 +7148,7 @@ MonoBehaviour:
     HatchNutritionCost: 80
     PheromoneDecay: 5
     PlayerPheromoneDecay: 15
-  sharedNutrition: 0
+  sharedNutrition: 60
   victoryPopulation: 2000
   deathFoodPrefab: {fileID: 1231803026804610580, guid: 8fc79c22642f5b84081c408ff605b0e8, type: 3}
 --- !u!114 &147810222
@@ -59474,8 +59474,8 @@ MonoBehaviour:
   - {fileID: 1051128996}
   - {fileID: 1604624677}
   - {fileID: 143498303}
-  _spawnTimeOnSuccess: 1
-  _MaxDiffTime: 1
+  _spawnTimeOnSuccess: 8
+  _MaxDiffTime: 2
   _spawnTimeOnDefeat: 1
 --- !u!1 &1341808407
 GameObject:
