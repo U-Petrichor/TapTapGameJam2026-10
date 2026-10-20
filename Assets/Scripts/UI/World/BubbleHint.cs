@@ -28,6 +28,7 @@ namespace TapTapGameJam.UI
         [Tooltip("bubble所处的canvas，自动向上寻找")]
         [SerializeField] private Canvas _canvas;
         
+        private Color _orginColor;
         private bool _isHided = false;
         private Vector3 _orginScale;
         
@@ -45,6 +46,7 @@ namespace TapTapGameJam.UI
                 scale.x = 0f;
                 _bubbleHintButton.localScale = scale;
             }
+            _orginColor = _bubbleImage.color;
             _orginScale = _bubbleImage.transform.localScale;
             _isHided = false;
         }
@@ -102,7 +104,7 @@ namespace TapTapGameJam.UI
                 
             } else
             {
-                _bubbleImage.color = new Color(1.0f, 1.0f, 1.0f);
+                _bubbleImage.color = _orginColor;
 
                 if (!_hideHintWhenPending)
                 {

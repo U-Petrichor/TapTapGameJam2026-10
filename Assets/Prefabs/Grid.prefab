@@ -276,7 +276,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.WallGnawingDirector
   _grid: {fileID: 6453481612528573143}
   _crackMaterial: {fileID: 2100000, guid: 89710c3f89d1455cbea65d5e580fd9be, type: 2}
-  _environmentPath: Scene/Environment
+  _rootPaths:
+  - Scene/Environment
   _nutritionPerCubicMeter: 8
   _minNutrition: 2
   _maxNutrition: 120
