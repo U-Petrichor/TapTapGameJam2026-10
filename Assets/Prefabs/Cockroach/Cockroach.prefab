@@ -130,6 +130,8 @@ MonoBehaviour:
   nest: {fileID: 0}
   nestCommand: 0
   currentState: 0
+  _carriedFoodVisual: {fileID: 2133951073100604514}
+  _deathSplashPrefab: {fileID: 5000000000000001, guid: a5f2c81d6b3e4a79c0d84e21b7f93c56, type: 3}
 --- !u!114 &2688077060646558858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,7 +164,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3918526710492279317
 Transform:
   m_ObjectHideFlags: 0

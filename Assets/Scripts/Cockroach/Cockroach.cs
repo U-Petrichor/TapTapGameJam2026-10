@@ -61,6 +61,10 @@ namespace TapTapGameJam.Cockroach
         [SerializeField]
         private CockroachState currentState = CockroachState.Inside;
 
+        [Header("携带物 / 死亡表现")]
+        [Tooltip("叼着食物时显示的子物体（预制体里那个 Sphere 拖进来）")]
+        [SerializeField] private GameObject _carriedFoodVisual;
+
         private CockroachSettings _settings;
 
         // +Z朝向。角度 0 = 世界 +z，π/2 = 世界 +x
@@ -103,7 +107,32 @@ namespace TapTapGameJam.Cockroach
 
         /// <summary>已经叼着的营养</summary>
         private float _carrying;
-        
+
+        /// <summary>
+        /// 叼着的食物量。所有对 <c>_carrying</c> 的写入都走这里，
+        /// 顺带把"嘴里那颗食物"的表现刷新一遍，别让两处状态各自漂。
+        /// </summary>
+        private void SetCarrying(float amount)
+        {
+            _carrying = amount;
+            RefreshCarriedVisual();
+        }
+
+        /// <summary>
+        /// 嘴里那团东西的显隐：叼着才显示。
+        /// 在巢里是整体隐身的，所以 Inside 状态也一并藏起来。
+        /// </summary>
+        private void RefreshCarriedVisual()
+        {
+            if (_carriedFoodVisual == null) return;
+
+            bool visible = _carrying > 0.0001f && !_dead && currentState != CockroachState.Inside;
+            if (_carriedFoodVisual.activeSelf != visible)
+            {
+                _carriedFoodVisual.SetActive(visible);
+            }
+        }
+
         /// <summary>当前阶段计时（用于信息素浓度衰减）</summary>
         private float _phaseClock;
 
@@ -150,6 +179,10 @@ namespace TapTapGameJam.Cockroach
             SetState(currentState);
             Position = JitterInsideNest(nest);
 
+            // 先生成 / 复用出来的个体默认嘴里是空的
+            RefreshCarriedVisual();
+
+            GetComponent<Renderer>().enabled = false;
             EventPipeline.Publish(new EventCockroachCountChange(Manager.CockroachTotalCount(), 1));
         }
 
@@ -179,6 +212,7 @@ namespace TapTapGameJam.Cockroach
                 GetComponent<Renderer>().enabled = true;
             }
             currentState = newState;
+            RefreshCarriedVisual();
         }
 
         /// <summary>
@@ -222,9 +256,10 @@ namespace TapTapGameJam.Cockroach
             {
                 grid.BurstDanger(Position, _settings.MarkerMax * _settings.DangerBurstMul, _settings.DangerBurstRadius);
             }
-
             // TODO: 击杀特效
-            
+            // 死了嘴里就不该还叼着东西（物体本身帧末就销毁了，这里只是别让它多显示一帧）
+            RefreshCarriedVisual();
+
             Destroy(gameObject);
         }
 
@@ -656,7 +691,7 @@ namespace TapTapGameJam.Cockroach
                     }
 
                     Sfx.At(SoundId.Gnaw, transform.position, this);
-                    _carrying = take;
+                    SetCarrying(take);
                     SetState(CockroachState.Return);
                     _phaseClock = 0f; // 计时重置 → 食物处信息素最浓
 
@@ -686,7 +721,7 @@ namespace TapTapGameJam.Cockroach
                 EventPipeline.Publish(new EventNutritionChange(Manager.sharedNutrition, _carrying));
                 Manager.sharedNutrition += _carrying;
                 _lastLoad = false;
-                _carrying = 0f;
+                SetCarrying(0f);
             
                 if (nestCommand == CockroachCommand.Foraging)
                 {
