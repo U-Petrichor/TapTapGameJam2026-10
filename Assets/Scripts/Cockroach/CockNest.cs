@@ -242,15 +242,18 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 玩家在白天认领一个还没标记的巢穴：UnFounded → Locked。
-        /// 标记之后就要回夜里交互（产卵），而白天则允许搬运。
-        /// 返回是否真的完成了标记：已经标记过 / 不是白天 / 正被搬着，都返回 false。
+        /// 玩家认领一个还没标记的巢穴：UnFounded → Locked。
+        /// 白天、夜间都能标记（夜间能不能点到由 <see cref="CanInteract"/> 的距离限制决定）；
+        /// 标记之后白天允许搬运，夜里则要继续长按产卵，孵化出第一批才会进入 Unlocked。
+        /// 返回是否真的完成了标记：已经标记过 / 正被搬着 / 购物阶段，都返回 false。
         /// </summary>
         public bool TryFoundNest()
         {
             if (nestLockState != NestLockState.UnFounded) return false;
             if (IsCarried) return false;
-            if (!GameManager.IsDay) return false;
+
+            // 只有白天和夜里两个阶段能标记；购物阶段两边都是 false，不给操作
+            if (!GameManager.IsDay && !GameManager.IsNight) return false;
 
             SetLockState(NestLockState.Locked);
 

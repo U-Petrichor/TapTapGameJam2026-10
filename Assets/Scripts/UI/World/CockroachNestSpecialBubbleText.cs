@@ -8,8 +8,9 @@ namespace TapTapGameJam.UI
     /// <summary>
     /// 巢穴头顶的气泡提示文字：跟着阶段和巢穴状态换文案。
     ///
-    /// - 未标记（<see cref="CockNest.NestLockState.UnFounded"/>）：白天显示"标记巢穴"。
-    ///   此时还搬不动，所以不能显示"搬运"；夜里干脆什么都不显示（这个阶段无法交互）。
+    /// - 未标记（<see cref="CockNest.NestLockState.UnFounded"/>）：显示"标记"，白天夜里都能标。
+    ///   夜里的气泡只有玩家靠得够近才会出现，那个距离由 <c>CockNest.CanInteract</c> 控制。
+    ///   此时还搬不动，所以不能显示"搬运"。
     /// - 白天其余状态：搬运。
     /// - 夜里：Locked 产卵、FirstHatching 孵化、其余留空。
     /// </summary>

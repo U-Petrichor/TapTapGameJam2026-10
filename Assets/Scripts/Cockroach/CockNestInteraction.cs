@@ -13,6 +13,8 @@ namespace TapTapGameJam.Cockroach
     {
         [Header("巢穴交互")]
         [SerializeField, Min(0.1f)] private float _interactionRadius = 2f;
+        [Tooltip("未标记的巢穴在夜里：玩家靠到这么近才会显示气泡并允许标记（世界单位）")]
+        [SerializeField, Min(0f)] private float _nightMarkRadius = 3f;
         [Tooltip("巢穴挂到玩家手部挂点后的局部位置")]
         [SerializeField] private Vector3 _carryLocalPosition = Vector3.zero;
         [Tooltip("巢穴挂到玩家手部挂点后的局部旋转")]
@@ -47,17 +49,19 @@ namespace TapTapGameJam.Cockroach
             if (player == null || !isActiveAndEnabled) return false;
             if (!player.CompareTag("Player")) return false;
 
-            // 还没标记的巢穴：只有白天能交互（点一次就认领），而且不能搬
+            // 还没标记的巢穴：白天随时能点（点一次就认领），夜里则要走到跟前
             if (nestLockState == NestLockState.UnFounded)
             {
                 if (GameManager.IsDay) return !IsCarried && !player.IsCarry;
-                else
-                {
-                    // Hard code: 夜间未标记的巢穴，只有离得很近才能交互（显示气泡）
-                    // TODO: 该逻辑应该优化到气泡bubble里面
-                    float disToPlayer = (new Vector2(player.transform.position.x, player.transform.position.z) - WorldPosition).magnitude;
-                    return disToPlayer < 3;
-                }
+
+                // 购物阶段两边都不是，不给标记（TryFoundNest 也不收）
+                if (!GameManager.IsNight) return false;
+
+                // 夜间未标记的巢穴故意做成"靠近才生效"：这个返回值同时决定气泡显不显示
+                // （BubbleHint 在 CanInteract 为 false 时会把气泡整个收起来），
+                // 所以站在远处不会看到"标记巢穴"的提示，也不会误点到。
+                float distance = (new Vector2(player.transform.position.x, player.transform.position.z) - WorldPosition).magnitude;
+                return distance < _nightMarkRadius;
             }
 
             if (GameManager.IsDay)
@@ -81,11 +85,10 @@ namespace TapTapGameJam.Cockroach
         public override void Interact(PlayerBasic player, InteractKey key)
         {
             if (player == null) return;
+            if (!CanInteract(player)) return;
 
             if (GameManager.IsDay)
             {
-                if (!CanInteract(player)) return;
-
                 // 未标记：白天点一次就认领，不进搬运流程
                 if (nestLockState == NestLockState.UnFounded)
                 {
@@ -102,6 +105,13 @@ namespace TapTapGameJam.Cockroach
 
             if (GameManager.IsNight)
             {
+                // 点一次就认领，不进搬运流程
+                if (nestLockState == NestLockState.UnFounded)
+                {
+                    TryFoundNest();
+                    return;
+                }
+                
                 // 夜间交互靠Interacting即可，无特殊逻辑
                 return;
             }

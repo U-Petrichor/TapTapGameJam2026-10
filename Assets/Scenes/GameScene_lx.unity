@@ -64257,6 +64257,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _firstHatchCount
+      value: 500
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_3
