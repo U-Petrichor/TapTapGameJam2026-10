@@ -424,6 +424,18 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
+        /// 运行时指定行动区域（夜晚守卫生成器用）。
+        ///
+        /// <b>必须在激活之前调用</b>（Awake 之前）：区域大小、巡逻路线、出生点都是 Awake/Start 里算的，
+        /// 激活之后再改不会重算 —— 要换区域只能重建一只守卫。
+        /// 生成器的标准做法：把预制体实例化到一个未激活的父物体下 → 调它 → 再激活。
+        /// </summary>
+        public void SetSearchRangePlane(Transform plane)
+        {
+            searchRangePlane = plane;
+        }
+
+        /// <summary>
         /// 取当前生效的行动区域。运行期直接用 Awake 算好的；
         /// 编辑期 Awake 不跑，就从 plane 现读一次（给 gizmo 用，不写回序列化字段）。
         /// </summary>

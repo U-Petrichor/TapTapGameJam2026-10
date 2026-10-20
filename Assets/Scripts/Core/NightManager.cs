@@ -81,6 +81,19 @@ namespace TapTapGameJam.Core
         [Tooltip("刷出来的食物随机扣掉的营养比例上限。0.8 = 少了 80%")]
         [SerializeField, Range(0f, 0.95f)] private float _foodNutritionDeductMax = 0.8f;
 
+        [Header("夜晚守卫")]
+        [Tooltip("关掉则夜晚不生成守卫（场景里手工摆的照旧）")]
+        [SerializeField] private bool _spawnGuards = true;
+
+        [Tooltip("守卫预制体池：每晚从里面随机抽不同的几只（现在是 普通 / 清洁 / 喷雾）")]
+        [SerializeField] private GameObject[] _guardPrefabs = new GameObject[0];
+
+        [Tooltip("守卫区域根物体（场景里的 GuardArea）。它的每个子物体是一块 Plane，代表一处可用的巡逻区域；子物体取消激活 = 这个位置本局不参与")]
+        [SerializeField] private Transform _guardAreasRoot;
+
+        [Tooltip("每晚生成几只守卫。会被「守卫种类数」和「候选区域数」截断，且互不重复")]
+        [SerializeField, Min(0)] private int _guardsPerNight = 2;
+
         #endregion
 
         #region 天亮清场配置
@@ -96,6 +109,12 @@ namespace TapTapGameJam.Core
 
         /// <summary>是否已经进过一次夜晚。首日保护要靠它，否则开局就会把场景里手工摆的东西清掉</summary>
         private bool _hasEnteredNight;
+
+        /// <summary>本夜生成出来的守卫（天亮时撤走，场景里手工摆的不受影响）</summary>
+        private readonly List<GameObject> _spawnedGuards = new List<GameObject>();
+
+        /// <summary>生成的守卫都挂在这个运行时容器下，拆场景时一起没了</summary>
+        private Transform _guardsRoot;
 
         private void OnEnable() => EventPipeline.Subscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
 
@@ -153,8 +172,9 @@ namespace TapTapGameJam.Core
             _fadeText.gameObject.SetActive(false);
             _shoppingManager.HideRoomForNight();
 
-            // 全黑的时候刷物品：玩家看不见东西凭空出现
+            // 全黑的时候刷物品和守卫：玩家看不见东西凭空出现
             SpawnNightItems();
+            SpawnNightGuards();
 
             Canvas.ForceUpdateCanvases();
             yield return Fade(1f, 0f);
@@ -182,8 +202,24 @@ namespace TapTapGameJam.Core
 
         #region 天亮清场
 
-        private void HandleDayStarted()
+        private void HandleDayStarted() => CleanupNightLeftovers();
+
+        /// <summary>
+        /// 天亮清场：
+        /// 1. **守卫**：夜里生成的一律撤走。守卫只属于夜晚，而且每夜重新抽，所以不受下面那些清场开关影响；
+        /// 2. 食物 / 未归巢的蟑螂：受 <see cref="_cleanupAtDay"/> 和首日保护控制。
+        ///
+        /// 挂在 ContextMenu 上是为了能单独点一下验证，不用真的等到天亮。
+        /// </summary>
+        [ContextMenu("立即清场（天亮逻辑）")]
+        public void CleanupNightLeftovers()
         {
+            int guards = ClearSpawnedGuards();
+            if (guards > 0)
+            {
+                Debug.Log($"[NightManager]：天亮撤走 {guards} 只夜晚守卫。");
+            }
+
             if (!_cleanupAtDay)
             {
                 return;
@@ -195,16 +231,6 @@ namespace TapTapGameJam.Core
                 return;
             }
 
-            CleanupNightLeftovers();
-        }
-
-        /// <summary>
-        /// 天亮清场：击杀没归巢的蟑螂 + 清空地上的食物。
-        /// 挂在 ContextMenu 上是为了能单独点一下验证，不用真的等到天亮。
-        /// </summary>
-        [ContextMenu("立即清场（天亮逻辑）")]
-        public void CleanupNightLeftovers()
-        {
             int killed = KillRoachesOutsideNest();
             int cleared = ClearFoodOnMap();
             Debug.Log($"[NightManager] 天亮清场：击杀 {killed} 只未归巢的蟑螂，清空 {cleared} 份食物。");
@@ -307,6 +333,220 @@ namespace TapTapGameJam.Core
 
         #endregion
 
+        #region 夜晚守卫生成
+
+        /// <summary>
+        /// 每晚生成 <see cref="_guardsPerNight"/> 只守卫：从 <see cref="_guardPrefabs"/> 里随机抽**不同的**几种，
+        /// 从 <see cref="_guardAreasRoot"/>（场景里的 GuardArea）的子物体里随机抽**不同的**几块 Plane 当各自的巡逻区域。
+        ///
+        /// 注意守卫不是"站在我放到位置上"：它在 Start 里会把自己挪到行动区域的中心
+        /// （中心被墙占了就挪到最近空地），所以这里只要把**区域 plane** 交给它，具体站位由它自己定。
+        /// </summary>
+        [ContextMenu("立即生成夜晚守卫（测试用）")]
+        public void SpawnNightGuards()
+        {
+            if (!_spawnGuards || _guardsPerNight <= 0)
+            {
+                return;
+            }
+
+            // 先清掉上一批：同一天里手动点两次测试时不会叠在一起
+            ClearSpawnedGuards();
+
+            List<Transform> areas = CollectGuardAreas();
+            if (areas.Count == 0)
+            {
+                Debug.LogError(
+                    "[NightManager]：没有可用的守卫区域。检查 GuardArea 下每个子物体是不是一块带 Renderer 的 Plane，" +
+                    "并把这个根物体连到 _guardAreasRoot 上。", this);
+                return;
+            }
+
+            List<GameObject> prefabs = CollectGuardPrefabs();
+            if (prefabs.Count == 0)
+            {
+                Debug.LogWarning("[NightManager]：守卫预制体池是空的，夜晚不会生成守卫。", this);
+                return;
+            }
+
+            // 守卫不重复、区域也不重复，所以实际数量取三者（需求量 / 种类数 / 区域数）的最小值
+            int count = Mathf.Min(_guardsPerNight, Mathf.Min(prefabs.Count, areas.Count));
+
+            Shuffle(prefabs);
+            Shuffle(areas);
+
+            int spawned = 0;
+            for (int i = 0; i < count; i++)
+            {
+                if (SpawnGuard(prefabs[i], areas[i]) != null)
+                {
+                    spawned++;
+                }
+            }
+
+            Debug.Log($"[NightManager]：夜晚守卫生成 {spawned} / {count} 只（候选区域 {areas.Count} 块）。");
+        }
+
+        /// <summary>守卫预制体池里真正配了的那几个</summary>
+        private List<GameObject> CollectGuardPrefabs()
+        {
+            List<GameObject> prefabs = new List<GameObject>();
+            if (_guardPrefabs == null)
+            {
+                return prefabs;
+            }
+
+            for (int i = 0; i < _guardPrefabs.Length; i++)
+            {
+                if (_guardPrefabs[i] != null)
+                {
+                    prefabs.Add(_guardPrefabs[i]);
+                }
+            }
+
+            return prefabs;
+        }
+
+        /// <summary>
+        /// 收集候选巡逻区域：<see cref="_guardAreasRoot"/> 的每个**激活**子物体。
+        /// 子物体自己要有 Renderer（直接挂着平放的 Plane），没有就往下找一层。
+        /// 取消激活的子物体直接跳过 —— 设计师可以拿它临时关掉某个点位。
+        /// </summary>
+        private List<Transform> CollectGuardAreas()
+        {
+            List<Transform> areas = new List<Transform>();
+            if (_guardAreasRoot == null)
+            {
+                return areas;
+            }
+
+            for (int i = 0; i < _guardAreasRoot.childCount; i++)
+            {
+                Transform child = _guardAreasRoot.GetChild(i);
+                if (child == null || !child.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                Transform plane = child.GetComponent<Renderer>() != null
+                    ? child
+                    : child.GetComponentInChildren<Renderer>(true)?.transform;
+
+                // 和 Guard 自己用的是同一套解析（只取 XZ 包围盒），解析不出来就跳过
+                if (plane == null || !GuardRegion.TryFromPlane(plane, out _))
+                {
+                    continue;
+                }
+
+                areas.Add(plane);
+            }
+
+            return areas;
+        }
+
+        /// <summary>
+        /// 生成一只守卫并把它绑到指定区域上。
+        ///
+        /// 关键点：Guard 的 Awake 里就要读行动区域（算区域 + 巡逻路线），没绑会直接把自己 disable 掉。
+        /// 所以实例化时先挂在一个**未激活**的临时父物体下（这样 Awake 不会跑），
+        /// 把 plane 塞进去之后再激活 —— 激活那一刻 Awake 才执行，看到的就是绑好的区域。
+        /// </summary>
+        private GameObject SpawnGuard(GameObject prefab, Transform plane)
+        {
+            if (prefab == null || plane == null)
+            {
+                return null;
+            }
+
+            if (!GuardRegion.TryFromPlane(plane, out GuardRegion region))
+            {
+                return null;
+            }
+
+            // 高度取 plane 的 Y（地面）；XZ 用区域中心 —— 反正守卫 Start 里还会再对齐一次
+            Vector3 position = new Vector3(region.Center.x, 0.0f, region.Center.y);
+            Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+
+            GameObject holder = new GameObject("~GuardSpawnHolder");
+            holder.SetActive(false);
+
+            GameObject instance = Instantiate(prefab, position, rotation, holder.transform);
+
+            Guard guard = instance.GetComponent<Guard>();
+            if (guard == null)
+            {
+                Debug.LogWarning($"[NightManager]：守卫预制体「{prefab.name}」上没有 Guard 组件，已跳过。", this);
+                Destroy(holder);
+                return null;
+            }
+
+            guard.SetSearchRangePlane(plane);
+
+            // 激活：Awake 这时才跑，用上面绑好的区域搭视野 / 巡逻路线
+            holder.SetActive(true);
+
+            if (!guard.enabled)
+            {
+                // 区域太小排不出巡逻路线这类问题，Awake 里已经报过 Assert；这里把这只丢掉
+                Debug.LogWarning($"[NightManager]：守卫「{prefab.name}」在区域「{plane.name}」上初始化失败，已跳过。", this);
+                Destroy(instance);
+                Destroy(holder);
+                return null;
+            }
+
+            instance.transform.SetParent(GuardsRoot, true);
+            Destroy(holder);
+            _spawnedGuards.Add(instance);
+            return instance;
+        }
+
+        /// <summary>生成的守卫挂在它下面：一次性清场、拆场景时一起销毁</summary>
+        private Transform GuardsRoot
+        {
+            get
+            {
+                if (_guardsRoot != null)
+                {
+                    return _guardsRoot;
+                }
+
+                GameObject root = new GameObject("~NightGuards");
+                root.transform.SetParent(transform, false);
+                _guardsRoot = root.transform;
+                return _guardsRoot;
+            }
+        }
+
+        /// <summary>撤走本夜生成的守卫，返回撤走了几只（场景里手工摆的守卫不受影响）</summary>
+        private int ClearSpawnedGuards()
+        {
+            int cleared = 0;
+            for (int i = 0; i < _spawnedGuards.Count; i++)
+            {
+                if (_spawnedGuards[i] != null)
+                {
+                    Destroy(_spawnedGuards[i]);
+                    cleared++;
+                }
+            }
+
+            _spawnedGuards.Clear();
+            return cleared;
+        }
+
+        /// <summary>原地洗牌（Fisher–Yates），用来"抽不同的几只 / 几块"</summary>
+        private static void Shuffle<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                T temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
+        }
+
+        #endregion
         #region 夜晚物品生成
 
         /// <summary>
