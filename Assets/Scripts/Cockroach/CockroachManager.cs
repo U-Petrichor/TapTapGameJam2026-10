@@ -38,7 +38,7 @@ namespace TapTapGameJam.Cockroach
         public CockroachSettings cockroachSetting = new CockroachSettings();
 
         // TODO： 和PlayerResources合并取其一
-        [Header("共享总营养")] public float sharedNutrition;
+        [Header("共享总营养")] public float sharedNutrition = 100;
 
         [Header("胜利目标")]
         [Min(1), SerializeField] private int victoryPopulation = 2000;
@@ -173,6 +173,31 @@ namespace TapTapGameJam.Cockroach
             sharedNutrition -= amount;
             EventPipeline.Publish(new EventNutritionChange(sharedNutrition, -amount));
             return true;
+        }
+
+        /// <summary>
+        /// 尽量花掉 <paramref name="amount"/>：池子里的不够时只花掉现有的量，返回实际花掉多少。
+        ///
+        /// 和 <see cref="TrySpendSharedNutrition"/> 的区别是"不够就一点都不花" vs "有多少花多少"：
+        /// 用于**每秒持续消耗**的玩法（首次孵化预支）——池子空了进度就停住，等有营养再继续，
+        /// 而不是因为差一点点就整帧都不扣。永远不会把池子扣成负数。
+        /// </summary>
+        public float SpendSharedNutrition(float amount)
+        {
+            if (amount <= 0f)
+            {
+                return 0f;
+            }
+
+            float spent = Mathf.Min(amount, sharedNutrition);
+            if (spent <= 0f)
+            {
+                return 0f;
+            }
+
+            sharedNutrition -= spent;
+            EventPipeline.Publish(new EventNutritionChange(sharedNutrition, -spent));
+            return spent;
         }
 
         /// <summary>

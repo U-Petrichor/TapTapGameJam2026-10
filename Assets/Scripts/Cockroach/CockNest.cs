@@ -36,7 +36,7 @@ namespace TapTapGameJam.Cockroach
         public NestSaveEntry CaptureState() => new NestSaveEntry {
             id = SaveId, position = transform.position, rotation = transform.rotation,
             state = nestLockState, population = InsideCount,
-            spawnProgress = _spawnSpentTime, firstHatchProgress = _firstHatchSpentTime,
+            spawnProgress = _spawnSpentTime, firstHatchProgress = _firstHatchNutrition,
             hatchNutrition = _hatchNutrition, command = currentCommand
         };
 
@@ -49,7 +49,7 @@ namespace TapTapGameJam.Cockroach
             transform.SetPositionAndRotation(data.position, data.rotation);
             nestLockState = data.state;
             _spawnSpentTime = data.spawnProgress;
-            _firstHatchSpentTime = data.firstHatchProgress;
+            _firstHatchNutrition = data.firstHatchProgress;
             _hatchNutrition = data.hatchNutrition;
             currentCommand = data.command;
             if (data.population > 0 && _cockroachPrefab == null)
@@ -78,9 +78,24 @@ namespace TapTapGameJam.Cockroach
         private float _spawnTime = 5.0f;
         private float _spawnSpentTime = 0.0f;
 
-        [Tooltip("初次孵化所需时间")] [SerializeField]
-        private float _firstHatchTime = 30.0f;
-        private float _firstHatchSpentTime = 0.0f;
+        [Header("初次孵化：消耗营养（产卵阶段不消耗）")]
+        [Tooltip("孵出第一批总共要消耗的营养")]
+        [SerializeField, Min(0f)]
+        private float _firstHatchNutritionCost = 60f;
+
+        [Tooltip("孵化时每秒消耗多少营养。池子里的不够就只扣现有的，进度跟着停住")]
+        [SerializeField, Min(0f)]
+        private float _firstHatchNutritionPerSecond = 3f;
+
+        [Tooltip("玩家在旁边交互时，孵化效率（每秒消耗）的倍率。只加快进度，总消耗量不变")]
+        [SerializeField, Min(1f)]
+        private float _firstHatchInteractBoost = 5f;
+
+        /// <summary>首次孵化已经吃掉多少营养。进度 = 它 / <see cref="_firstHatchNutritionCost"/></summary>
+        private float _firstHatchNutrition;
+
+        /// <summary>上一次结算时池子里有没有营养。只用来让"没营养了"这条日志每个枯竭期只打一次</summary>
+        private bool _firstHatchStarved;
 
         [Tooltip("初次孵化产生的蟑螂数量")] [SerializeField]
         private int _firstHatchCount = 3;
@@ -169,8 +184,10 @@ namespace TapTapGameJam.Cockroach
         // 距离解锁的进度
         public float UnlockProgress => Mathf.Clamp01(_spawnSpentTime / _spawnTime);
 
-        // 初次孵化的进度
-        public float FirstHatchProgress => Mathf.Clamp01(_firstHatchSpentTime / _firstHatchTime);
+        // 初次孵化的进度：按"已经吃掉的营养 / 总需求"算，不再按时间
+        public float FirstHatchProgress => _firstHatchNutritionCost > 0f
+            ? Mathf.Clamp01(_firstHatchNutrition / _firstHatchNutritionCost)
+            : 1f;
         
         private void Update()
         {
@@ -178,20 +195,7 @@ namespace TapTapGameJam.Cockroach
             
             if (nestLockState == NestLockState.FirstHatching)
             {
-                _firstHatchSpentTime += Time.deltaTime;
-                if (InteractState == InteractState.Interacting)
-                {
-                    // TODO: 玩家加速孵化速率
-                    _firstHatchSpentTime += Time.deltaTime * 5;
-                }
-
-                if (_firstHatchSpentTime >= _firstHatchTime)
-                {
-                    // 孵化第一批
-                    for(int i = 0; i < _firstHatchCount; i++) SpawnCockroach();
-                    SetLockState(NestLockState.Unlocked);
-                    TutorialSignal.Send(TutorialSignals.NestFirstHatch);
-                }
+                UpdateFirstHatch(Time.deltaTime);
             }
             else if (nestLockState == NestLockState.Locked)
             {
@@ -215,6 +219,75 @@ namespace TapTapGameJam.Cockroach
             {
                 UpdateNight();
             }
+        }
+
+        /// <summary>
+        /// 首次孵化：按"每秒消耗营养"推进进度，而不是按时间。
+        ///
+        /// 【预支】不等蟑螂把食物运回来，每帧直接从共享营养池里把当前这口营养扣走：
+        /// 池子里有多少扣多少（<see cref="CockroachManager.SpendSharedNutrition"/>），
+        /// 扣到 0 就停在这里，等池子重新有营养再继续。**不会把池子扣成负数**，
+        /// 所以玩家要么先喂饱池子，要么就只能看着进度卡住。
+        ///
+        /// 【玩家加速】只乘在"每秒消耗速率"上：总需求 <see cref="_firstHatchNutritionCost"/> 不变，
+        /// 加速只是让它更快吃满、更快孵出来，吃掉的营养总量一模一样。
+        /// </summary>
+        private void UpdateFirstHatch(float dt)
+        {
+            float remaining = _firstHatchNutritionCost - _firstHatchNutrition;
+            if (remaining <= 0f)
+            {
+                FinishFirstHatch();
+                return;
+            }
+
+            CockroachManager manager = CockroachManager.Instance;
+            if (manager == null)
+            {
+                return;
+            }
+
+            bool boosting = InteractState == InteractState.Interacting;
+            float rate = _firstHatchNutritionPerSecond * (boosting ? _firstHatchInteractBoost : 1f);
+
+            // 只要还差的那部分，避免最后一帧多吃
+            float wanted = Mathf.Min(rate * dt, remaining);
+            if (wanted <= 0f)
+            {
+                return;
+            }
+
+            float spent = manager.SpendSharedNutrition(wanted);
+            if (spent <= 0f)
+            {
+                if (!_firstHatchStarved)
+                {
+                    _firstHatchStarved = true;
+                    Debug.Log($"[CockNest:{name}] 共享营养池是空的，首次孵化暂停（还差 {remaining:0.#} 营养）", this);
+                }
+
+                return;
+            }
+
+            _firstHatchStarved = false;
+            _firstHatchNutrition += spent;
+
+            if (_firstHatchNutrition >= _firstHatchNutritionCost)
+            {
+                FinishFirstHatch();
+            }
+        }
+
+        /// <summary>首次孵化完成：吐出第一批蟑螂并进入 Unlocked</summary>
+        private void FinishFirstHatch()
+        {
+            for (int i = 0; i < _firstHatchCount; i++)
+            {
+                SpawnCockroach();
+            }
+
+            SetLockState(NestLockState.Unlocked);
+            TutorialSignal.Send(TutorialSignals.NestFirstHatch);
         }
 
 

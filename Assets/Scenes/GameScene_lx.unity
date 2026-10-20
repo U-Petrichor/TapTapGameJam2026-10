@@ -64502,6 +64502,10 @@ PrefabInstance:
       propertyPath: _firstHatchCount
       value: 20
       objectReference: {fileID: 0}
+    - target: {fileID: 1061850152122750451, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: m_FillAmount
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_3

@@ -65,7 +65,7 @@ namespace TapTapGameJam.Cockroach
         /// 所以这个值会被换算成格子半径：0.8 / 0.2 = 4 格。
         /// 旧实现是"每件食物自己的交互半径 0.5" + 身体半径 0.34，合成 0.84 —— 这里统一成一个数。
         /// </summary>
-        [Tooltip("取食距离（世界单位）")] public float EatReach = 0.8f;
+        [Tooltip("取食距离（世界单位）")] public float EatReach = 0.6f;
 
         /// <summary>超出活动范围时，每秒被拉回巢穴多少距离</summary>
         [Tooltip("超范围回拉速度")] public float RangePushSpeed = 1.6f;
