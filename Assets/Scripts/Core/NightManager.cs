@@ -6,6 +6,7 @@ using TapTapGameJam.Items;
 using TapTapGameJam.Types;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 // 「TapTapGameJam.Cockroach」既是命名空间也是类型名。
@@ -48,26 +49,37 @@ namespace TapTapGameJam.Core
         [Tooltip("关掉则夜晚不刷任何东西（场景里手工摆的照旧）")]
         [SerializeField] private bool _spawnItems = true;
 
-        [Tooltip("随机选点的尝试次数。被墙挡住的点直接放弃，所以实际生成的件数 ≤ 这个值")]
-        [SerializeField, Min(0)] private int _spawnPointCount = 8;
+        [Tooltip("每晚生成的物品总数")]
+        [SerializeField, FormerlySerializedAs("_spawnPointCount"), Min(0)]
+        private int _itemsPerNight = 8;
+
+        [Tooltip("房间区域根物体（Scene/FoodArea）。它的每个子物体是一块 Plane + 一个 FoodSpawnArea。留空则自动找场上所有 FoodSpawnArea")]
+        [SerializeField] private Transform _foodAreasRoot;
 
         [Tooltip("选点周围的墙体检测半径，单位是格。1 = 3x3，0 = 只查自己那一格")]
         [SerializeField, Min(0)] private int _wallClearance = 1;
 
+        [Tooltip("在房间里随机取位置的最大重试次数。整间房都被墙占住就放弃这一件")]
+        [SerializeField, Min(1)] private int _positionTries = 24;
+
         [Tooltip("黑盒预制体。留空则这个分支不刷")]
         [SerializeField] private GameObject _blackBoxPrefab;
 
-        [Tooltip("黑盒概率。和下面的食物概率相加不能超过 1，超了会自动压食物概率")]
+        [Tooltip("黑盒概率。其余的一律刷食物，所以每晚正好是 _itemsPerNight 件")]
         [SerializeField, Range(0f, 1f)] private float _blackBoxChance = 0.3f;
 
         [Tooltip("商品池数据资产。这里只取它里面的**食物**当刷点产物（工具 / 装扮不参与）")]
         [SerializeField] private ItemPool _itemPool;
 
-        [Tooltip("食物概率。默认 0.3 + 0.5 = 30% 黑盒、50% 食物、20% 这个点空着")]
-        [SerializeField, Range(0f, 1f)] private float _foodChance = 0.5f;
-
         [Tooltip("生成高度偏移，相对网格平面。摆放不对就微调这个")]
         [SerializeField] private float _spawnYOffset;
+
+        [Header("食物被啃过")]
+        [Tooltip("刷出来的食物随机扣掉的营养比例下限。0.3 = 少了 30%")]
+        [SerializeField, Range(0f, 0.95f)] private float _foodNutritionDeductMin = 0.3f;
+
+        [Tooltip("刷出来的食物随机扣掉的营养比例上限。0.8 = 少了 80%")]
+        [SerializeField, Range(0f, 0.95f)] private float _foodNutritionDeductMax = 0.8f;
 
         #endregion
 
@@ -298,11 +310,30 @@ namespace TapTapGameJam.Core
         #region 夜晚物品生成
 
         /// <summary>
-        /// 在网格上随机选 <see cref="_spawnPointCount"/> 个点，逐点检查周围墙体后按概率生成物品。
+        /// 一个可刷物品的房间：范围来自 Scene/FoodArea 下某个子物体上 Plane 的 bounds，
+        /// 权重来自它挂的 <see cref="FoodSpawnArea.areaRate"/>。
+        /// </summary>
+        private struct FoodRoom
+        {
+            /// <summary>房间在世界 XZ 平面上的矩形（世界单位）</summary>
+            public Vector2 Min;
+            public Vector2 Max;
+
+            /// <summary>加权抽房间时的权重</summary>
+            public float Weight;
+        }
+
+        /// <summary>
+        /// 每晚生成 <see cref="_itemsPerNight"/> 件物品：
         ///
-        /// 选点规则（按需求）：选中的点如果自己或周围 <see cref="_wallClearance"/> 圈内有墙，
-        /// 就直接放弃这个点，不再找替代点 —— 所以地图很挤的时候实际生成数会少于尝试次数。
-        /// 网格外一律算墙（见 <see cref="GridManager.IsBlocked"/>），所以贴边的点会被自动排掉。
+        /// 1. 枚举 <see cref="_foodAreasRoot"/>（场景里的 Scene/FoodArea）下的每个子物体：
+        ///    子物体是一块 Plane，它的 Renderer.bounds 在 XZ 上的投影就是这间房的矩形；
+        ///    子物体上挂的 <see cref="FoodSpawnArea"/> 给出这间房被抽中的权重；
+        /// 2. 按权重抽一间房，在房间矩形里随机取点；点落在墙里就重试，最多 <see cref="_positionTries"/> 次，
+        ///    仍然不行就放弃这一件（不会跑到房间外面去）；
+        /// 3. 最后决定物品类型：<see cref="_blackBoxChance"/> 概率黑盒，其余一律食物
+        ///    （食物从商品池里等概率抽；某一边没配就自动退到另一边，所以每晚正好 N 件）。
+        ///    食物生成后会随机扣掉 30%~80% 营养，看起来像"被人啃过"。
         /// </summary>
         [ContextMenu("立即刷一批夜晚物品（测试用）")]
         public void SpawnNightItems()
@@ -315,13 +346,22 @@ namespace TapTapGameJam.Core
             GridManager grid = GridManager.Instance;
             if (grid == null || grid.MapState == null)
             {
-                Debug.LogError("[NightManager]：场景里没有 GridManager，没法选点刷物品。", this);
+                Debug.LogError("[NightManager]：场景里没有 GridManager，没法判断墙，夜晚不刷物品。", this);
                 return;
             }
 
             if (_itemPool == null)
             {
                 Debug.LogWarning("[NightManager]：没连商品池资产（ItemPool），夜晚不会刷任何东西。", this);
+                return;
+            }
+
+            List<FoodRoom> rooms = CollectRooms();
+            if (rooms.Count == 0)
+            {
+                Debug.LogError(
+                    "[NightManager]：一个房间都没找到。检查 Scene/FoodArea 下每个子物体是否同时挂着 " +
+                    "FoodSpawnArea（权重 > 0）和带 Renderer 的 Plane。", this);
                 return;
             }
 
@@ -339,37 +379,184 @@ namespace TapTapGameJam.Core
                 return;
             }
 
-            // 两个概率加起来超过 1 时把食物概率压下来，免得黑盒被挤掉
-            float foodChance = Mathf.Clamp(_foodChance, 0f, Mathf.Max(0f, 1f - _blackBoxChance));
+            float spawnY = grid.transform.position.y + _spawnYOffset;
 
-            List<Vector2Int> usedCells = new List<Vector2Int>();
             int spawned = 0;
-            int rejected = 0;
+            int skipped = 0;
 
-            for (int i = 0; i < _spawnPointCount; i++)
+            for (int i = 0; i < _itemsPerNight; i++)
             {
-                Vector2Int cell = new Vector2Int(
-                    Random.Range(0, grid.width),
-                    Random.Range(0, grid.height));
-
-                // 同一个格子不重复刷；周围有墙的照需求直接放弃
-                if (usedCells.Contains(cell) || HasWallAround(grid, cell, _wallClearance))
+                if (!TryPickRoom(rooms, out FoodRoom room))
                 {
-                    rejected++;
+                    skipped++;
                     continue;
                 }
 
-                usedCells.Add(cell);
-                if (SpawnAt(grid, cell, foodChance, foodTemplates))
+                if (!TryPickPosition(grid, room, out Vector2 xz))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                if (SpawnAt(new Vector3(xz.x, spawnY, xz.y), foodTemplates))
                 {
                     spawned++;
                 }
             }
 
             Debug.Log(
-                $"[NightManager]：夜晚刷点完毕，尝试 {_spawnPointCount} 次，生成 {spawned} 件，" +
-                $"放弃 {rejected} 个点（有墙或重复），空点 {usedCells.Count - spawned} 个。");
+                $"[NightManager]：夜晚生成 {spawned} / {_itemsPerNight} 件，" +
+                $"参与加权的房间 {rooms.Count} 个，放弃 {skipped} 件（房间太小或被墙占满）。");
         }
+
+        #region 房间
+
+        /// <summary>
+        /// 收集所有刷物品的房间。优先读 Inspector 上连的 <see cref="_foodAreasRoot"/> 的子物体；
+        /// 没连的话兜底为"场上所有 FoodSpawnArea"，免得忘了连线就完全不刷。
+        /// </summary>
+        private List<FoodRoom> CollectRooms()
+        {
+            List<FoodRoom> rooms = new List<FoodRoom>();
+
+            if (_foodAreasRoot != null)
+            {
+                for (int i = 0; i < _foodAreasRoot.childCount; i++)
+                {
+                    AddRoom(_foodAreasRoot.GetChild(i), rooms);
+                }
+
+                return rooms;
+            }
+
+            FoodSpawnArea[] areas = FindObjectsByType<FoodSpawnArea>(FindObjectsSortMode.None);
+            if (areas.Length > 0)
+            {
+                Debug.LogWarning(
+                    "[NightManager]：没连 Scene/FoodArea，改用「场上所有 FoodSpawnArea」兜底。建议在 Inspector 里把根物体连上。",
+                    this);
+            }
+
+            for (int i = 0; i < areas.Length; i++)
+            {
+                AddRoom(areas[i].transform, rooms);
+            }
+
+            return rooms;
+        }
+
+        /// <summary>
+        /// 把一个子节点登记成房间：权重取它（或它的子物体）上的 <see cref="FoodSpawnArea"/>，
+        /// 范围取它（或它的子物体）上 Renderer 的 bounds。
+        /// 权重 &lt;= 0、没有 Renderer、或者平面小到没面积，都直接跳过（方便临时关掉某间房）。
+        /// </summary>
+        private static void AddRoom(Transform node, List<FoodRoom> rooms)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            FoodSpawnArea area = node.GetComponent<FoodSpawnArea>();
+            if (area == null)
+            {
+                area = node.GetComponentInChildren<FoodSpawnArea>(true);
+            }
+
+            Renderer mesh = node.GetComponent<Renderer>();
+            if (mesh == null)
+            {
+                mesh = node.GetComponentInChildren<Renderer>(true);
+            }
+
+            if (area == null || mesh == null || area.areaRate <= 0f)
+            {
+                return;
+            }
+
+            // bounds 已经包含 mesh 尺寸、物体自身的旋转与缩放，所以 Plane 只需平放（和 GridManager 同一套约定）
+            Bounds bounds = mesh.bounds;
+            if (bounds.size.x <= 0.0001f || bounds.size.z <= 0.0001f)
+            {
+                return;
+            }
+
+            rooms.Add(new FoodRoom
+            {
+                Min = new Vector2(bounds.min.x, bounds.min.z),
+                Max = new Vector2(bounds.max.x, bounds.max.z),
+                Weight = area.areaRate,
+            });
+        }
+
+        /// <summary>按 areaRate 加权抽一间房</summary>
+        private static bool TryPickRoom(List<FoodRoom> rooms, out FoodRoom room)
+        {
+            room = default;
+            if (rooms == null || rooms.Count == 0)
+            {
+                return false;
+            }
+
+            float total = 0f;
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                total += rooms[i].Weight;
+            }
+
+            if (total <= 0f)
+            {
+                return false;
+            }
+
+            float roll = Random.value * total;
+            for (int i = 0; i < rooms.Count; i++)
+            {
+                roll -= rooms[i].Weight;
+                if (roll <= 0f)
+                {
+                    room = rooms[i];
+                    return true;
+                }
+            }
+
+            // 浮点误差兜底：正常走不到这里
+            room = rooms[rooms.Count - 1];
+            return true;
+        }
+
+        /// <summary>
+        /// 在房间矩形里随机取一个位置，落在墙里就重试。重试 <see cref="_positionTries"/> 次都撞墙
+        /// （比如房间被家具墙占满、或者画到地图外面去了）就返回 false，这件物品放弃。
+        /// </summary>
+        private bool TryPickPosition(GridManager grid, FoodRoom room, out Vector2 position)
+        {
+            for (int i = 0; i < _positionTries; i++)
+            {
+                Vector2 candidate = new Vector2(
+                    Random.Range(room.Min.x, room.Max.x),
+                    Random.Range(room.Min.y, room.Max.y));
+
+                // 地图外也当墙处理，免得房间画到边界外时刷到地图外去
+                if (grid.IsBlockedWorld(candidate))
+                {
+                    continue;
+                }
+
+                if (HasWallAround(grid, grid.WorldToGrid(candidate), _wallClearance))
+                {
+                    continue;
+                }
+
+                position = candidate;
+                return true;
+            }
+
+            position = default;
+            return false;
+        }
+
+        #endregion
 
         /// <summary>选点是否合格：以 <paramref name="center"/> 为中心、半径 <paramref name="radius"/> 格的方块里不能有墙</summary>
         private static bool HasWallAround(GridManager grid, Vector2Int center, int radius)
@@ -388,38 +575,28 @@ namespace TapTapGameJam.Core
             return false;
         }
 
-        /// <summary>在某个格子上掷一次骰：黑盒 / 食物 / 什么都不刷。返回是否真的生成了东西</summary>
-        private bool SpawnAt(
-            GridManager grid,
-            Vector2Int cell,
-            float foodChance,
-            List<PickableItem> foodTemplates)
+        /// <summary>
+        /// 在指定世界位置刷一件：按 <see cref="_blackBoxChance"/> 决定黑盒还是食物。
+        /// 两边只有一边配了东西时自动退到另一边，保证"每晚 N 件"不会被空点吃掉。
+        /// </summary>
+        private bool SpawnAt(Vector3 position, List<PickableItem> foodTemplates)
         {
-            GameObject prefab;
-            bool isBlackBox = false;
+            bool wantBlackBox = Random.value < _blackBoxChance;
 
-            float roll = Random.value;
-            if (roll < _blackBoxChance)
+            GameObject prefab = wantBlackBox ? _blackBoxPrefab : PickFoodPrefab(foodTemplates)?.gameObject;
+            bool isBlackBox = wantBlackBox;
+
+            // 想刷的那种没配（没连黑盒预制体 / 商品池里没有食物）就退到另一种
+            if (prefab == null)
             {
-                prefab = _blackBoxPrefab;
-                isBlackBox = true;
-            }
-            else if (roll < _blackBoxChance + foodChance)
-            {
-                prefab = PickFoodPrefab(foodTemplates)?.gameObject;
-            }
-            else
-            {
-                return false;
+                isBlackBox = !wantBlackBox;
+                prefab = isBlackBox ? _blackBoxPrefab : PickFoodPrefab(foodTemplates)?.gameObject;
             }
 
             if (prefab == null)
             {
                 return false;
             }
-
-            Vector2 worldXZ = grid.GridToWorld(cell);
-            Vector3 position = new Vector3(worldXZ.x, grid.transform.position.y + _spawnYOffset, worldXZ.y);
 
             GameObject instance = Instantiate(prefab, position, Quaternion.identity);
             instance.name = prefab.name;
@@ -428,8 +605,33 @@ namespace TapTapGameJam.Core
             {
                 WireBlackBox(instance);
             }
+            else
+            {
+                ApplyFoodNutritionDeduction(instance);
+            }
 
             return true;
+        }
+
+        /// <summary>
+        /// 食物生成后随机扣掉 <see cref="_foodNutritionDeductMin"/>~<see cref="_foodNutritionDeductMax"/> 比例的营养。
+        ///
+        /// 必须走 <see cref="FoodItem.SetSpawnNutritionFraction"/>：食物的 Start 里会用
+        /// totalNutrition 重新初始化 remainingNutrition，直接改字段会在那一帧被覆盖。
+        /// </summary>
+        private void ApplyFoodNutritionDeduction(GameObject instance)
+        {
+            FoodItem food = instance.GetComponent<FoodItem>();
+            if (food == null)
+            {
+                return;
+            }
+
+            float min = Mathf.Min(_foodNutritionDeductMin, _foodNutritionDeductMax);
+            float max = Mathf.Max(_foodNutritionDeductMin, _foodNutritionDeductMax);
+            float deducted = Random.Range(min, max);
+
+            food.SetSpawnNutritionFraction(1f - deducted);
         }
 
         /// <summary>从商品池里的食物模板中等概率抽一个</summary>

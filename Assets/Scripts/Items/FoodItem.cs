@@ -125,9 +125,25 @@ namespace TapTapGameJam.Items
             NutritionInitialized = true;
         }
 
+        /// <summary>
+        /// 出生时保留的营养比例。1 = 满值；夜晚生成器把它设成 0.2~0.7，
+        /// 让刷出来的食物看起来"被人啃过"。运行期状态，不序列化。
+        /// </summary>
+        private float _spawnNutritionFraction = 1f;
+
+        /// <summary>
+        /// 让这块食物出生时就只剩 <paramref name="fraction"/> 比例的营养。
+        /// <b>必须在 Instantiate 之后、本帧 Start 之前调用</b>：
+        /// Start 会用 totalNutrition 重新初始化 <see cref="remainingNutrition"/>，直接改字段会被覆盖。
+        /// </summary>
+        public void SetSpawnNutritionFraction(float fraction)
+        {
+            _spawnNutritionFraction = Mathf.Clamp01(fraction);
+        }
+
         protected virtual void Start()
         {
-            if (!NutritionInitialized) remainingNutrition = totalNutrition;
+            if (!NutritionInitialized) remainingNutrition = totalNutrition * _spawnNutritionFraction;
             NutritionInitialized = true;
             RegisterToFoodManager();
         }
