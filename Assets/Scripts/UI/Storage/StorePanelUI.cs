@@ -69,6 +69,9 @@ namespace TapTapGameJam.UI
         [SerializeField] private TextMeshProUGUI _showTitle;
         [Tooltip("物品描述（高亮时显示商品描述）")]
         [SerializeField] private TextMeshProUGUI _showContent;
+        
+        [Tooltip("金币")]
+        [SerializeField] private TextMeshProUGUI _showCoins;
 
         [Header("商店组件")]
         [Tooltip("商店后端。在 Inspector 里从场景里的 Player 预制体实例上拖过来")]
@@ -204,6 +207,7 @@ namespace TapTapGameJam.UI
 
             ApplyVisibility(true);
             RefreshAllCell();
+            RefreshCoinsText();
             ShowWellcomeInfo();
             ShowPage(_currentPage);
 
@@ -441,24 +445,38 @@ namespace TapTapGameJam.UI
             SetHighlight(cell);
         }
 
-        /// <summary>买某一格。成功返回 true，并把所有格子的价格 / 提示刷一遍</summary>
+        /// <summary>
+        /// 买某一格。成功返回 true，并把所有格子的价格 / 底色刷一遍。
+        /// 提示语按失败原因分开：**只有真的缺钱**才说"钱不够"；已经买过的当"谢谢惠顾"，
+        /// 不要让人买了还被骂没钱（以前这里对所有失败一律报缺钱）。
+        /// </summary>
         private bool TryBuyCell(StoreCellUI cell)
         {
             MouseStore.Goods goods = cell.Goods;
             if (goods == null || goods.item == null)
             {
-                return false; // 空格位
+                return false; // 空格位 / 已售罄
             }
 
-            if (!mouseStore.TryBuy(goods))
+            switch (mouseStore.TryBuy(goods))
             {
-                ShowNoMoneyInfo();
-                return false; // 钱不够 / 已经买过 / 已售罄：什么都不改
-            }
+                case MouseStore.BuyResult.Success:
+                    RefreshAllCell();
+                    RefreshCoinsText();
+                    ShowBuyInfo();
+                    return true;
 
-            RefreshAllCell();
-            ShowBuyInfo();
-            return true;
+                case MouseStore.BuyResult.NotEnoughCoins:
+                    ShowNoMoneyInfo();
+                    return false;
+
+                case MouseStore.BuyResult.AlreadyPurchased:
+                    ShowBuyInfo(); // 已经买下了：别说人家没钱
+                    return false;
+
+                default:
+                    return false; // 售罄 / 没货：什么都不说
+            }
         }
 
         /// <summary>
@@ -569,6 +587,20 @@ namespace TapTapGameJam.UI
                     cells[i].Refresh();
                 }
             }
+        }
+
+        /// <summary>
+        /// 把金币数刷到界面（开店、买完的时候调）。
+        /// 数据取自商店后端手上的那份 <see cref="PlayerResources"/> —— 和扣钱是同一个实例，
+        /// 所以不会出现"显示的钱和实际扣的钱对不上"。
+        /// </summary>
+        private void RefreshCoinsText()
+        {
+            Assert.IsTrue(_showCoins != null, "StorePanelUI：金币文字 _showCoins 没连");
+            Assert.IsTrue(mouseStore != null && mouseStore.Resources != null,
+                "StorePanelUI：拿不到 PlayerResources（金币显示要用）");
+
+            _showCoins.text = mouseStore.Resources.Coins.ToString();
         }
 
         #region 选中高亮 / 显示信息

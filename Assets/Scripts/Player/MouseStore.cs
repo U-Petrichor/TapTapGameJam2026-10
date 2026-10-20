@@ -134,6 +134,9 @@ namespace TapTapGameJam.Player
 
         #region 只读查询
 
+        /// <summary>钱包：商店界面显示金币用的就是它（和扣钱的同一个实例，显示不会和扣钱脱节）</summary>
+        public PlayerResources Resources => _resources;
+
         /// <summary>某一页的货架（顺序 = 界面上的格子顺序）</summary>
         public List<Goods> GoodsOf(ItemCategory page)
         {
@@ -231,25 +234,42 @@ namespace TapTapGameJam.Player
 
         #region 买 / 取
 
+        /// <summary>购买结果：界面要靠它区分"缺钱"和"已经买过了"，别混成一句提示</summary>
+        public enum BuyResult
+        {
+            Success = 0,
+            /// <summary>空格位 / 已经售罄</summary>
+            NoGoods,
+            /// <summary>这件已经买过了（不是缺钱）</summary>
+            AlreadyPurchased,
+            /// <summary>真的钱不够</summary>
+            NotEnoughCoins,
+        }
+
         /// <summary>
         /// 买下：扣金币 + 标记已购买。
-        /// 钱不够 / 已经买过 / 已经售罄 → 返回 false，**什么都不改**（前端表现以后再做）。
+        /// 失败时**什么都不改**，并用返回值说明原因（缺钱 / 已经买过 / 售罄）。
         /// </summary>
-        public bool TryBuy(Goods goods)
+        public BuyResult TryBuy(Goods goods)
         {
-            if (goods == null || goods.item == null || goods.purchased)
+            if (goods == null || goods.item == null)
             {
-                return false;
+                return BuyResult.NoGoods;
+            }
+
+            if (goods.purchased)
+            {
+                return BuyResult.AlreadyPurchased;
             }
 
             // 0 块的白送品不用走扣钱（TrySpendCoins 对 amount <= 0 也会拒绝）
             if (goods.price > 0 && !_resources.TrySpendCoins(goods.price))
             {
-                return false;
+                return BuyResult.NotEnoughCoins;
             }
 
             goods.purchased = true;
-            return true;
+            return BuyResult.Success;
         }
 
         /// <summary>把货从货架上取走（售罄）。本体返回世界由 UI 侧按统一规则处理</summary>

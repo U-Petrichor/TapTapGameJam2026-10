@@ -220,9 +220,15 @@ namespace TapTapGameJam.Player
             EventPipeline.Publish(new EventToggleBackpack());
         }
 
+        /// <summary>
+        /// R：顺时针旋转"正在拖拽的 UI 块"。
+        /// **刻意不看 <see cref="WorldInputBlocked"/>**：它锁的是世界操作（走路、交互、开镜），
+        /// 而 R 只对 UI 里拖着的块有意义 —— 锁了世界输入的时候（Shopping 阶段、小游戏过场等）
+        /// 玩家照样能在商店/背包里转物品。真正的开关在 UIManager.OnRotateItemPressed 里：
+        /// 没有块在拖就直接返回。
+        /// </summary>
         public void OnRotateItem(InputAction.CallbackContext context)
         {
-            if (WorldInputBlocked) return;
             if (!context.performed)
             {
                 return;

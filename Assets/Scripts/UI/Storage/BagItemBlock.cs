@@ -184,6 +184,22 @@ namespace TapTapGameJam.UI
         }
 
         /// <summary>
+        /// 外部强行结束这次拖拽（例如按钮"丢回世界"）。之后系统再发来的 OnDrag / OnEndDrag
+        /// 都会被当成"已经结束"直接忽略 —— 否则同一帧内松手会把这件物品再投放一次。
+        /// 不销毁块、不动 CurrentSlot：收尾由调用方决定。
+        /// </summary>
+        public void AbortDrag()
+        {
+            if (!IsDragging)
+            {
+                return;
+            }
+
+            IsDragging = false;
+            ClearPreview();
+        }
+
+        /// <summary>
         /// 只是点了一下（没拖）：块压在格子上，格子自己的点击会被块吃掉，所以这里转给所在槽位。
         /// 只有格子类槽位对点击有语义（<see cref="ICellItemClick"/>，例如商店格：第一下选中、第二下买）。
         /// </summary>

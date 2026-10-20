@@ -82,6 +82,12 @@ namespace TapTapGameJam.UI
         [Header("底板槽位")]
         [Tooltip("物品底板的槽位（EmptySlot）。不开 UI 时会被关掉，免得它的射线挡住鼠标点击")]
         [SerializeField] private EmptySlot _emptySlot;
+        
+        [Header("按键提示集")]
+        [Tooltip("装载EmptySlot下的按键提示，根据情况显示")]
+        [SerializeField] private RectTransform _bagKeyPresets;
+        [SerializeField] private RectTransform _shoppingKeyPresets;
+        
 
         /// <summary>受监控的容器，Awake 里按上面四个字段拼出来</summary>
         private ItemContainer[] _containers = new ItemContainer[0];
@@ -222,6 +228,7 @@ namespace TapTapGameJam.UI
         /// </summary>
         public void RefreshActionMap()
         {
+            RefreshKeyPresets();
             bool allClosed = AllContainersClosed;
 
             GameManager.PlayerInputManager.SwitchActionMap(
@@ -231,6 +238,19 @@ namespace TapTapGameJam.UI
             _emptySlot.SetEnabled(!allClosed);
 
             EventPipeline.Publish(new EventContainerStateChanged(allClosed));
+        }
+
+        public void RefreshKeyPresets()
+        {
+            _shoppingKeyPresets.gameObject.SetActive(_storeContainer.IsOpen);
+            if (_storeContainer.IsOpen)
+            {
+                _bagKeyPresets.gameObject.SetActive(false);
+            }
+            else
+            {
+                _bagKeyPresets.gameObject.SetActive(_bagContainer.IsOpen);
+            }
         }
 
         /// <summary>
@@ -452,6 +472,27 @@ namespace TapTapGameJam.UI
             }
 
             DestroyBlock(CurrentDraggingBlock);
+        }
+
+        /// <summary>
+        /// **丢弃当前正在拖拽的那一块**（丢回世界）。给按钮 / UnityEvent 直接绑。
+        ///
+        /// 拖起来的瞬间物品本体就已经放到世界里了（见 <see cref="DetachItemToWorld"/>），
+        /// 所以这里等价于"确认它留在世界"：播一下落地音，然后销毁界面块。
+        /// 顺手把块标成"这次拖拽已经结束"，免得同一帧内松手又被投放一次。
+        /// 没东西在拖的时候什么都不做（按钮常驻也不会报错）。
+        /// </summary>
+        public void DiscardCurrentDraggingBlock()
+        {
+            BagItemBlock block = CurrentDraggingBlock;
+            if (block == null)
+            {
+                return;
+            }
+
+            block.AbortDrag();
+            NotifyEndDrag(block);
+            FinishWorldDrop(block);
         }
 
         #endregion
