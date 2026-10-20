@@ -286,6 +286,9 @@ namespace TapTapGameJam.Core.Disinfection
 
         private void ExecuteDisinfection()
         {
+            // 播报：消杀时刻。放在开头，玩家先看到"消杀开始"，再看到蟑螂成片死掉
+            BroadcastUI.Broadcast(BroadcastKind.Disinfection);
+
             List<CockNest> nests = FindNests();
             for (int i = 0; i < _selectedRooms.Count; i++)
             {

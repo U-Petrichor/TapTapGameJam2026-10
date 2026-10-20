@@ -8,6 +8,7 @@ using UnityEngine;
 using TapTapGameJam.Core;
 using TapTapGameJam.Player;
 using TapTapGameJam.Types;
+using TapTapGameJam.UI;
 
 namespace TapTapGameJam.Cockroach
 {
@@ -466,6 +467,11 @@ namespace TapTapGameJam.Cockroach
             DispatchCommand(currentCommand);
             TutorialSignal.Send(TutorialSignals.NestFirstCommand);
             Debug.Log("Nest command: " + currentCommand);
+
+            // 播报：整巢指令切换（点巢穴按钮）才播，不是每只蟑螂出门/回家都播
+            BroadcastUI.Broadcast(currentCommand == CockroachCommand.Foraging
+                ? BroadcastKind.LeaveNest
+                : BroadcastKind.ReturnNest);
         }
 
         // 给所属所有蟑螂派发行动指令

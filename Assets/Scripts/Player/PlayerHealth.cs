@@ -2,6 +2,7 @@ using TapTapGameJam.Audio;
 using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items;
+using TapTapGameJam.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -62,6 +63,24 @@ namespace TapTapGameJam.Player
         private bool _isSprinting;
         private bool _needsRecoverToSprint;
         private bool _isDefeated;
+
+        /// <summary>
+        /// 最后把可用上限压低的到底是哪一类减益。只用来决定玩家死亡时播哪条播报，
+        /// 不参与任何数值计算。
+        /// </summary>
+        private enum CeilingCause
+        {
+            Unknown,
+            /// <summary>受伤 —— 目前唯一的来源是猎杀者保安打玩家</summary>
+            GuardAttack,
+            /// <summary>中毒 —— 目前唯一的来源是保洁的喷雾</summary>
+            Poison,
+            /// <summary>负重 —— 背太重把上限吃空，没有对应播报</summary>
+            Heavy,
+        }
+
+        private CeilingCause _lastCeilingCause = CeilingCause.Unknown;
+
         private PlayerBag _bag;
         private PlayerInputManager _input;
         private PlayerMovement _movement;
@@ -237,6 +256,7 @@ namespace TapTapGameJam.Player
             }
 
             _damage += amount;
+            _lastCeilingCause = CeilingCause.GuardAttack;
             Sfx.Play(SoundId.Hit, this);
             ClampAvailableToTotal();
         }
@@ -274,6 +294,7 @@ namespace TapTapGameJam.Player
             }
 
             _poison += amount;
+            _lastCeilingCause = CeilingCause.Poison;
             Sfx.Play(SoundId.Hit, this);
             ClampAvailableToTotal();
         }
@@ -362,6 +383,12 @@ namespace TapTapGameJam.Player
 
             if (!Mathf.Approximately(heavy, _heavy))
             {
+                // 只有负重"变大"才算它压低了上限；每帧重算不该把别的死因盖掉
+                if (heavy > _heavy)
+                {
+                    _lastCeilingCause = CeilingCause.Heavy;
+                }
+
                 _heavy = heavy;
                 ClampAvailableToTotal();
             }
@@ -441,6 +468,22 @@ namespace TapTapGameJam.Player
             _isDefeated = true;
             Sfx.Play(SoundId.Defeat, this);
             _isSprinting = false;
+
+            // 广播「玩家死了」。具体触发什么（倒下动画 / 结算 / 结束本局）还没定，
+            // 订阅方接 EventPlayerDied 即可，这边不写任何后续逻辑。
+            EventPipeline.Publish(new EventPlayerDied());
+
+            // 播报：按"最后把上限压空的那一类减益"选哪条。
+            // 只有受伤（保安）和中毒（保洁的喷雾）有对应视频，负重压死就不播。
+            switch (_lastCeilingCause)
+            {
+                case CeilingCause.GuardAttack:
+                    BroadcastUI.Broadcast(BroadcastKind.GuardKill);
+                    break;
+                case CeilingCause.Poison:
+                    BroadcastUI.Broadcast(BroadcastKind.CleanerPoison);
+                    break;
+            }
 
             // TODO: 失败流程（倒下动画 / 弹结算界面 / 通知 GameManager 结束本局）
             Debug.LogWarning("[PlayerHealth]：可用体力上限降到 0，游戏失败（失败流程待实现）");

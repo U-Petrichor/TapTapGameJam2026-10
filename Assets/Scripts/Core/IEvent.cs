@@ -216,6 +216,21 @@ namespace TapTapGameJam.Events
     }
 
     /// <summary>
+    /// 玩家倒下（可用体力上限被受伤 / 中毒 / 负重吃空），由
+    /// <c>PlayerHealth.HandleDefeat</c> 发布，**同一局只发一次**（那边的 <c>_isDefeated</c> 兜着）。
+    ///
+    /// 目前<b>还没有任何订阅方</b> —— 失败流程（倒下动画 / 结算界面 / 结束本局）接在这里：
+    /// <code>
+    /// EventPipeline.Subscribe&lt;EventPlayerDied&gt;(evt =&gt; { ... });
+    /// </code>
+    /// 注意它和 <see cref="EventGameOver"/> 不是一回事：后者是"分出胜负、结束本局"，
+    /// 前者只是"玩家这条命没了"，两者之间的流程（谁先、要不要播动画）还没定。
+    /// </summary>
+    public readonly struct EventPlayerDied : IEvent
+    {
+    }
+
+    /// <summary>
     /// 玩家身上的 Buff 集合重建了（天赋升降级、装备变化、临时效果到期）。
     /// 只带一个 Revision，不细分「哪个 key 变了」——读具体数值请直接问 PlayerBuffs。
     ///
