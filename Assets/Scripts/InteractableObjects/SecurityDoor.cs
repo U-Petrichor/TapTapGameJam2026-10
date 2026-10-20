@@ -31,6 +31,7 @@ public class SecurityDoor : MonoBehaviour, ITaskSpawnCondition
     private float _animationNormalizedTime;
 
     public bool IsAvailable => _canIOpen;
+    public bool RequiresAccessCard => _requiresAccessCard;
     public Vector3 RevealFocus => _revealFocus != null ? _revealFocus.position
         : _blockCollider != null ? _blockCollider.bounds.center : transform.position;
     public Transform RevealCameraPose => _revealCameraPose;
@@ -69,6 +70,13 @@ public class SecurityDoor : MonoBehaviour, ITaskSpawnCondition
         _canIOpen = true;
         _openOnceRequested = true;
         StartDoorAnimation(true);
+    }
+    /// <summary>只恢复卡片授权，不触发首次拾取开门、音效或日期开放特写。</summary>
+    public void RestoreAccessCard(bool collected)
+    {
+        if (!_requiresAccessCard) return;
+        _canIOpen = collected;
+        RefreshBlocker();
     }
     private void UpdatePresence()
     {

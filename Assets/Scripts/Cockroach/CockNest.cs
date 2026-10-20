@@ -17,6 +17,48 @@ namespace TapTapGameJam.Cockroach
     /// </summary>
     public partial class CockNest : Interactable
     {
+        [SerializeField, HideInInspector] private string _saveId;
+        private string _runtimeSaveId;
+        public string SaveId => _runtimeSaveId ??= BuildSaveId();
+
+        private void Awake() { _runtimeSaveId = BuildSaveId(); }
+        private string BuildSaveId()
+        {
+            if (!string.IsNullOrEmpty(_saveId)) return _saveId;
+            // Capture the authored hierarchy before carrying/reparenting changes it.
+            string path = "";
+            for (Transform node = transform; node != null; node = node.parent)
+                path = "/" + node.name + "[" + node.GetSiblingIndex() + "]" + path;
+            return gameObject.scene.path + path;
+        }
+
+        public NestSaveEntry CaptureState() => new NestSaveEntry {
+            id = SaveId, position = transform.position, rotation = transform.rotation,
+            state = nestLockState, population = InsideCount,
+            spawnProgress = _spawnSpentTime, firstHatchProgress = _firstHatchSpentTime,
+            hatchNutrition = _hatchNutrition, command = currentCommand
+        };
+
+        public void RestoreState(NestSaveEntry data)
+        {
+            foreach (var roach in new List<Cockroach>(CockroachList))
+                if (roach != null) { roach.gameObject.SetActive(false); Destroy(roach.gameObject); }
+            CockroachList.Clear();
+            InsideCount = 0;
+            transform.SetPositionAndRotation(data.position, data.rotation);
+            nestLockState = data.state;
+            _spawnSpentTime = data.spawnProgress;
+            _firstHatchSpentTime = data.firstHatchProgress;
+            _hatchNutrition = data.hatchNutrition;
+            currentCommand = data.command;
+            if (data.population > 0 && _cockroachPrefab == null)
+                throw new System.InvalidOperationException($"巢穴 {name} 缺少蟑螂预制体，无法恢复数量。");
+            for (int i = 0; i < data.population; i++) SpawnCockroach();
+            DispatchCommand(currentCommand);
+            EnsureRing();
+            RefreshDistanceField();
+        }
+
         public enum NestLockState
         {
             /// <summary>
@@ -341,14 +383,14 @@ namespace TapTapGameJam.Cockroach
         // 不含生成/销毁语义，仅记录 & 注册一只蟑螂
         public void Add(Cockroach cockroach)
         {
+            if (cockroach == null || CockroachList.Contains(cockroach)) return;
             CockroachList.Add(cockroach);
             if (cockroach.IsInside) InsideCount++;
         }
 
         public void Remove(Cockroach cockroach)
         {
-            CockroachList.Remove(cockroach);
-            if (cockroach.IsInside) InsideCount--;
+            if (CockroachList.Remove(cockroach) && cockroach.IsInside) InsideCount--;
         }
 
         /// <summary>蟑螂进巢时自己来报。外部不要直接改 InsideCount</summary>

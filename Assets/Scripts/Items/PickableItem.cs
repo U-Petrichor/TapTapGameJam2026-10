@@ -36,6 +36,9 @@ namespace TapTapGameJam.Items
             InRepo
         }
 
+        [SerializeField, HideInInspector] private string _saveDefinitionId;
+        public string SaveDefinitionId => _saveDefinitionId;
+
         [Header("背包形状")]
         [FormerlySerializedAs("itemShape")]
         [Tooltip("在背包中占据的格子形状。(0,0) 是鼠标咬住的抓取格，旋转与占格判定都在 BagShape 里")]

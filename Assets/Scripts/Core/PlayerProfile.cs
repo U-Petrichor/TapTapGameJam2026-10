@@ -18,7 +18,11 @@ namespace TapTapGameJam.Core
     /// <summary>跨周目保留的玩家记录，不随新游戏清除。</summary>
     public static class PlayerProfile
     {
-        public static string ProfilePath => Path.Combine(Application.persistentDataPath, "profile.json");
+        public static string ProfilePath => Path.Combine(
+#if UNITY_EDITOR
+            SaveManager.TestSaveDirectory ??
+#endif
+            Application.persistentDataPath, "profile.json");
         private static PlayerProfileData _data;
         public static bool HasWatchedIntro => HasSeen(TutorialStepIds.IntroVideo);
 
@@ -111,7 +115,7 @@ namespace TapTapGameJam.Core
         {
             try
             {
-                Directory.CreateDirectory(Application.persistentDataPath);
+                Directory.CreateDirectory(Path.GetDirectoryName(ProfilePath));
                 File.WriteAllText(ProfilePath + ".tmp", JsonUtility.ToJson(data, true));
                 if (File.Exists(ProfilePath))
                     File.Replace(ProfilePath + ".tmp", ProfilePath,

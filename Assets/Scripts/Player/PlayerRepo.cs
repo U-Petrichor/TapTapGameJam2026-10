@@ -72,6 +72,12 @@ namespace TapTapGameJam.Player
 
         #region 只读查询
 
+        public void ClearForRestore()
+        {
+            foreach (var item in Items) { item.gameObject.SetActive(false); Destroy(item.gameObject); }
+            _pageCells = null;
+        }
+
         public bool InBounds(int index)
         {
             return index >= 0 && index < CellCount;

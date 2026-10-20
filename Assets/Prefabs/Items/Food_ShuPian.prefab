@@ -71,6 +71,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e13727bcbf47460ea8ef675a49585177, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.FoodItem
+  _interactionPromptSprite: {fileID: 0}
+  _saveDefinitionId: 7a91976ec34899245a1d6c67ae450ac2:4123451741975289622
   shape:
     initialOffsets:
     - {x: 0, y: 0}
@@ -81,10 +83,10 @@ MonoBehaviour:
   _bagIcon: {fileID: -7954983327726887141, guid: 7d23688b4785ff241970695a46faac25, type: 3}
   _specialLevel: 0
   _itemTitle: "\u85AF\u7247"
-  _itemDesc: "\u5F00\u888B\u5C31\u505C\u4E0D\u4E0B\u6765\uFF0C\u53EF\u60DC\u53EA\u5269\u6E23\u3002\u8425\u517B 90\u3002"
+  _itemDesc: "\u5F00\u888B\u5C31\u505C\u4E0D\u4E0B\u6765\uFF0C\u53EF\u60DC\u53EA\u5269\u6E23\u3002\u8425\u517B
+    90\u3002"
   totalNutrition: 90
   remainingNutrition: 90
-  interactRaius: 0.5
 --- !u!1001 &1444502311525730316
 PrefabInstance:
   m_ObjectHideFlags: 0

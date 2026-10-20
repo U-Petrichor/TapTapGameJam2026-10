@@ -70,6 +70,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9afc2a1b0479431fbcc71ea9b9e541ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.tools.HealthDrug
+  _interactionPromptSprite: {fileID: 0}
+  _saveDefinitionId: 6c6a61336bbfc09468a482d5dbe72f05:3289389885756189650
   shape:
     initialOffsets:
     - {x: 0, y: 0}
@@ -79,7 +81,8 @@ MonoBehaviour:
   _bagIcon: {fileID: -8003429182311451799, guid: abe8f6d59bd39bb4985a81850fdd4276, type: 3}
   _specialLevel: 0
   _itemTitle: "\u516D\u8DB3\u4E38"
-  _itemDesc: "\u4E13\u6CBB\u65AD\u817F\u65AD\u987B\uFF0C\u987A\u4FBF\u8865\u70B9\u529B\u6C14\u3002\u6CBB\u4F24 100\uFF0C\u6062\u590D\u4F53\u529B 50\u3002"
+  _itemDesc: "\u4E13\u6CBB\u65AD\u817F\u65AD\u987B\uFF0C\u987A\u4FBF\u8865\u70B9\u529B\u6C14\u3002\u6CBB\u4F24
+    100\uFF0C\u6062\u590D\u4F53\u529B 50\u3002"
   recoverDamage: 100
   recoverPower: 50
   recoverPoison: 0

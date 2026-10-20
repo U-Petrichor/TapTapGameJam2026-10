@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using TapTapGameJam.Types;
 using TapTapGameJam.Player;
@@ -9,6 +10,12 @@ namespace TapTapGameJam.Core
     [Serializable]
     public sealed class SaveData
     {
+        public List<TalentSaveEntry> talents;
+        public List<ItemSaveEntry> items;
+        public List<NestSaveEntry> nests;
+        public float sharedNutrition;
+        public bool hasFullCheckpoint;
+        public bool hasCollectedAccessCard;
         public int version;
         public int dayIndex;
         public GamePhase phase;
@@ -23,8 +30,16 @@ namespace TapTapGameJam.Core
     /// <summary>单槽阶段检查点。阶段开始时捕获，保存退出时重试写盘，不保存中途资源。</summary>
     public static class SaveManager
     {
-        public const int CurrentVersion = 1;
-        public static string SavePath => Path.Combine(Application.persistentDataPath, "save.json");
+        public const int CurrentVersion = 2;
+#if UNITY_EDITOR
+        // Integration checks use a separate directory and never touch the player's save.
+        public static string TestSaveDirectory;
+#endif
+        public static string SavePath => Path.Combine(
+#if UNITY_EDITOR
+            TestSaveDirectory ??
+#endif
+            Application.persistentDataPath, "save.json");
         private static SaveData _pendingLoad;
         private static SaveData _latestCheckpoint;
 
@@ -62,9 +77,9 @@ namespace TapTapGameJam.Core
             {
                 if (!File.Exists(path)) return false;
                 var candidate = JsonUtility.FromJson<SaveData>(File.ReadAllText(path));
-                if (candidate == null || candidate.version != CurrentVersion || candidate.dayIndex < 1 ||
+                if (candidate == null || (candidate.version < 1 || candidate.version > CurrentVersion) || candidate.dayIndex < 1 ||
                     !Enum.IsDefined(typeof(GamePhase), candidate.phase) || candidate.coins < 0 ||
-                    candidate.nutrition < 0 || candidate.talentPoint < 0)
+                    candidate.nutrition < 0 || candidate.talentPoint < 0 || !CheckpointState.Validate(candidate))
                     return false;
                 data = candidate;
                 return true;
@@ -88,6 +103,13 @@ namespace TapTapGameJam.Core
                 dailyCoinsEarned = phases.DailyCoinsEarned,
                 dailyTalentEarned = phases.DailyTalentEarned
             };
+            try { CheckpointState.Capture(data, resources); }
+            catch (Exception exception)
+            {
+                Debug.LogError($"捕获完整检查点失败，保留上一份存档：{exception}");
+                return false;
+            }
+            if (!CheckpointState.Validate(data)) { Debug.LogError("检查点数据无效，保留上一份存档。"); return false; }
             _latestCheckpoint = data;
             return WriteCheckpoint(data);
         }
@@ -100,7 +122,7 @@ namespace TapTapGameJam.Core
         {
             try
             {
-                Directory.CreateDirectory(Application.persistentDataPath);
+                Directory.CreateDirectory(Path.GetDirectoryName(SavePath));
                 File.WriteAllText(SavePath + ".tmp", JsonUtility.ToJson(data, true));
                 if (File.Exists(SavePath))
                 {

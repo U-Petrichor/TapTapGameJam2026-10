@@ -22,6 +22,7 @@ namespace TapTapGameJam.Core
         [SerializeField] private Vector3 _phaseStartPosition = new Vector3(32.51f, 0f, 20.76f);
         private PlayerResources _saveResources;
         private bool _initialized;
+        public bool IsInitialized => _initialized;
         private int _dayStartCoins;
         private int _dayStartTalent;
         public int DailyCoinsEarned { get; private set; }
@@ -74,6 +75,7 @@ namespace TapTapGameJam.Core
                 ResetPlayerPosition(CurrentPhase);
                 // 重建当天的场景条件，不调用 EnterPhase，因此不会增加天数。
                 EventPipeline.Publish(new EventNewDay(DayIndex));
+                CheckpointState.Restore(data, _saveResources);
                 EventPipeline.Publish(new GamePhaseChangedEvent(CurrentPhase));
                 _initialized = true;
             }

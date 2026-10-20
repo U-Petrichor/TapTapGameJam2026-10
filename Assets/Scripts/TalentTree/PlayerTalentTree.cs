@@ -46,6 +46,32 @@ namespace TalentTree
             _effectResolver ??= new TalentEffectResolver(this);
         }
 
+        public List<TapTapGameJam.Core.TalentSaveEntry> CaptureProgress()
+        {
+            var result = new List<TapTapGameJam.Core.TalentSaveEntry>();
+            foreach (var entry in _progress.Enumerate())
+                result.Add(new TapTapGameJam.Core.TalentSaveEntry { id = entry.Talent.Id, level = entry.Level });
+            return result;
+        }
+
+        // Restore levels without spending points, refunding points, or playing upgrade sounds.
+        public void RestoreProgress(List<TapTapGameJam.Core.TalentSaveEntry> entries)
+        {
+            var previous = new List<(TalentData Talent, int Level)>(_progress.Enumerate());
+            _progress = new TalentProgress();
+            foreach (var entry in entries)
+            {
+                var talent = _talentTreeAsset?.FindTalent(entry.id);
+                if (talent == null) { Debug.LogWarning($"存档天赋 {entry.id} 已不存在，跳过。"); continue; }
+                _progress.SetLevel(talent, entry.level);
+            }
+            Effects.Invalidate();
+            foreach (var entry in previous)
+                EventPipeline.Publish(new TalentLevelChangedEvent(entry.Talent, entry.Level, GetLevel(entry.Talent)));
+            foreach (var entry in _progress.Enumerate())
+                EventPipeline.Publish(new TalentLevelChangedEvent(entry.Talent, 0, entry.Level));
+        }
+
         public int GetLevel(string talentId) => GetLevel(_talentTreeAsset?.FindTalent(talentId));
 
         public int GetLevel(TalentData talent) => _progress?.GetLevel(talent) ?? 0;

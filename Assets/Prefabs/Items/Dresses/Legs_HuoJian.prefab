@@ -70,6 +70,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dc6273216d046c49edb87dfcb810be4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressItem
+  _interactionPromptSprite: {fileID: 0}
+  _saveDefinitionId: 693c1754cdac642469ccf9f6f1e311f0:6852309364807293731
   shape:
     initialOffsets:
     - {x: 0, y: 0}
@@ -80,7 +82,8 @@ MonoBehaviour:
   _bagIcon: {fileID: -5879084590017730165, guid: 19aa81f19198e0e4bb89a5cbd56af147, type: 3}
   _specialLevel: 0
   _itemTitle: "\u706B\u7BAD"
-  _itemDesc: "\u4E24\u53EA\u811A\u5404\u7ED1\u4E00\u652F\uFF0C\u70B9\u706B\u5C31\u7A9C\u3002\u79FB\u901F +15%\uFF0C\u866B\u7FA4\u79FB\u901F +10%\u3002"
+  _itemDesc: "\u4E24\u53EA\u811A\u5404\u7ED1\u4E00\u652F\uFF0C\u70B9\u706B\u5C31\u7A9C\u3002\u79FB\u901F
+    +15%\uFF0C\u866B\u7FA4\u79FB\u901F +10%\u3002"
   dressType: 2
   _data: {fileID: 11400000, guid: a0d7294fb18e96f5a72c4bda6d91f067, type: 2}
 --- !u!1001 &1230441679545979708

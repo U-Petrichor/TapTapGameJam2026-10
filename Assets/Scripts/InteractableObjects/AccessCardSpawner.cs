@@ -14,6 +14,16 @@ public sealed class AccessCardSpawner : MonoBehaviour
     private AccessCard _activeCard;
     private bool _collected;
     private int _lastSpawnDay;
+    public bool HasCollectedAccessCard => _collected;
+
+    /// <summary>恢复本局拾取历史；阶段事件统一处理未拾取卡片的刷新，不重放拾取表现。</summary>
+    public void RestoreCollectedState(bool collected)
+    {
+        _collected = collected;
+        _lastSpawnDay = 0;
+        ClearCard();
+        if (_door != null) _door.RestoreAccessCard(collected);
+    }
     private void OnEnable() => EventPipeline.Subscribe<GamePhaseChangedEvent>(HandlePhaseChanged);
     private void Start()
     {

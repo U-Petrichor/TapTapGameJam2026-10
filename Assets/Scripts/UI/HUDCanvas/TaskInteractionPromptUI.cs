@@ -34,14 +34,26 @@ namespace TapTapGameJam.UI
 
         private void OnDisable()
         {
+            Unsubscribe();
+            OnTargetChanged(null);
+        }
+
+        private void OnDestroy()
+        {
+            Unsubscribe();
+        }
+
+        private void Unsubscribe()
+        {
             if (interactionManager != null)
                 interactionManager.EventTargetChanged -= OnTargetChanged;
             EventPipeline.UnSubscribe<GamePhaseChangedEvent>(OnGamePhaseChange);
-            OnTargetChanged(null);
         }
 
         private void OnTargetChanged(Interactable target)
         {
+            if (this == null) return;
+
             _currentTarget = target;
             if (taskPromptImage != null)
             {
@@ -54,12 +66,16 @@ namespace TapTapGameJam.UI
 
         private void OnGamePhaseChange(GamePhaseChangedEvent evt)
         {
+            if (this == null) return;
+
             _notInDayTime = evt.NewPhase != GamePhase.Day;
             RefreshVisibility();
         }
 
         private void RefreshVisibility()
         {
+            if (this == null) return;
+
             // 夜间也要给产卵点/搜索箱/食物显示 E 提示，否则教程里的“靠近按 E”没有视觉反馈。
             bool nightPrompt = _currentTarget is CockNest || _currentTarget is BlackBox || _currentTarget is PickableItem;
             bool visible = taskPromptImage != null && taskPromptImage.sprite != null &&

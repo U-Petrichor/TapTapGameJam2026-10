@@ -229,6 +229,28 @@ namespace TapTapGameJam.Items
             return false;
         }
 
+        public void ClearForRestore()
+        {
+            var items = new HashSet<PickableItem>();
+            foreach (var placement in _placements) if (placement.item != null) items.Add(placement.item);
+            foreach (var item in _equipped) if (item != null) items.Add(item);
+            foreach (var item in GetComponentsInChildren<PickableItem>(true))
+                if (item.Location == PickableItem.ItemLocation.InBag || item.Location == PickableItem.ItemLocation.Equipped) items.Add(item);
+            _placements.Clear();
+            for (int i = 0; i < _equipped.Length; i++) SetEquipped((EquipSlot)i, null);
+            PendingPickupItem = null;
+            foreach (var item in items) { item.gameObject.SetActive(false); Destroy(item.gameObject); }
+        }
+
+        public bool RestoreEquipped(PickableItem item, EquipSlot slot)
+        {
+            if (item is not DressItem dress || dress.ToSlot() != slot || GetEquipped(slot) != null) return false;
+            MoveToBagStorage(item);
+            item.SetLocation(PickableItem.ItemLocation.Equipped);
+            SetEquipped(slot, item);
+            return true;
+        }
+
         public PickableItem GetEquipped(EquipSlot slot)
         {
             int index = (int)slot;

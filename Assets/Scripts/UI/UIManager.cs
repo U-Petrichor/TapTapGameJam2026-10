@@ -319,15 +319,20 @@ namespace TapTapGameJam.UI
             _dragLayer.SetAsLastSibling();
         }
 
+        private TapTapGameJam.Player.PlayerInputManager _rotationInput;
+
         private void Start()
         {
             // 和面板一样放到 Start：GameManager.PlayerInputManager 在那之前不一定就绪
-            GameManager.PlayerInputManager.EventOnRotateItemPress += OnRotateItemPressed;
+            _rotationInput = GameManager.PlayerInputManager;
+            if (_rotationInput != null) _rotationInput.EventOnRotateItemPress += OnRotateItemPressed;
         }
 
         private void OnDisable()
         {
-            GameManager.PlayerInputManager.EventOnRotateItemPress -= OnRotateItemPressed;
+            // GameManager may already be destroyed during scene unload.
+            if (_rotationInput != null) _rotationInput.EventOnRotateItemPress -= OnRotateItemPressed;
+            _rotationInput = null;
         }
 
         private void OnDestroy()

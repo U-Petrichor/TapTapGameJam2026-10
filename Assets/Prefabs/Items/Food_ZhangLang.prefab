@@ -70,6 +70,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.FoodItem
   _interactionPromptSprite: {fileID: 0}
+  _saveDefinitionId: 8fc79c22642f5b84081c408ff605b0e8:1231803026804610580
   shape:
     initialOffsets:
     - {x: 0, y: 0}
@@ -83,7 +84,6 @@ MonoBehaviour:
   _itemDesc: "\u867D\u7136\u5F88\u5C0F\uFF0C\u4F46\u4E5F\u80FD\u5403"
   totalNutrition: 10
   remainingNutrition: 10
-  interactRaius: 0.5
 --- !u!1001 &2905726263700929505
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -159,8 +159,8 @@ namespace TapTapGameJam.Tutorial
             queuedIds.Clear();
             blocking.Clear();
             highlightRunning = false;
-            highlightView?.Hide();
-            dialogueView?.HideImmediate();
+            if (highlightView != null) highlightView.Hide();
+            if (dialogueView != null) dialogueView.HideImmediate();
             if (current != null)
             {
                 current = null;
@@ -404,8 +404,8 @@ namespace TapTapGameJam.Tutorial
             queuedIds.Clear();
             blocking.Clear();
             highlightRunning = false;
-            highlightView?.Hide();
-            dialogueView?.HideImmediate();
+            if (highlightView != null) highlightView.Hide();
+            if (dialogueView != null) dialogueView.HideImmediate();
 
             if (current != null)
             {

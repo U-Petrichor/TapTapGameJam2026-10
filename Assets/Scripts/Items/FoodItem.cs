@@ -119,9 +119,15 @@ namespace TapTapGameJam.Items
             UnregisterFromFoodManager();
         }
 
+        public void RestoreNutrition(float value)
+        {
+            remainingNutrition = Mathf.Clamp(value, 0f, totalNutrition);
+            NutritionInitialized = true;
+        }
+
         protected virtual void Start()
         {
-            remainingNutrition = totalNutrition;
+            if (!NutritionInitialized) remainingNutrition = totalNutrition;
             NutritionInitialized = true;
             RegisterToFoodManager();
         }

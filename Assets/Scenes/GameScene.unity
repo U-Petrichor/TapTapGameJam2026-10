@@ -1230,7 +1230,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
@@ -4505,6 +4505,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:90123719
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_1
@@ -6759,6 +6763,8 @@ GameObject:
   - component: {fileID: 147810220}
   - component: {fileID: 147810222}
   - component: {fileID: 147810221}
+  - component: {fileID: 147810223}
+  - component: {fileID: 147810224}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -6812,7 +6818,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e535ab6695a04d6d83070940a240419d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Cockroach.CockroachManager
-  deathFoodPrefab: {fileID: 1231803026804610580, guid: 8fc79c22642f5b84081c408ff605b0e8, type: 3}
   cockroachSetting:
     SampleCount: 24
     DetectRange: 2
@@ -6827,6 +6832,7 @@ MonoBehaviour:
     SpeedJitterMin: 0.86
     SpeedJitterMax: 1.14
     InteractRadius: 0.34
+    EatReach: 0.8
     RangePushSpeed: 1.6
     MarkerMax: 100
     MarkerCockroachBasis: 80
@@ -6847,6 +6853,7 @@ MonoBehaviour:
     PlayerPheromoneDecay: 15
   sharedNutrition: 0
   victoryPopulation: 2000
+  deathFoodPrefab: {fileID: 1231803026804610580, guid: 8fc79c22642f5b84081c408ff605b0e8, type: 3}
 --- !u!114 &147810222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6859,6 +6866,119 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6cd249ec7d240e984d7df02d81e7b07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.FoodManager
+  _grid: {fileID: 0}
+--- !u!82 &147810223
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 147810218}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &147810224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 147810218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45a12f7af6724b9da27fb3e1873e2b0e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.BackgroundMusicManager
+  phaseManager: {fileID: 1844864082}
+  dayMusic: {fileID: 8300000, guid: ccab8274ad3bb5f4886612d97b5d5df2, type: 3}
+  shoppingMusic: {fileID: 8300000, guid: cfec18725adcb5a4a8be6eec0bc90847, type: 3}
+  nightMusic: {fileID: 8300000, guid: b4a27d2a39258c242ba67444f8b65d0f, type: 3}
 --- !u!1 &149260595
 GameObject:
   m_ObjectHideFlags: 0
@@ -7330,6 +7450,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:159834412
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_13
@@ -22605,6 +22729,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:531821907
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_11
@@ -33490,6 +33618,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:775728268
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_4
@@ -44255,6 +44387,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1026557578
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_12
@@ -59425,6 +59561,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1362448451
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_2
@@ -61999,6 +62139,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: d48aa8e4efa95594b8afca8bd16b364b, type: 3}
       propertyPath: m_Name
       value: "\u5584\u826F\u540C\u4E8B"
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d48aa8e4efa95594b8afca8bd16b364b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -64585,6 +64729,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1466035563
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_3
@@ -65863,6 +66011,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1497099553
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_6
@@ -68687,6 +68839,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1555108331
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_5
@@ -70909,6 +71065,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1602961541
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_9
@@ -72149,6 +72309,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1639600671
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_10
@@ -72447,6 +72611,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1647450536
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_8
@@ -78092,6 +78260,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1313650989}
     m_Modifications:
+    - target: {fileID: 821987157563564466, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
+      propertyPath: _saveId
+      value: 80d24724790f3634e863988f7b286a4d:1780642000
+      objectReference: {fileID: 0}
     - target: {fileID: 6964306301754352645, guid: 2850e3879a3c4ce4f827b389a38ce3a4, type: 3}
       propertyPath: m_Name
       value: CockroachSpawnPoint_7
