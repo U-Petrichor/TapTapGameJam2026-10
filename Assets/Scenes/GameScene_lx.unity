@@ -3178,7 +3178,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.Disinfection.DisinfectionManager
   _unlockDayCount: 1
   _warningDuration: 40
-  _randomDelayRange: {x: 30, y: 90}
+  _randomDelayRange: {x: 30, y: 45}
   _minimumRooms: 1
   _maximumRooms: 3
   _arrowPrefab: {fileID: 1842161227811730441, guid: 18b4e67acc4ede447af96bae3521f20e, type: 3}

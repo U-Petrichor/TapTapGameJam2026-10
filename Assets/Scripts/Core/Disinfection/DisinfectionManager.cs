@@ -40,7 +40,7 @@ namespace TapTapGameJam.Core.Disinfection
         [Tooltip("EventNewDay.DayCount 的解锁阈值。当前项目第一天是 0，第二天是 1。")]
         [SerializeField] private int _unlockDayCount = 1;
         [SerializeField, Min(0f)] private float _warningDuration = 40f;
-        [SerializeField] private Vector2 _randomDelayRange = new Vector2(30f, 90f);
+        [SerializeField] private Vector2 _randomDelayRange = new Vector2(30f, 45f);
 
         [Header("房间数量")]
         [SerializeField, Min(1)] private int _minimumRooms = 1;

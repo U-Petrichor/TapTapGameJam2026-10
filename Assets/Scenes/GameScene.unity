@@ -3142,7 +3142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &67467420
 Transform:
   m_ObjectHideFlags: 0
@@ -3251,16 +3251,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ce8137e83174952b635fb208ea75de1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Core.Disinfection.DisinfectionManager
-  _unlockDayCount: 1
+  _unlockDayCount: 2
   _warningDuration: 40
-  _randomDelayRange: {x: 30, y: 90}
+  _randomDelayRange: {x: 30, y: 45}
   _minimumRooms: 1
   _maximumRooms: 3
   _arrowPrefab: {fileID: 1842161227811730441, guid: 18b4e67acc4ede447af96bae3521f20e, type: 3}
   _indicatorRoot: {fileID: 1321352879}
   _worldCamera: {fileID: 1652861763}
   _edgePadding: 20
-  _startImmediatelyForDebug: 1
+  _startImmediatelyForDebug: 0
 --- !u!1001 &70469835
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10696,7 +10696,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1701956084}
-  m_Father: {fileID: 1712163376}
+  m_Father: {fileID: 2067215054}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -76060,7 +76060,6 @@ RectTransform:
   m_Children:
   - {fileID: 1099492097}
   - {fileID: 2067215054}
-  - {fileID: 221757324}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -91719,7 +91718,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2067215054
 RectTransform:
   m_ObjectHideFlags: 0
@@ -91735,6 +91734,7 @@ RectTransform:
   - {fileID: 1902217768}
   - {fileID: 1880456002}
   - {fileID: 1904606168}
+  - {fileID: 221757324}
   m_Father: {fileID: 1712163376}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
