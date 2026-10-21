@@ -121,8 +121,8 @@ MonoBehaviour:
     FleeDuration: 3.5
     FleeJitter: 0.25
     FearRadius: 4.5
-    PlaceInterval: 8
-    FirstPlaceDelay: 4
+    PlaceInterval: 20
+    FirstPlaceDelay: 8
     PlaceTravelDistance: 3
     PlaceOffset: 0.8
     PlaceClearance: 1.5
