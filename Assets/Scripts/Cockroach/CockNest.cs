@@ -164,7 +164,15 @@ namespace TapTapGameJam.Cockroach
         /// <summary>巢内的蟑螂数量。由蟑螂自己上报，不遍历 CockroachList</summary>
         public int InsideCount { get; private set; }
 
-        /// <summary>距离孵出下一只还差多少营养。分母是 HatchNutritionCost</summary>
+        [Tooltip("一批孵出几只蟑螂")]
+        [SerializeField, Min(1)]
+        private int _hatchBatchSize = 10;
+
+        [Tooltip("巢穴容量上限：属于这个巢的蟑螂（巢里的 + 在外面跑的）到这个数就停止孵化")]
+        [SerializeField, Min(1)]
+        private int _populationCap = 80;
+
+        /// <summary>距离孵出下一批还差多少营养。分母是 HatchNutritionCost</summary>
         private float _hatchNutrition;
 
         private CockroachCommand currentCommand = CockroachCommand.Hatch;
@@ -177,7 +185,16 @@ namespace TapTapGameJam.Cockroach
         /// </summary>
         public int[,] DistanceField { get; private set; }
 
-        // 距离孵出下一只的进度 0~1
+        /// <summary>这个巢穴现在一共有多少只蟑螂（巢里的 + 在外面跑的）</summary>
+        public int RoachCount => CockroachList.Count;
+
+        /// <summary>巢穴容量上限</summary>
+        public int PopulationCap => _populationCap;
+
+        /// <summary>已经养满了，不再孵化</summary>
+        public bool IsFull => RoachCount >= _populationCap;
+
+        // 距离孵出下一批的进度 0~1
         public float HatchProgress =>
             Mathf.Clamp01(_hatchNutrition / CockroachManager.Instance.cockroachSetting.HatchNutritionCost);
 
@@ -476,23 +493,33 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 孵化：巢内的每只蟑螂每秒消耗固定营养往下一只上攒，攒够就孵一只。
+        /// 孵化：按**批次**生产。攒够一批的营养就一次孵 <see cref="_hatchBatchSize"/> 只，
+        /// 到 <see cref="_populationCap"/> 就停产。
+        ///
+        /// 速率是**固定值**（<c>HatchNutritionPerSecond</c>），和巢内虫数无关 ——
+        /// 以前是"每只虫每秒吃一份"，虫越多越快；现在一批固定 30 营养 / 20 秒。
         /// 只在 Hatch 指令下进行；中途切走会保留进度。
         /// </summary>
         private void UpdateHatch(float dt)
         {
-            if (currentCommand != CockroachCommand.Hatch || _cockroachPrefab == null || InsideCount <= 0)
+            if (currentCommand != CockroachCommand.Hatch || _cockroachPrefab == null)
             {
                 return;
             }
-            
+
+            // 养满了就停产（进度保留，等虫数掉下来再接着攒）
+            if (IsFull)
+            {
+                return;
+            }
+
             CockroachManager manager = CockroachManager.Instance;
             CockroachSettings settings = manager.cockroachSetting;
 
             // 想吃的量和真正吃到的量分开：营养池不够时进度只按实际消耗涨
             // 产卵速度加成乘在「每秒消耗速率」上，不动 HatchNutritionCost：
             // 进度条的分母是 Cost，动它 UI 就得跟着改，而乘速率进度条自动就对。
-            float wanted = settings.HatchNutritionPerSecond * InsideCount * dt * manager.BuffMods.HatchFactor;
+            float wanted = settings.HatchNutritionPerSecond * dt * manager.BuffMods.HatchFactor;
             float spent = Mathf.Min(wanted, settings.HatchNutritionCost - _hatchNutrition);
 
             if (spent <= 0f || !manager.TrySpendSharedNutrition(spent))
@@ -502,9 +529,17 @@ namespace TapTapGameJam.Cockroach
 
             _hatchNutrition += spent;
 
-            if (_hatchNutrition >= settings.HatchNutritionCost)
+            if (_hatchNutrition < settings.HatchNutritionCost)
             {
-                _hatchNutrition -= settings.HatchNutritionCost;
+                return;
+            }
+
+            _hatchNutrition -= settings.HatchNutritionCost;
+
+            // 一批 N 只；离容量上限不到 N 只就只补到上限
+            int count = Mathf.Min(_hatchBatchSize, _populationCap - RoachCount);
+            for (int i = 0; i < count; i++)
+            {
                 SpawnCockroach();
             }
         }

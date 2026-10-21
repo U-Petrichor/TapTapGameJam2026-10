@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: DressData_Body_LuYing
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 9
-    Value: 0.2
-  - Key: 3
-    Value: 10
-  _description: "\u8D1F\u91CD\u51CF\u514D 20%\uFF1B\u4F53\u529B\u4E0A\u9650 +10\uFF08\u56FA\u5B9A\u503C\uFF09"
+  - Key: 2
+    Value: 0.15
+  _description: "\u57FA\u7840\u4F53\u529B\u4E0A\u9650 +15%\uFF08\u53EA\u62AC\u4E0A\u9650\uFF0C\u4E0D\u8865\u5F53\u524D\u4F53\u529B\uFF09"

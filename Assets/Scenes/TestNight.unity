@@ -1199,14 +1199,14 @@ MonoBehaviour:
     DangerBurstRadius: 2.5
     HomeBias: 2
     LeaveZone: 2.2
-    CarryCapacity: 5
+    CarryCapacity: 1
     EmptyClearRadius: 3
-    HatchNutritionPerSecond: 1
-    HatchNutritionCost: 80
+    HatchNutritionPerSecond: 1.5
+    HatchNutritionCost: 30
     PheromoneDecay: 5
     PlayerPheromoneDecay: 15
-  sharedNutrition: 0
-  victoryPopulation: 2000
+  sharedNutrition: 60
+  victoryPopulation: 500
 --- !u!1 &154786187
 GameObject:
   m_ObjectHideFlags: 0

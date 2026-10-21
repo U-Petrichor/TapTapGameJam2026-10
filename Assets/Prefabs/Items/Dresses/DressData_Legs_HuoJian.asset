@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: DressData_Legs_HuoJian
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 0
+  - Key: 1
     Value: 0.15
-  - Key: 11
-    Value: 0.1
-  _description: "\u79FB\u52A8\u901F\u5EA6 +15%\uFF1B\u866B\u7FA4\u79FB\u901F +10%"
+  _description: "\u4E3B\u89D2\u51B2\u523A\u901F\u5EA6 +15%"

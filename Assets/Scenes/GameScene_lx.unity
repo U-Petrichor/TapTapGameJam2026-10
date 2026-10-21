@@ -6778,14 +6778,14 @@ MonoBehaviour:
     DangerBurstRadius: 2.5
     HomeBias: 2
     LeaveZone: 2.2
-    CarryCapacity: 5
+    CarryCapacity: 1
     EmptyClearRadius: 3
-    HatchNutritionPerSecond: 1
-    HatchNutritionCost: 80
+    HatchNutritionPerSecond: 1.5
+    HatchNutritionCost: 30
     PheromoneDecay: 5
     PlayerPheromoneDecay: 15
-  sharedNutrition: 100
-  victoryPopulation: 2000
+  sharedNutrition: 60
+  victoryPopulation: 500
   deathFoodPrefab: {fileID: 1231803026804610580, guid: 8fc79c22642f5b84081c408ff605b0e8, type: 3}
 --- !u!114 &147810222
 MonoBehaviour:
@@ -72874,7 +72874,7 @@ MonoBehaviour:
   _textDisplayDuration: 0.5
   _fadeDuration: 0.5
   _spawnItems: 1
-  _itemsPerNight: 50
+  _itemsPerNight: 33
   _foodAreasRoot: {fileID: 3360800}
   _wallClearance: 1
   _positionTries: 24

@@ -38,10 +38,10 @@ namespace TapTapGameJam.Cockroach
         public CockroachSettings cockroachSetting = new CockroachSettings();
 
         // 玩家与虫群共用的唯一营养池；初始值在场景 Inspector 中配置。
-        [Header("共享总营养")] public float sharedNutrition = 100;
+        [Header("共享总营养")] public float sharedNutrition = 60f;
 
         [Header("胜利目标")]
-        [Min(1), SerializeField] private int victoryPopulation = 2000;
+        [Min(1), SerializeField] private int victoryPopulation = 500;
         public int VictoryPopulation => Mathf.Max(1, victoryPopulation);
         public bool HasWon { get; private set; }
 

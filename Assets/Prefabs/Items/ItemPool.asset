@@ -14,40 +14,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.ItemPool
   _entries:
   - item: {fileID: 3643562604380551905, guid: bb65603074539a14fae639bbb4ecf115, type: 3}
-    priceRange: {x: 10, y: 30}
+    priceRange: {x: 9, y: 9}
   - item: {fileID: 7301767924221879321, guid: 7e39d338957ca69438e962baef89909e, type: 3}
-    priceRange: {x: 10, y: 30}
+    priceRange: {x: 15, y: 15}
   - item: {fileID: 4725912821047167748, guid: 2b06920e7a8614a469d45b3ae5c945c9, type: 3}
-    priceRange: {x: 20, y: 40}
+    priceRange: {x: 30, y: 30}
   - item: {fileID: 4933236568619513475, guid: 264d5a8fb93e86f4f8034cf96e771e33, type: 3}
-    priceRange: {x: 10, y: 30}
+    priceRange: {x: 39, y: 39}
   - item: {fileID: 2768611035528486084, guid: 1f77fc25fe6a3ee48b32714fc126bfc6, type: 3}
-    priceRange: {x: 20, y: 40}
+    priceRange: {x: 60, y: 60}
   - item: {fileID: 4123451741975289622, guid: 7a91976ec34899245a1d6c67ae450ac2, type: 3}
-    priceRange: {x: 10, y: 30}
+    priceRange: {x: 24, y: 24}
   - item: {fileID: 4625911879522540593, guid: 3939f9370df2c5746939acf339ad9120, type: 3}
-    priceRange: {x: 10, y: 30}
+    priceRange: {x: 42, y: 42}
   - item: {fileID: 261566961000834795, guid: 7a52cafa3b07dfc41bbecbad304143e1, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 8, y: 8}
   - item: {fileID: 1707581622858638242, guid: b0bee7faacc86124e920df8a33a6a952, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 10, y: 10}
   - item: {fileID: 3289389885756189650, guid: 6c6a61336bbfc09468a482d5dbe72f05, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 40, y: 40}
   - item: {fileID: 5883820418780221082, guid: ecb793cf00a9f45448445f2c48bc0a29, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 24, y: 24}
   - item: {fileID: 3474245337392638618, guid: 6114941b92177be4daab8bad8ebec18e, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 18, y: 18}
   - item: {fileID: 1621398074094725227, guid: fadd29534a989aa45af3c12ee9824762, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 30, y: 30}
   - item: {fileID: 4104317621877348931, guid: 8733569608f092f438e8c5c1fcf476bc, type: 3}
     priceRange: {x: 5, y: 15}
   - item: {fileID: 2047628388071129570, guid: f2b65c648f42f8849a2d07697f6915a9, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 36, y: 36}
   - item: {fileID: 6458311740782254102, guid: 83e9c700224b25c4aa84af8e138bff4b, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 12, y: 12}
   - item: {fileID: 537772977704800691, guid: 763d7bf744dc0e34b857c411d6f927df, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 20, y: 20}
   - item: {fileID: 6852309364807293731, guid: 693c1754cdac642469ccf9f6f1e311f0, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 48, y: 48}
   - item: {fileID: 4524404988279127797, guid: f7cca81a009a6a642853cb86754dea62, type: 3}
-    priceRange: {x: 5, y: 15}
+    priceRange: {x: 28, y: 28}

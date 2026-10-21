@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: DressData_Head_ZhiDai
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 4
-    Value: 0.12
-  - Key: 5
-    Value: 0.15
-  _description: "\u53D7\u4F24\u51CF\u514D 12%\uFF1B\u4E2D\u6BD2\u5F71\u54CD\u51CF\u514D 15%"
+  - Key: 23
+    Value: 0.1
+  _description: "\u654C\u4EBA\u53D1\u73B0\u8DDD\u79BB -10%"

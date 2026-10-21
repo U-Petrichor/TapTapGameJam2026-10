@@ -215,7 +215,14 @@ namespace TapTapGameJam.Items
                 return;
             }
 
-            Instantiate(_pendingItem, transform.position, Quaternion.identity);
+            PickableItem spawned = Instantiate(_pendingItem, transform.position, Quaternion.identity);
+
+            // 和夜晚生成 / 商店刷新一致：食物营养乘日期权重（1.13^天数）。
+            // 黑盒是夜里开的，吐出来的东西不该比别人便宜。
+            if (spawned is FoodItem food)
+            {
+                food.SetSpawnNutritionMultiplier(DayScaling.NutritionWeight);
+            }
         }
     }
 }

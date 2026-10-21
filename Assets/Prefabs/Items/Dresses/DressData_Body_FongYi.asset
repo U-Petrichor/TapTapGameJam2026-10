@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: DressData_Body_FongYi
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 4
-    Value: 0.1
-  - Key: 9
-    Value: 0.1
-  _description: "\u53D7\u4F24\u51CF\u514D 10%\uFF1B\u8D1F\u91CD\u51CF\u514D 10%"
+  - Key: 6
+    Value: 0.08
+  _description: "\u4E3B\u89D2\u51B2\u523A\u6D88\u8017 -8%"

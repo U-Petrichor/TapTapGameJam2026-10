@@ -110,7 +110,8 @@ namespace TapTapGameJam.UI
             int count = _nest.CockroachList.Count;
             string countColor = ToRichTextColor(count > 0 ? _countColor : _emptyColor);
 
-            _text.text = $"{count}";
+            // 显示"当前只数 / 巢穴容量上限"，达到上限后不会再孵
+            _text.text = $"<color={countColor}>{count}</color> / {_nest.PopulationCap}";
                 // $"<color={countColor}>{count}</color> cockroaches\n" +
                 // $"<size=70%><color={CommandColor(_nest.CurrentCommand)}>{CommandLabel(_nest.CurrentCommand)}</color></size>";
             

@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: DressData_Legs_XiangJiao
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
   _buffs:
-  - Key: 1
-    Value: 0.2
-  - Key: 6
-    Value: 0.1
-  _description: "\u51B2\u523A\u901F\u5EA6 +20%\uFF1B\u4F53\u529B\u635F\u8017\u51CF\u514D 10%"
+  - Key: 0
+    Value: 0.08
+  _description: "\u4E3B\u89D2\u79FB\u52A8\u901F\u5EA6 +8%"

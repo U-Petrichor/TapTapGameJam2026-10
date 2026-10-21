@@ -7,7 +7,9 @@ namespace TapTapGameJam.Core
     /// 越往后天数，场上/商店里的食物越肥。
     ///
     /// 权重 = <see cref="GrowthPerDay"/> ^ 当前天数（<see cref="GamePhaseManager.DayIndex"/>，首日为 1）：
-    /// Day 1 = 1.2、Day 2 = 1.44、Day 3 = 1.728、Day 5 ≈ 2.49、Day 10 ≈ 6.19。
+    /// Day 1 = 1.13、Day 2 = 1.28、Day 3 = 1.44、Day 7 ≈ 2.35。
+    /// 这个 1.13 是照策划案「地图残余基础营养 230 → 460（7 晚）」反推的：
+    /// 230 × 1.13^6 ≈ 470，7 晚总量也对得上；1.2 会在第 4 晚之后明显偏肥（D7 +50%）。
     ///
     /// 权重是**整体乘在食物的 totalNutrition 上**的（不是只乘剩余量），
     /// 所以食物看起来就是"这块更大"，蟑螂一次能搬的量没变，只是这块更经啃。
@@ -18,7 +20,7 @@ namespace TapTapGameJam.Core
     public static class DayScaling
     {
         /// <summary>每过一天，食物营养乘多少</summary>
-        public const float GrowthPerDay = 1.2f;
+        public const float GrowthPerDay = 1.13f;
 
         /// <summary>
         /// 当前天数。取不到阶段管理器时返回 0（权重 = 1），

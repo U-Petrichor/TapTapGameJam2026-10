@@ -81,8 +81,7 @@ MonoBehaviour:
   _bagIcon: {fileID: -8003429182311451799, guid: abe8f6d59bd39bb4985a81850fdd4276, type: 3}
   _specialLevel: 0
   _itemTitle: "\u516D\u8DB3\u4E38"
-  _itemDesc: "\u4E13\u6CBB\u65AD\u817F\u65AD\u987B\uFF0C\u987A\u4FBF\u8865\u70B9\u529B\u6C14\u3002\u6CBB\u4F24
-    100\uFF0C\u6062\u590D\u4F53\u529B 50\u3002"
+  _itemDesc: "\u516D\u6761\u817F\u90FD\u8865\u4E00\u904D\u3002\u6E05\u6389\u5168\u90E8\u4F24\u52BF\uFF0C\u518D\u56DE\u590D 50 \u70B9\u5F53\u524D\u4F53\u529B\u3002"
   recoverDamage: 100
   recoverPower: 50
   recoverPoison: 0

@@ -112,18 +112,18 @@ namespace TapTapGameJam.Cockroach
         [Tooltip("离巢散开区")] public float LeaveZone = 2.2f;
 
         /// <summary>单次携带营养上限</summary>
-        [Tooltip("单次携带营养上限")] public float CarryCapacity = 5f;
+        [Tooltip("单次携带营养上限")] public float CarryCapacity = 1f;
 
         /// <summary>食物被吃空时，清空这一半径内的觅食信息素</summary>
         [Tooltip("吃空清除半径")] public float EmptyClearRadius = 3f;
 
         // ---- 孵化 ----
 
-        /// <summary>巢内每只蟑螂每秒为孵化吃掉的营养。巢内越多，孵化越快</summary>
-        [Tooltip("巢内每只蟑螂每秒为孵化消耗的营养")] public float HatchNutritionPerSecond = 1.0f;
+        /// <summary>孵化时每秒吃掉的营养（固定速率，和巢内虫数无关）。30 营养 / 1.5 每秒 = 一批 20 秒</summary>
+        [Tooltip("孵化每秒消耗的营养（固定值，不受巢内虫数影响）")] public float HatchNutritionPerSecond = 1.5f;
 
-        /// <summary>累计吃掉这么多营养就孵出一只新蟑螂</summary>
-        [Tooltip("孵化一只蟑螂需要的营养总量")] public float HatchNutritionCost = 80f;
+        /// <summary>累计吃掉这么多营养就出一批蟑螂（一批几只由 CockNest.hatchBatchSize 定）</summary>
+        [Tooltip("孵化一批蟑螂需要的营养总量")] public float HatchNutritionCost = 30f;
 
         // ---- 信息素衰减（由 GridManager.Update 每帧使用） ----
 

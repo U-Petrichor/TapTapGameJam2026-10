@@ -85,10 +85,10 @@ MonoBehaviour:
   _bagIcon: {fileID: -6897219521069250571, guid: 7a7bde02eceacc341a6c52e49754e8e3, type: 3}
   _specialLevel: 0
   _itemTitle: "\u9762\u5305"
-  _itemDesc: "\u987A\u624B\u634E\u56DE\u6765\u7684\u591C\u5BB5\uFF0C\u7BA1\u9971\u3002\u8425\u517B
+  _itemDesc: "\u987A\u624B\u634E\u56DE\u6765\u7684\u591C\u5BB5\uFF0C\u7BA1\u9971\u3002\u8425\u517B 20\u3002"
     170\u3002"
-  totalNutrition: 170
-  remainingNutrition: 170
+  totalNutrition: 20
+  remainingNutrition: 20
 --- !u!1001 &349536098698144786
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -12,9 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ff03a4338e986a46a4484ecc188df7c, type: 3}
   m_Name: DressData_Head_HanBao
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressData
-  _buffs:
-  - Key: 18
-    Value: 0.15
-  - Key: 22
-    Value: 0.1
-  _description: "\u8425\u517B\u83B7\u53D6 +15%\uFF1B\u5E78\u8FD0 +0.1\uFF08\u9ED1\u76D2\u7A00\u6709\u6982\u7387 \u00D71.1\uFF09"
+  _buffs: []
+  _description: "\u7EAF\u5916\u89C2\uFF0C\u4E0D\u52A0\u4EFB\u4F55\u6570\u503C"

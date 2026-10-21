@@ -82,8 +82,8 @@ MonoBehaviour:
   _specialLevel: 0
   _itemTitle: "\u87D1\u8782\u7684\u5C38\u4F53"
   _itemDesc: "\u867D\u7136\u5F88\u5C0F\uFF0C\u4F46\u4E5F\u80FD\u5403"
-  totalNutrition: 10
-  remainingNutrition: 10
+  totalNutrition: 1
+  remainingNutrition: 1
 --- !u!1001 &2905726263700929505
 PrefabInstance:
   m_ObjectHideFlags: 0
