@@ -1,0 +1,1 @@
+PASS: 4 prefabs, 4 URP Lit materials. All prefab/material GUID references resolve locally or to URP Lit. BaseMap populated. Unity visual validation pending.\n

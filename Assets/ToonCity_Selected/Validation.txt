@@ -1,0 +1,4 @@
+Roads/Road_1A: mesh, URP/Lit, texture and independent dependencies OK
+Vegetation/Tree_1A: mesh, URP/Lit, texture and independent dependencies OK
+Props/Trash_Can_1A: mesh, URP/Lit, texture and independent dependencies OK
+Roads/Streetlight_1A: mesh, URP/Lit, texture and independent dependencies OK
