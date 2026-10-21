@@ -46,6 +46,9 @@ namespace TapTapGameJam.UI
         private const int GridRows = 5;
 
         private static readonly Color CellEmptyColor = new Color(0f, 0f, 0f, 1f);
+
+        [Tooltip("未解锁格子的底色。空格底色是纯黑，所以这里用「更暗 + 更透」来区分：一眼能看出这几格暂时用不了")]
+        [SerializeField] private Color _lockedCellColor = new Color(0.05f, 0.05f, 0.05f, 0.45f);
         private static readonly Color PreviewBadColor = new Color(0.95f, 0.3f, 0.3f, 0.45f);
 
         #endregion
@@ -161,6 +164,9 @@ namespace TapTapGameJam.UI
             FinishPendingClose();
 
             base.OpenContainer();
+
+            // 天赋可能刚解锁了新格子：打开时同步一次锁定底色
+            RefreshCellLocks();
 
             foreach (PlayerBag.Placement p in _bag.Placements)
             {
@@ -360,6 +366,25 @@ namespace TapTapGameJam.UI
             }
 
             HidePreview();
+            RefreshCellLocks();
+        }
+
+        /// <summary>
+        /// 按当前解锁档位刷新每个格子的锁定底色。幂等：BagCell 自己判"状态没变就不重画"，
+        /// 所以每次打开背包调一次就够了（天赋解锁后重开一次背包就会更新）。
+        /// </summary>
+        private void RefreshCellLocks()
+        {
+            for (int i = 0; i < _cells.Count; i++)
+            {
+                BagCell cell = _cells[i];
+                if (cell == null)
+                {
+                    continue;
+                }
+
+                cell.SetLocked(!_bag.IsCellUnlocked(cell.Cell), _lockedCellColor);
+            }
         }
 
         private BagCell CreateCell(Vector2Int pos)

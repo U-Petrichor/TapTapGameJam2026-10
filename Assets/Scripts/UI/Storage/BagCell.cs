@@ -27,6 +27,11 @@ namespace TapTapGameJam.UI
         private bool _hasPreview;
         private bool _isHovered;
 
+        /// <summary>这一格还没解锁（天赋没点到）。只管显示，能不能放由 PlayerBag.CanPlace 判</summary>
+        private bool _locked;
+
+        private Color _lockedColor = new Color(0.05f, 0.05f, 0.05f, 0.45f);
+
         public BagPanelUI bagPanelUI;
 
         public void Initialize(Vector2Int cell, Image background, Image preview, Color baseColor)
@@ -94,6 +99,25 @@ namespace TapTapGameJam.UI
             Apply();
         }
 
+        /// <summary>这一格锁着没有（未解锁）</summary>
+        public bool IsLocked => _locked;
+
+        /// <summary>
+        /// 设置锁定状态与锁定底色。锁住的格子画得比已解锁的更暗更透，
+        /// 玩家一眼能看出这几格还不能用；状态没变就不碰 UI。
+        /// </summary>
+        public void SetLocked(bool locked, Color lockedColor)
+        {
+            if (_locked == locked && _lockedColor == lockedColor)
+            {
+                return;
+            }
+
+            _locked = locked;
+            _lockedColor = lockedColor;
+            Apply();
+        }
+
         /// <summary>设置/清除试放预览颜色（半透明叠色）</summary>
         public void SetPreview(bool active, Color color)
         {
@@ -147,6 +171,13 @@ namespace TapTapGameJam.UI
         {
             if (_background == null)
             {
+                return;
+            }
+
+            // 锁住的格子里固定用更暗的锁定底色，也不做悬停提亮（没法用的格子不该有"可交互"的反馈）
+            if (_locked)
+            {
+                _background.color = _lockedColor;
                 return;
             }
 

@@ -17,6 +17,9 @@ namespace TapTapGameJam.UI
         [SerializeField, Min(0f)] private float _scaleDuration = 0.12f;
         [SerializeField] private UnityEvent _onClick = new UnityEvent();
         [SerializeField] private TalentTreeUI _modalTalentTree;
+
+        [Tooltip("悬停时显示、移开时隐藏的提示按钮。初始化（以及失焦 / 停用）时自动隐藏")]
+        [SerializeField] private Transform _hintButton;
         public UnityEvent OnClick => _onClick;
         private bool CanInteract => _interactive && isActiveAndEnabled &&
             (_modalTalentTree == null || !_modalTalentTree.IsOpen);
@@ -32,6 +35,9 @@ namespace TapTapGameJam.UI
             ResetVisual();
         }
 
+        /// <summary>初始化就把提示藏起来：场景里摆着它是为了方便对齐，运行时只在悬停时露出来</summary>
+        private void Awake() => SetHintVisible(false);
+
         private void OnDisable() => ResetVisual();
 
         private void ResetVisual()
@@ -40,6 +46,7 @@ namespace TapTapGameJam.UI
             _fromScale = _targetScale = 1f;
             _elapsed = 0f;
             if (_outline != null) _outline.enabled = false;
+            SetHintVisible(false);
             if (_visual == null) return;
             _visual.sprite = _normal;
             _visual.rectTransform.localScale = Vector3.one;
@@ -65,13 +72,32 @@ namespace TapTapGameJam.UI
 
         private void SetHovered(bool hovered)
         {
-            if (_visual == null || _hovered == hovered) return;
+            if (_hovered == hovered) return;
             _hovered = hovered;
+
+            // 提示按钮的显隐不依赖 _visual：_visual 没配也照样该露提示
+            SetHintVisible(hovered);
+
+            if (_visual == null) return;
             if (_outline != null) _outline.enabled = hovered && _outline.sprite != null;
             _visual.sprite = hovered && _hover != null ? _hover : _normal;
             _fromScale = _visual.rectTransform.localScale.x;
             _targetScale = hovered ? _hoverScale : 1f;
             _elapsed = 0f;
+        }
+
+        /// <summary>提示按钮显隐。只切 active，不动设计师摆的位置 / 缩放</summary>
+        private void SetHintVisible(bool visible)
+        {
+            if (_hintButton == null)
+            {
+                return;
+            }
+
+            if (_hintButton.gameObject.activeSelf != visible)
+            {
+                _hintButton.gameObject.SetActive(visible);
+            }
         }
 
         private void Update()

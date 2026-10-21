@@ -1,6 +1,7 @@
 using TapTapGameJam.Audio;
 using System;
 using System.Collections.Generic;
+using TapTapGameJam.Buffs;
 using TapTapGameJam.Core;
 using TapTapGameJam.Events;
 using TapTapGameJam.Items.tools;
@@ -71,6 +72,9 @@ namespace TapTapGameJam.Items
         public int Height => _height;
         public int CellCount => _width * _height;
 
+        /// <summary>最多能解锁到第几档：0 = 初始（右上 4x4），1 = 再开最左列，2 = 再开最下排（全开）</summary>
+        public const int MaxUnlockTier = 2;
+
         #endregion
 
         #region 运行时数据
@@ -90,6 +94,10 @@ namespace TapTapGameJam.Items
 
         private Transform _stagingRoot;
 
+        /// <summary>解锁档位按 Buff 的 Revision 缓存：没变就不重算</summary>
+        private int _tierRevision = int.MinValue;
+        private int _unlockTier;
+
         /// <summary>
         /// 从地图捡起来、等着玩家在背包界面里安顿的那一件。
         /// 由 <see cref="PickUp"/> 或 <see cref="SetPendingPickupItem"/> 设置；
@@ -107,6 +115,89 @@ namespace TapTapGameJam.Items
         public bool InBounds(Vector2Int cell)
         {
             return cell.x >= 0 && cell.x < _width && cell.y >= 0 && cell.y < _height;
+        }
+
+        /// <summary>
+        /// 当前解锁档位：0 = 只有右上 4x4（16 格），1 = 再开最左列 4 格（20 格），
+        /// 2 = 再开最下排 5 格（25 格，全开）。
+        ///
+        /// 来源是天赋「扩囊增容 / 巨囊载物」写进 <see cref="BuffKey.BagCapacityTier"/> 的值：
+        /// 两个天赋分别填 <b>1</b> 和 <b>2</b>（是档位，不是累加格数），所以这里直接取整夹到 0~2。
+        /// 按 <see cref="PlayerBuffs.Revision"/> 缓存，档位不变就不会重算。
+        /// </summary>
+        public int UnlockTier
+        {
+            get
+            {
+                PlayerBuffs buffs = PlayerBuffs.Current;
+                if (buffs == null)
+                {
+                    return 0;
+                }
+
+                if (buffs.Revision == _tierRevision)
+                {
+                    return _unlockTier;
+                }
+
+                _tierRevision = buffs.Revision;
+                _unlockTier = Mathf.Clamp(
+                    Mathf.RoundToInt(buffs.GetFlat(BuffKey.BagCapacityTier)), 0, MaxUnlockTier);
+                return _unlockTier;
+            }
+        }
+
+        /// <summary>
+        /// 这一格解锁了没有。锁住的格子不能放东西、也不会被占用
+        /// （<see cref="CanPlace"/> 会拒掉，所以 <see cref="ItemAt"/> 在锁住的格子上永远是 null）。
+        ///
+        /// 布局按背包坐标算（y 从上往下，0 = 最上面一行）：
+        /// - 初始：右上 4x4，即 x ≥ 1 且 y ≤ height-2；
+        /// - 第一档：最左列 x = 0 的那 height-1 格；
+        /// - 第二档：最下排 y = height-1 的那 width 格。
+        /// </summary>
+        public bool IsCellUnlocked(Vector2Int cell)
+        {
+            if (!InBounds(cell))
+            {
+                return false;
+            }
+
+            // 最下排：第二档才开
+            if (cell.y >= _height - 1)
+            {
+                return UnlockTier >= 2;
+            }
+
+            // 最左列：第一档才开
+            if (cell.x <= 0)
+            {
+                return UnlockTier >= 1;
+            }
+
+            // 其余就是初始的右上 4x4
+            return true;
+        }
+
+        /// <summary>当前解锁的格子数（16 / 20 / 25），给 UI 显示和调试用</summary>
+        public int UnlockedCellCount
+        {
+            get
+            {
+                int count = 0;
+                for (int y = 0; y < _height; y++)
+                {
+                    for (int x = 0; x < _width; x++)
+                    {
+                        if (IsCellUnlocked(new Vector2Int(x, y)))
+                        {
+                            count++;
+                        }
+                    }
+                }
+
+                return count;
+            }
         }
 
         public PickableItem ItemAt(Vector2Int cell)
@@ -189,7 +280,8 @@ namespace TapTapGameJam.Items
 
             foreach (Vector2Int cell in CellsOf(item, origin))
             {
-                if (!InBounds(cell))
+                // 越界 + 未解锁都挡在这里：锁住的格子不能被占用
+                if (!IsCellUnlocked(cell))
                 {
                     return false;
                 }
