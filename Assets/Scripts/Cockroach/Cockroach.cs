@@ -576,7 +576,10 @@ namespace TapTapGameJam.Cockroach
                 }
             }
 
-            if (nestCommand == CockroachCommand.Foraging && currentState == CockroachState.Inside)
+            // 白天不出去：天亮时 NightManager 会把没回巢的蟑螂全部送回来待命，
+            // 如果这里不判昼夜，"觅食"指令会让它们立刻又钻出去，等于白送。
+            if (nestCommand == CockroachCommand.Foraging && currentState == CockroachState.Inside
+                && !GameManager.IsDay)
             {
                 _phaseClock = 0f;
                 SetState(CockroachState.Forage);

@@ -222,6 +222,10 @@ namespace TapTapGameJam.Core
 
             if (!_cleanupAtDay)
             {
+                // 不勾"天亮清场"= 蟑螂不杀、食物不清，但必须全部回巢：
+                // 不清场又不回巢的话，白天会有一群蟑螂在地图上晃（它们白天本来也不该活动）。
+                int home = SendAllRoachesHome();
+                Debug.Log($"[NightManager] 天亮不清场：把 {home} 只蟑螂瞬移回巢待命。");
                 return;
             }
 
@@ -236,6 +240,47 @@ namespace TapTapGameJam.Core
             Debug.Log($"[NightManager] 天亮清场：击杀 {killed} 只未归巢的蟑螂，清空 {cleared} 份食物。");
         }
 
+        /// <summary>
+        /// 把所有还在地图上的蟑螂瞬移回各自巢穴，并转入待命（Inside）。返回送回去的只数。
+        /// 已经在巢里的不动。
+        ///
+        /// 走 <see cref="Roach.SpawnInside"/>：它会顺手关掉渲染、更新巢内计数，
+        /// 所以不会出现"位置回去了、巢穴还以为它在外面的"这种账目错位。
+        /// </summary>
+        private static int SendAllRoachesHome()
+        {
+            CockroachManager manager = CockroachManager.Instance;
+            if (manager == null)
+            {
+                return 0;
+            }
+
+            int sent = 0;
+            List<CockNest> nests = manager.CockNestList;
+            for (int i = 0; i < nests.Count; i++)
+            {
+                CockNest nest = nests[i];
+                if (nest == null)
+                {
+                    continue;
+                }
+
+                List<Roach> roaches = nest.CockroachList;
+                for (int j = 0; j < roaches.Count; j++)
+                {
+                    Roach roach = roaches[j];
+                    if (roach == null || roach.IsDead || roach.IsInside)
+                    {
+                        continue;
+                    }
+
+                    roach.SpawnInside(nest);
+                    sent++;
+                }
+            }
+
+            return sent;
+        }
         /// <summary>
         /// 击杀所有"不在巢里"的蟑螂。返回击杀数量。
         ///

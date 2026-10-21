@@ -443,13 +443,9 @@ namespace TapTapGameJam.Cockroach
                 _ring.Regenerate(EffectiveRange);
                 RefreshDistanceField();
             }
-            else
-            {
-                foreach (Cockroach c in CockroachList)
-                {
-                    if (!c.IsInside) c.Die();
-                }
-            }
+            // 天亮后怎么处理没回巢的蟑螂，由 NightManager 按"清场"开关统一决定
+            // （勾了 = 击杀，没勾 = 全部瞬移回巢）。这里不再自己杀：
+            // 否则开关关掉时会被这一刀抢先杀掉，那个开关就形同虚设。
 
             RefreshRingVisibility();
         }
