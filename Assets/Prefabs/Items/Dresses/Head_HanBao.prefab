@@ -83,7 +83,7 @@ MonoBehaviour:
   _bagIcon: {fileID: 4259221629134560708, guid: b5018eece6cef114d8abf3c10e71dea7, type: 3}
   _specialLevel: 0
   _itemTitle: "\u6C49\u5821\u5934\u5957"
-  _itemDesc: "\u786C\u7EB8\u677F\u505A\u7684\u6C49\u5821\uFF0C\u6234\u4E0A\u50CF\u4E2A\u884C\u8D70\u7684\u5E7F\u544A\u724C\u3002\u7EAF\u5916\u89C2\uFF0C\u4E0D\u52A0\u4EFB\u4F55\u6570\u503C\u3002"
+  _itemDesc: "\u786C\u7EB8\u677F\u505A\u7684\u6C49\u5821\uFF0C\u6234\u4E0A\u50CF\u4E2A\u884C\u8D70\u7684\u5E7F\u544A\u724C\u3002"
   dressType: 0
   _data: {fileID: 11400000, guid: 4a71c3e9d2b8408fa1c6e5d4703b9a01, type: 2}
 --- !u!114 &2026102100000012
@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b1c9e40d3a74c6e8f2a71b0c4d95e63, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TapTapGameJam.Items.DressWornVisual
   _wornModelPrefab: {fileID: 919132149155446097, guid: d038eebdaa8f4914684fe9d62b4b605c, type: 3}
   _attach:
