@@ -826,7 +826,7 @@ MonoBehaviour:
   _id: Talent19
   _displayName: "\u84C4\u52BF\u7A81\u8FDB"
   _talentType: "\u6BCD\u4F53\u8FDB\u5316"
-  _description: "\u4E2A\u4F53\u83B7\u5F97\u51B2\u523A\u6280\u80FD"
+  _description: "\u79FB\u901F+50%"
   _icon: {fileID: 71375598211067573, guid: ed4b7f08a31baad4f957413152bc5b73, type: 3}
   _levels:
   - _talentPointCost: 50
@@ -851,8 +851,8 @@ MonoBehaviour:
     - rid: 9100000000000000019
       type: {class: TalentEffect, ns: TalentTree.Effects, asm: Assembly-CSharp}
       data:
-        _effectKey: individual_sprint
-        _numericValue: 1
+        _effectKey: movement_speed
+        _numericValue: 0.5
         _payload: 
 --- !u!114 &-900000000000010000
 MonoBehaviour:

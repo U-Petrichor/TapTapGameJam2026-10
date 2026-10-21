@@ -138,7 +138,8 @@ namespace TapTapGameJam.Player
             float animationSpeed = 1f;
             if (MoveDirection.sqrMagnitude > 0.0001f && _moveSpeed > 0f)
             {
-                animationSpeed = Mathf.Clamp(CurrentMoveSpeed / _moveSpeed, 1f, 2.5f);
+                // 与实际移速倍率一致，包括天赋、减速和冲刺叠加。
+                animationSpeed = CurrentMoveSpeed / _moveSpeed;
             }
 
             _player.AnimationManager.SetMoveAnimationSpeed(animationSpeed);

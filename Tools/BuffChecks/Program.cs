@@ -499,6 +499,15 @@ internal static class Program
         Check(buffs.ApplyInt(BuffKey.BagCapacityTier, 0) == 1, "天赋 1 档扩容应该让档位变成 1");
         Check(buffs.Has(BuffKey.FlagGroupWallGnawing), "天赋 Tag 应该在聚合结果里点亮");
         Check(buffs.Warnings.Count == 0, "正常配置不该产生 warning：" + string.Join(" | ", buffs.Warnings));
+        var speedTalent = new TalentBuffSource(new TalentTree.Effects.TalentEffectResolver(
+            new List<TalentTree.Effects.TalentEffect>
+            {
+                TalentTree.Effects.TalentEffect.Make("movement_speed", 0.5f),
+            }));
+        buffs.SetSource(BuffSourceKind.Talent, speedTalent.Build());
+        Check(Approx(buffs.Apply(BuffKey.PlayerMoveSpeedPercent, 4.5f), 6.75f),
+            "蓄势突进 +50% 移速应该让 4.5 变成 6.75");
+        Check(!buffs.Has(BuffKey.FlagIndividualSprint), "蓄势突进应提供移速加成，而非冲刺标记");
     }
 
     private static void CheckTalentBuffSourceIsStable()
