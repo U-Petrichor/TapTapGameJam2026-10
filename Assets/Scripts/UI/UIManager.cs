@@ -269,6 +269,8 @@ namespace TapTapGameJam.UI
                     container.CloseContainer();
                 }
             }
+            
+            _emptySlot.SetEnabled(false);
         }
 
         private static bool IsOpen(ItemContainer container)

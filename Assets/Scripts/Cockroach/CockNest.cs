@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TapTapGameJam.Buffs;
 using TapTapGameJam.Events;
 using TapTapGameJam.Interactables;
+using TapTapGameJam.Items;
 using TapTapGameJam.Tutorial;
 using UnityEngine;
 using TapTapGameJam.Core;
@@ -37,7 +38,8 @@ namespace TapTapGameJam.Cockroach
             id = SaveId, position = transform.position, rotation = transform.rotation,
             state = nestLockState, population = InsideCount,
             spawnProgress = _spawnSpentTime, firstHatchProgress = _firstHatchNutrition,
-            hatchNutrition = _hatchNutrition, command = currentCommand
+            hatchNutrition = _hatchNutrition, command = currentCommand,
+            firstHatchReserve = _firstHatchReserve
         };
 
         public void RestoreState(NestSaveEntry data)
@@ -50,6 +52,7 @@ namespace TapTapGameJam.Cockroach
             nestLockState = data.state;
             _spawnSpentTime = data.spawnProgress;
             _firstHatchNutrition = data.firstHatchProgress;
+            _firstHatchReserve = Mathf.Clamp(data.firstHatchReserve, 0f, _firstHatchNutritionCost);
             _hatchNutrition = data.hatchNutrition;
             currentCommand = data.command;
             if (data.population > 0 && _cockroachPrefab == null)
@@ -94,6 +97,15 @@ namespace TapTapGameJam.Cockroach
         /// <summary>首次孵化已经吃掉多少营养。进度 = 它 / <see cref="_firstHatchNutritionCost"/></summary>
         private float _firstHatchNutrition;
 
+        /// <summary>
+        /// 首次孵化专用的<b>小营养池</b>：从共享池预支过来的、以及吸到的食物营养暂存在这里，
+        /// 上限 = 首次孵化还差多少（<c>Cost - _firstHatchNutrition</c>），**不会超过需求**。
+        ///
+        /// 它只负责"占住"营养：孵化进度仍然按时间从这个小池子里慢慢消耗
+        /// （见 <see cref="UpdateFirstHatch"/>）。预支 / 吸食物本身都不推进进度。
+        /// </summary>
+        private float _firstHatchReserve;
+
         /// <summary>上一次结算时池子里有没有营养。只用来让"没营养了"这条日志每个枯竭期只打一次</summary>
         private bool _firstHatchStarved;
 
@@ -121,6 +133,22 @@ namespace TapTapGameJam.Cockroach
 
         [Tooltip("活动范围半径（世界单位）。超出所有巢穴范围的蟑螂会被拉回来")]
         public float range = 10f;
+
+        [Header("巢穴吸食周围食物")]
+        [Tooltip("每隔多少帧扫描一次巢穴周围的食物")]
+        [SerializeField, Min(1)]
+        private int _absorbScanFrames = 10;
+
+        [Tooltip("吸食半径（世界单位）：这个范围内的食物会被整个吸掉，不用蟑螂去搬")]
+        [SerializeField, Min(0.1f)]
+        private float _absorbRadius = 1.5f;
+
+        [Tooltip("一次扫描最多吸几件，避免范围开很大时一帧啃穿一地")]
+        [SerializeField, Min(1)]
+        private int _absorbMaxPerScan = 8;
+
+        /// <summary>吸食扫描的帧计数</summary>
+        private int _absorbFrameCounter;
 
         /// <summary>上次读到 Buff 时的 Revision，用来判断 <see cref="EffectiveRange"/> 要不要重算</summary>
         private int _rangeRevision = int.MinValue;
@@ -209,7 +237,10 @@ namespace TapTapGameJam.Cockroach
         private void Update()
         {
             if (GameManager.IsDay) return;
-            
+
+            // 先吸周围的食物，再跑孵化：这样这一帧吸到的营养当帧就能算进首次孵化
+            AbsorbNearbyFood();
+
             if (nestLockState == NestLockState.FirstHatching)
             {
                 UpdateFirstHatch(Time.deltaTime);
@@ -239,14 +270,16 @@ namespace TapTapGameJam.Cockroach
         }
 
         /// <summary>
-        /// 首次孵化：按"每秒消耗营养"推进进度，而不是按时间。
+        /// 首次孵化：进度按"每秒消耗营养"推进，总需求 <see cref="_firstHatchNutritionCost"/> 不变。
         ///
-        /// 【预支】不等蟑螂把食物运回来，每帧直接从共享营养池里把当前这口营养扣走：
-        /// 池子里有多少扣多少（<see cref="CockroachManager.SpendSharedNutrition"/>），
-        /// 扣到 0 就停在这里，等池子重新有营养再继续。**不会把池子扣成负数**，
-        /// 所以玩家要么先喂饱池子，要么就只能看着进度卡住。
+        /// 每帧两步：
+        /// ① <b>预支</b>：把共享池里的营养提前抢进巢穴的小池子 <see cref="_firstHatchReserve"/>，
+        ///    上限是"还差多少"。池子里有多少抢多少，抢不到就下一帧再说。
+        ///    这一步只是"占住"，进度一点都不涨。
+        /// ② <b>消耗</b>：从小池子里按 <see cref="_firstHatchNutritionPerSecond"/> 慢慢扣，
+        ///    扣掉多少进度才涨多少。小池子空了就停在这里等（池子不会被扣成负数）。
         ///
-        /// 【玩家加速】只乘在"每秒消耗速率"上：总需求 <see cref="_firstHatchNutritionCost"/> 不变，
+        /// 【玩家加速】只乘在"每秒消耗速率"上：总需求不变，
         /// 加速只是让它更快吃满、更快孵出来，吃掉的营养总量一模一样。
         /// </summary>
         private void UpdateFirstHatch(float dt)
@@ -267,31 +300,165 @@ namespace TapTapGameJam.Cockroach
             bool boosting = InteractState == InteractState.Interacting;
             float rate = _firstHatchNutritionPerSecond * (boosting ? _firstHatchInteractBoost : 1f);
 
-            // 只要还差的那部分，避免最后一帧多吃
+            // 只要还差的那部分，避免最后一帧多吃。
+            // 暂停时 dt = 0，这里直接返回 —— 下面的预支也不会搬营养。
             float wanted = Mathf.Min(rate * dt, remaining);
             if (wanted <= 0f)
             {
                 return;
             }
 
-            float spent = manager.SpendSharedNutrition(wanted);
+            // ① 预支：先把共享池里还差的那部分抢到自己的小池子里（池子有多少抢多少，不多占）
+            PreemptSharedNutrition(manager, remaining);
+
+            // ② 消耗：小池子里的营养按时间慢慢花，花掉多少进度才涨多少
+
+            float spent = Mathf.Min(wanted, _firstHatchReserve);
             if (spent <= 0f)
             {
                 if (!_firstHatchStarved)
                 {
                     _firstHatchStarved = true;
-                    Debug.Log($"[CockNest:{name}] 共享营养池是空的，首次孵化暂停（还差 {remaining:0.#} 营养）", this);
+                    Debug.Log($"[CockNest:{name}] 小营养池和共享池都是空的，首次孵化暂停（还差 {remaining:0.#} 营养）", this);
                 }
 
                 return;
             }
 
             _firstHatchStarved = false;
+            _firstHatchReserve -= spent;
             _firstHatchNutrition += spent;
 
             if (_firstHatchNutrition >= _firstHatchNutritionCost)
             {
                 FinishFirstHatch();
+            }
+        }
+
+        /// <summary>
+        /// 预支：把共享池里的营养提前抢进巢穴的小池子，上限是"首次孵化还差多少"。
+        ///
+        /// 这就是"抢占"的全部含义 —— <b>只是把营养挪到自己这里占住</b>，
+        /// 别的巢 / 批次孵化就花不到了；孵化进度一点都不涨，还是要按时间慢慢消耗。
+        /// 共享池里有多少抢多少（部分扣款），抢不到就等下一帧。
+        /// </summary>
+        private void PreemptSharedNutrition(CockroachManager manager, float remaining)
+        {
+            float room = remaining - _firstHatchReserve;
+            if (room <= 0f)
+            {
+                return;
+            }
+
+            float taken = manager.SpendSharedNutrition(room);
+            if (taken > 0f)
+            {
+                _firstHatchReserve += taken;
+            }
+        }
+
+        /// <summary>
+        /// 每 <see cref="_absorbScanFrames"/> 帧扫一次巢穴周围：半径内的食物直接整个吸掉，不用蟑螂搬。
+        ///
+        /// 为什么是"吸"而不是等蟑螂运：首次孵化卡住时最难受的就是干等，
+        /// 巢穴自己把脚边的食物吃掉，才能让"围着巢堆食物 → 立刻孵化"这个玩法成立。
+        ///
+        /// 只跳过 <see cref="NestLockState.UnFounded"/>（还没被标记的点还不是巢）和被玩家搬走的巢。
+        /// 营养去向见 <see cref="DepositAbsorbed"/>。
+        /// </summary>
+        private void AbsorbNearbyFood()
+        {
+            // 暂停时不吸（背包 / 商店 / 仓库 / ESC / 教程 都是 timeScale = 0）。
+            // 这里的扫描是按帧数走的，timeScale = 0 拦不住它 —— 不显式拦的话，
+            // 玩家在背包里拖东西、或者开着面板发呆时，地上的食物会被巢穴悄悄吸走。
+            // 放在帧计数之前：暂停期间连计数都不推进，恢复后仍是"每 10 帧一次"。
+            if (GamePauseManager.Instance.IsPaused)
+            {
+                return;
+            }
+
+            // 只有"已经在孵化"或"已经解锁"的巢才吸：UnFounded 还不算巢，
+            // Locked（产卵阶段）也不吸 —— 那时候巢还没开工。
+            bool canAbsorb = nestLockState == NestLockState.FirstHatching || nestLockState == NestLockState.Unlocked;
+            if (!canAbsorb || IsCarried)
+            {
+                return;
+            }
+
+            if (++_absorbFrameCounter < _absorbScanFrames)
+            {
+                return;
+            }
+
+            _absorbFrameCounter = 0;
+
+            FoodManager foods = FoodManager.Instance;
+            if (foods == null || _absorbRadius <= 0f)
+            {
+                return;
+            }
+
+            Vector2 center = WorldPosition;
+            for (int i = 0; i < _absorbMaxPerScan; i++)
+            {
+                if (!foods.TryFindNearestFood(center, _absorbRadius, out FoodItem food, out Vector2 eatPoint))
+                {
+                    return;
+                }
+
+                // TryFindNearestFood 是按"格"找的，最外圈可能略微超出半径；
+                // 最近的那件都在范围外，就说明周围已经没东西了
+                if (Vector2.Distance(center, eatPoint) > _absorbRadius)
+                {
+                    return;
+                }
+
+                float taken = food.Consume(food.remainingNutrition);
+                if (taken <= 0f)
+                {
+                    // 已经被别人啃空（销毁是帧末生效的），跳过继续找下一件
+                    continue;
+                }
+
+                DepositAbsorbed(taken);
+            }
+        }
+
+        /// <summary>
+        /// 吸到的营养按优先级分配：<b>先补首次孵化，够了剩下的才进共享营养池</b>。
+        /// 首次孵化不在进行中（还没产卵 / 已经孵完）就整份进池子。
+        /// </summary>
+        private void DepositAbsorbed(float amount)
+        {
+            if (amount <= 0f)
+            {
+                return;
+            }
+
+            // 首次孵化期间：先塞进小营养池（上限 = 还差多少），剩下的才进共享池。
+            // 注意这里**只搬营养、不推进进度** —— 进度依然由 UpdateFirstHatch 按时间消耗。
+            if (nestLockState == NestLockState.FirstHatching)
+            {
+                float need = _firstHatchNutritionCost - _firstHatchNutrition;
+                float room = Mathf.Max(0f, need - _firstHatchReserve);
+                if (room > 0f)
+                {
+                    float toReserve = Mathf.Min(amount, room);
+                    _firstHatchReserve += toReserve;
+                    amount -= toReserve;
+                    _firstHatchStarved = false;
+                }
+            }
+
+            if (amount <= 0f)
+            {
+                return;
+            }
+
+            CockroachManager manager = CockroachManager.Instance;
+            if (manager != null)
+            {
+                manager.AddSharedNutrition(amount);
             }
         }
 

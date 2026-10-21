@@ -28,6 +28,8 @@ namespace TapTapGameJam.Core
         public float spawnProgress, firstHatchProgress, hatchNutrition;
         // firstHatchProgress 现在记的是"首次孵化已经吃掉的营养量"（不再是秒）；
         // spawnProgress 仍是产卵耗时（秒），hatchNutrition 是常规孵化攒的进度。
+        // firstHatchReserve 是巢穴"已从共享池预支、还没被孵化消耗掉"的那部分（旧存档没有这个字段，按 0 处理）。
+        public float firstHatchReserve;
         public CockroachCommand command;
     }
 
